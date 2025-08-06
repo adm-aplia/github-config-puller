@@ -45,10 +45,13 @@ html {
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(var(--aplia-dark)), hsl(var(--aplia-coral)));
     --gradient-coral: linear-gradient(135deg, hsl(var(--aplia-coral)), hsl(356 75% 70%));
+    --gradient-background: linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted)));
+    --gradient-dark-background: linear-gradient(135deg, hsl(var(--background)), hsl(var(--card)));
 
     /* Shadows */
     --shadow-elegant: 0 10px 30px -10px hsl(var(--aplia-coral) / 0.15);
     --shadow-glow: 0 0 40px hsl(var(--aplia-coral) / 0.2);
+    --shadow-card: 0 4px 12px hsl(var(--aplia-dark) / 0.1);
   }
 
   .dark {
