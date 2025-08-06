@@ -1,20 +1,55 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Moon, Sun, LogOut, Bot, Calendar, MessageCircle, BarChart3, Settings, Users } from "lucide-react"
+import { Moon, Sun, LogOut, Bot, RefreshCw, Activity, Calendar, MessageSquare, Users, Settings, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/components/auth-provider"
-import { useState } from "react"
+import { Overview } from "@/components/dashboard/overview"
+import { RecentConversations } from "@/components/dashboard/recent-conversations"
+import { useState as useReactState } from "react"
 
 export default function DashboardPage() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [theme, setTheme] = useReactState<'light' | 'dark'>('light')
+  const [loading, setLoading] = useReactState(false)
+  const [initialLoading, setInitialLoading] = useReactState(true)
+  const [lastUpdated, setLastUpdated] = useReactState<Date>(new Date())
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
+  const [stats, setStats] = useReactState({
+    totalConversations: 147,
+    activeConversations: 23,
+    profileCount: 8,
+    instanceCount: 12,
+    connectedInstanceCount: 10,
+    messageCount: 1284,
+    appointmentCount: 89,
+    chartData: [
+      { date: "01/01", conversations: 12 },
+      { date: "02/01", conversations: 19 },
+      { date: "03/01", conversations: 15 },
+      { date: "04/01", conversations: 25 },
+      { date: "05/01", conversations: 22 },
+      { date: "06/01", conversations: 30 },
+      { date: "07/01", conversations: 28 }
+    ],
+    previousPeriod: {
+      totalConversations: 132,
+      messageCount: 1156,
+      appointmentCount: 76,
+    },
+  })
+
   useEffect(() => {
     if (!user) {
-      navigate('/login')
+      navigate('/')
+    } else {
+      // Simular carregamento inicial
+      setTimeout(() => {
+        setInitialLoading(false)
+      }, 1500)
     }
   }, [user, navigate])
 
@@ -36,57 +71,56 @@ export default function DashboardPage() {
     navigate('/')
   }
 
+  const refreshDashboard = async () => {
+    setLoading(true)
+    try {
+      // Simular atualização de dados
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      setLastUpdated(new Date())
+    } catch (error) {
+      console.error("Erro ao atualizar dashboard:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (!user) {
     return null
   }
 
-  const stats = [
-    {
-      title: "Agendamentos Hoje",
-      value: "12",
-      description: "3 pendentes de confirmação",
-      icon: Calendar,
-      trend: "+8%"
-    },
-    {
-      title: "Mensagens WhatsApp",
-      value: "47",
-      description: "Últimas 24 horas",
-      icon: MessageCircle,
-      trend: "+23%"
-    },
-    {
-      title: "Taxa de Resposta IA",
-      value: "94%",
-      description: "Respostas automáticas bem-sucedidas",
-      icon: Bot,
-      trend: "+5%"
-    },
-    {
-      title: "Pacientes Ativos",
-      value: "284",
-      description: "Este mês",
-      icon: Users,
-      trend: "+12%"
-    }
-  ]
+  const getPercentageChange = (current: number, previous: number) => {
+    if (previous === 0) return 0
+    return Math.round(((current - previous) / previous) * 100)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-background dark:bg-gradient-dark-background">
       {/* Header */}
-      <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm">
+      <header className="border-b border-border/50 bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex justify-between items-center p-6">
           <div className="flex items-center space-x-4">
             <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
               <Bot className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Aplia Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Bem-vindo, {user.name}!</p>
+              <h1 className="text-2xl font-bold text-foreground">Dashboard Aplia</h1>
+              <p className="text-sm text-muted-foreground">
+                Última atualização: {lastUpdated.toLocaleTimeString('pt-BR')}
+              </p>
             </div>
           </div>
           
           <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={refreshDashboard}
+              disabled={loading}
+              className="bg-card/80 backdrop-blur-sm border-border hover:bg-accent"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+            
             <Button
               variant="outline"
               size="icon"
@@ -110,42 +144,153 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-foreground mb-2">
+            Bem-vindo, {user.name}!
+          </h2>
+          <p className="text-muted-foreground">
+            Aqui está um resumo da sua atividade hoje
+          </p>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index} className="shadow-card hover:shadow-elegant transition-all duration-300 border-border/50">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">{stat.description}</p>
-                  <Badge variant="secondary" className="text-xs">
-                    {stat.trend}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total de Conversas
+              </CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {initialLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold text-foreground">{stats.totalConversations}</div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">Este mês</p>
+                    <Badge variant="secondary" className="text-xs">
+                      +{getPercentageChange(stats.totalConversations, stats.previousPeriod.totalConversations)}%
+                    </Badge>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Conversas Ativas
+              </CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {initialLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold text-foreground">{stats.activeConversations}</div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">Aguardando resposta</p>
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs">
+                      Ativo
+                    </Badge>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Agendamentos
+              </CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {initialLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold text-foreground">{stats.appointmentCount}</div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">Este mês</p>
+                    <Badge variant="secondary" className="text-xs">
+                      +{getPercentageChange(stats.appointmentCount, stats.previousPeriod.appointmentCount)}%
+                    </Badge>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Instâncias Conectadas
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {initialLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold text-foreground">
+                    {stats.connectedInstanceCount}/{stats.instanceCount}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">WhatsApp conectado</p>
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs">
+                      Online
+                    </Badge>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts and Activity */}
+        <div className="grid lg:grid-cols-7 gap-6 mb-8">
+          <Card className="lg:col-span-4 shadow-card border-border/50">
+            <CardHeader>
+              <CardTitle>Visão Geral das Conversas</CardTitle>
+              <CardDescription>Conversas por dia nos últimos 7 dias</CardDescription>
+            </CardHeader>
+            <CardContent className="pl-2">
+              <Overview data={stats.chartData} isLoading={initialLoading} />
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-3 shadow-card border-border/50">
+            <CardHeader>
+              <CardTitle>Conversas Recentes</CardTitle>
+              <CardDescription>Últimas interações com pacientes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RecentConversations isLoading={initialLoading} />
+            </CardContent>
+          </Card>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 gap-6">
           <Card className="shadow-card border-border/50">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-primary" />
-                <span>Agendamentos</span>
+                <Settings className="h-5 w-5 text-primary" />
+                <span>Configurações</span>
               </CardTitle>
-              <CardDescription>Gerencie sua agenda e horários</CardDescription>
+              <CardDescription>Gerencie assistentes e configurações</CardDescription>
             </CardHeader>
             <CardContent>
               <Button className="w-full bg-gradient-primary hover:opacity-90">
-                Ver Agenda
+                Acessar Configurações
               </Button>
             </CardContent>
           </Card>
@@ -153,14 +298,14 @@ export default function DashboardPage() {
           <Card className="shadow-card border-border/50">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <MessageCircle className="h-5 w-5 text-primary" />
+                <MessageSquare className="h-5 w-5 text-primary" />
                 <span>WhatsApp</span>
               </CardTitle>
-              <CardDescription>Configure seu assistente virtual</CardDescription>
+              <CardDescription>Gerenciar instâncias e conexões</CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="outline" className="w-full">
-                Configurar Bot
+                Ver Instâncias
               </Button>
             </CardContent>
           </Card>
@@ -171,7 +316,7 @@ export default function DashboardPage() {
                 <BarChart3 className="h-5 w-5 text-primary" />
                 <span>Relatórios</span>
               </CardTitle>
-              <CardDescription>Analise suas métricas e desempenho</CardDescription>
+              <CardDescription>Análises detalhadas e métricas</CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="outline" className="w-full">
@@ -180,44 +325,6 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Recent Activity */}
-        <Card className="shadow-card border-border/50">
-          <CardHeader>
-            <CardTitle>Atividade Recente</CardTitle>
-            <CardDescription>Últimas interações e eventos</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4 p-3 rounded-lg bg-accent/50">
-                <div className="w-2 h-2 rounded-full bg-primary"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Novo agendamento confirmado</p>
-                  <p className="text-xs text-muted-foreground">Dr. Silva - 15:30</p>
-                </div>
-                <span className="text-xs text-muted-foreground">há 5 min</span>
-              </div>
-              
-              <div className="flex items-center space-x-4 p-3 rounded-lg bg-accent/50">
-                <div className="w-2 h-2 rounded-full bg-primary"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Mensagem WhatsApp respondida automaticamente</p>
-                  <p className="text-xs text-muted-foreground">Paciente Maria - Dúvida sobre horários</p>
-                </div>
-                <span className="text-xs text-muted-foreground">há 12 min</span>
-              </div>
-              
-              <div className="flex items-center space-x-4 p-3 rounded-lg bg-accent/50">
-                <div className="w-2 h-2 rounded-full bg-primary"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Relatório mensal gerado</p>
-                  <p className="text-xs text-muted-foreground">Estatísticas de dezembro</p>
-                </div>
-                <span className="text-xs text-muted-foreground">há 1h</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </main>
     </div>
   )
