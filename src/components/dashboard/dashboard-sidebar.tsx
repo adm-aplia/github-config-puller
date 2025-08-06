@@ -1,5 +1,6 @@
 import { useState } from "react"
-import apliaLogo from "@/assets/aplia-logo.svg"
+const apliaLogoFull = "/aplia-logo-full.png"
+const apliaLogoIcon = "/aplia-logo-icon.png"
 import { 
   LayoutDashboard, 
   Users, 
@@ -51,12 +52,20 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
       <div className="flex flex-col w-full">
         {/* Header */}
         <div className="flex h-14 items-center px-4">
-          {!isCollapsed && (
+          {!isCollapsed ? (
             <div className="flex items-center gap-2">
               <img 
-                src={apliaLogo} 
+                src={apliaLogoFull} 
                 alt="Aplia" 
                 className="h-8 w-auto"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center">
+              <img 
+                src={apliaLogoIcon} 
+                alt="Aplia" 
+                className="h-8 w-8"
               />
             </div>
           )}
