@@ -35,7 +35,12 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
   const location = useLocation()
   const currentPath = location.pathname
 
-  const isActive = (path: string) => currentPath === path
+  const isActive = (path: string) => {
+    if (path === "/dashboard") {
+      return currentPath === "/dashboard"
+    }
+    return currentPath === path
+  }
 
   return (
     <div className={cn(
@@ -74,8 +79,8 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
                   cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
                     navIsActive || isActive(item.url)
-                      ? "bg-muted text-primary"
-                      : "text-muted-foreground hover:bg-muted/50"
+                      ? "bg-accent text-primary font-medium"
+                      : "text-sidebar-foreground hover:bg-accent/50 hover:text-sidebar-accent-foreground"
                   )
                 }
               >
