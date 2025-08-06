@@ -1,6 +1,9 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
 const apliaLogoIcon = "/lovable-uploads/940f8f03-f853-4fdf-ab6f-2a3b5c24ae05.png"
+// Logo para modo escuro
+const apliaLogoFullDark = "/lovable-uploads/e9a17318-593a-428d-b166-e4f8be819529.png"
+const apliaLogoIconDark = "/lovable-uploads/940f8f03-f853-4fdf-ab6f-2a3b5c24ae05.png"
 import { 
   LayoutDashboard, 
   Users, 
@@ -41,6 +44,25 @@ export function AppSidebar() {
   const { state } = useSidebar()
   const location = useLocation()
   const currentPath = location.pathname
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    // Detectar tema atual
+    const checkTheme = () => {
+      setIsDark(document.documentElement.classList.contains('dark'))
+    }
+    
+    checkTheme()
+    
+    // Observer para mudanças de tema
+    const observer = new MutationObserver(checkTheme)
+    observer.observe(document.documentElement, { 
+      attributes: true, 
+      attributeFilter: ['class'] 
+    })
+    
+    return () => observer.disconnect()
+  }, [])
 
   const isActive = (path: string) => currentPath === path
   const isExpanded = items.some((i) => isActive(i.url))
@@ -53,13 +75,13 @@ export function AppSidebar() {
             <div className="flex items-center gap-1">
               {state !== "collapsed" ? (
                 <img 
-                  src={apliaLogoFull} 
+                  src={isDark ? apliaLogoFullDark : apliaLogoFull} 
                   alt="Aplia" 
                   className="h-8 w-auto"
                 />
               ) : (
                 <img 
-                  src={apliaLogoIcon} 
+                  src={isDark ? apliaLogoIconDark : apliaLogoIcon} 
                   alt="Aplia" 
                   className="h-8 w-8"
                 />
