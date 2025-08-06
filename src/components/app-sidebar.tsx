@@ -53,7 +53,7 @@ export function AppSidebar() {
                 <div className="w-3 h-3 bg-white rounded-sm"></div>
               </div>
               {state !== "collapsed" && (
-                <span className="text-lg font-semibold text-foreground">Aplia</span>
+                <span className="text-lg font-semibold text-sidebar-foreground">Aplia</span>
               )}
             </div>
           </div>
@@ -71,10 +71,10 @@ export function AppSidebar() {
                       to={item.url} 
                       end={item.url === "/dashboard"}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${
+                        `flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                           isActive 
                             ? "bg-accent text-primary font-medium" 
-                            : "text-muted-foreground hover:bg-accent/50"
+                            : "text-sidebar-foreground hover:bg-accent/50 hover:text-sidebar-accent-foreground"
                         }`
                       }
                     >
@@ -96,7 +96,7 @@ export function AppSidebar() {
               <span className="text-xs text-muted-foreground mb-1">
                 Plano Profissional
               </span>
-              <span className="text-sm font-medium text-foreground truncate w-full">
+              <span className="text-sm font-medium text-sidebar-foreground truncate w-full">
                 Nathan Almeida
               </span>
               <span className="text-xs text-muted-foreground truncate w-full">

@@ -101,13 +101,16 @@ html {
 
     /* Sidebar dark mode */
     --sidebar-background: 224 42% 8%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 224 42% 16%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 42% 15%;
-    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-foreground: 0 0% 90%; /* Texto claro no modo escuro */
+    --sidebar-primary: 0 0% 100%; /* Branco para itens ativos */
+    --sidebar-primary-foreground: 224 42% 16%; /* Azul escuro para contraste */
+    --sidebar-accent: 224 42% 15%; /* Fundo do hover */
+    --sidebar-accent-foreground: 0 0% 100%; /* Texto branco no hover */
     --sidebar-border: 224 42% 20%;
     --sidebar-ring: 224 42% 16%;
+
+    /* Ajustar muted-foreground para ser visível no escuro */
+    --muted-foreground: 0 0% 60%; /* Texto mais claro no modo escuro */
   }
 }
 
