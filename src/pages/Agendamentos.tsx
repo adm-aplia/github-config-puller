@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
@@ -15,7 +16,16 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  RotateCcw
+  RotateCcw,
+  MoreHorizontal,
+  Eye,
+  Edit,
+  UserCheck,
+  Clock4,
+  Repeat,
+  X,
+  UserX,
+  Trash2
 } from "lucide-react"
 import { useState } from "react"
 import { ptBR } from "date-fns/locale"
@@ -207,7 +217,7 @@ export default function AgendamentosPage() {
                       cell: "h-20 w-full text-center text-sm p-0 relative border-r border-b border-gray-100",
                       day: "h-20 w-full p-1 font-normal bg-transparent text-foreground cursor-pointer",
                       day_range_end: "day-range-end",
-                      day_selected: "bg-transparent text-foreground",
+                      day_selected: "bg-red-500 text-white hover:bg-red-600",
                       day_today: "bg-transparent text-foreground",
                       day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
                       day_disabled: "text-muted-foreground opacity-50",
@@ -244,9 +254,56 @@ export default function AgendamentosPage() {
                             {appointment.time} • {appointment.type}
                           </div>
                         </div>
-                        <Badge variant={statusBadge.variant}>
-                          {statusBadge.label}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={statusBadge.variant}>
+                            {statusBadge.label}
+                          </Badge>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem className="flex items-center gap-2">
+                                <Eye className="h-4 w-4" />
+                                Ver Detalhes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="flex items-center gap-2">
+                                <Edit className="h-4 w-4" />
+                                Editar
+                              </DropdownMenuItem>
+                              {appointment.status === 'pending' && (
+                                <DropdownMenuItem className="flex items-center gap-2">
+                                  <UserCheck className="h-4 w-4" />
+                                  Confirmar
+                                </DropdownMenuItem>
+                              )}
+                              {appointment.status === 'confirmed' && (
+                                <DropdownMenuItem className="flex items-center gap-2">
+                                  <CheckCircle className="h-4 w-4" />
+                                  Marcar como Concluído
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem className="flex items-center gap-2">
+                                <Repeat className="h-4 w-4" />
+                                Remarcar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="flex items-center gap-2">
+                                <X className="h-4 w-4" />
+                                Cancelar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="flex items-center gap-2">
+                                <UserX className="h-4 w-4" />
+                                Marcar Falta
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="flex items-center gap-2 text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     )
                   })}
