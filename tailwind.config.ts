@@ -61,7 +61,31 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Cores específicas da marca Aplia
+				aplia: {
+					blue: {
+						DEFAULT: 'hsl(var(--aplia-blue))', // #172138
+						light: 'hsl(var(--aplia-blue-light))'
+					},
+					coral: {
+						DEFAULT: 'hsl(var(--aplia-coral))', // #EA545F 
+						light: 'hsl(var(--aplia-coral-light))'
+					},
+					gray: {
+						DEFAULT: 'hsl(var(--aplia-gray))', // #E5E5E5
+						dark: 'hsl(var(--aplia-gray-dark))'
+					}
 				}
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-background': 'var(--gradient-background)',
+				'gradient-dark-background': 'var(--gradient-dark-background)'
+			},
+			boxShadow: {
+				'elegant': 'var(--shadow-elegant)',
+				'card': 'var(--shadow-card)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
