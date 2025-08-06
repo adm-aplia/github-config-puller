@@ -74,28 +74,6 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <header className="flex h-16 items-center gap-4 px-6 border-b border-border/30 bg-background">
-        <div className="flex items-center gap-4 flex-1 justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refreshDashboard}
-            disabled={loading}
-            className="flex items-center gap-2 bg-transparent"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span className="sr-only md:not-sr-only">Atualizar</span>
-          </Button>
-          
-          <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-            <Settings2 className="h-4 w-4" />
-            Personalizar Dashboard
-          </Button>
-        </div>
-      </header>
-
-      {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -107,6 +85,23 @@ export default function DashboardPage() {
                 Última atualização: {lastUpdated.toLocaleTimeString('pt-BR')}
               </span>
             </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshDashboard}
+              disabled={loading}
+              className="flex items-center gap-2 bg-transparent"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <span className="sr-only md:not-sr-only">Atualizar</span>
+            </Button>
+            
+            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+              <Settings2 className="h-4 w-4" />
+              Personalizar Dashboard
+            </Button>
           </div>
         </header>
 

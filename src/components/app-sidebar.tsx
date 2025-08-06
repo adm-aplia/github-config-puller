@@ -1,4 +1,5 @@
 import { useState } from "react"
+import apliaLogo from "@/assets/aplia-logo.svg"
 import { 
   LayoutDashboard, 
   Users, 
@@ -49,11 +50,16 @@ export function AppSidebar() {
         <div className="flex h-14 items-center px-4">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <div className="w-6 h-6 rounded bg-aplia-coral flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-sm"></div>
-              </div>
-              {state !== "collapsed" && (
-                <span className="text-lg font-semibold text-sidebar-foreground">Aplia</span>
+              {state !== "collapsed" ? (
+                <img 
+                  src={apliaLogo} 
+                  alt="Aplia" 
+                  className="h-8 w-auto"
+                />
+              ) : (
+                <div className="w-6 h-6 rounded bg-aplia-coral flex items-center justify-center">
+                  <div className="w-3 h-3 bg-white rounded-sm"></div>
+                </div>
               )}
             </div>
           </div>

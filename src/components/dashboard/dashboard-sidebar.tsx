@@ -1,4 +1,5 @@
 import { useState } from "react"
+import apliaLogo from "@/assets/aplia-logo.svg"
 import { 
   LayoutDashboard, 
   Users, 
@@ -52,10 +53,11 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
         <div className="flex h-14 items-center px-4">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-aplia-coral rounded flex items-center justify-center">
-                <span className="text-xs font-bold text-white">A</span>
-              </div>
-              <span className="font-semibold text-foreground">Aplia</span>
+              <img 
+                src={apliaLogo} 
+                alt="Aplia" 
+                className="h-8 w-auto"
+              />
             </div>
           )}
           <Button
