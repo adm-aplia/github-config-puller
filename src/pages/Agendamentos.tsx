@@ -74,8 +74,8 @@ export default function AgendamentosPage() {
         <span className="text-sm font-medium text-left">{date.getDate()}</span>
         {appointmentCount > 0 && (
           <div className="w-full">
-            <div className="text-xs px-1 py-0.5 text-muted-foreground text-center">
-              {appointmentCount}
+            <div className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded-md text-center font-medium">
+              {appointmentCount} consulta{appointmentCount > 1 ? 's' : ''}
             </div>
           </div>
         )}
