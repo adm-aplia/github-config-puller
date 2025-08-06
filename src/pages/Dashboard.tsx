@@ -1,12 +1,10 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { Moon, Sun, LogOut, RefreshCw } from "lucide-react"
+import { Moon, Sun, RefreshCw, Settings2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/components/auth-provider"
-import { Overview } from "@/components/dashboard/overview"
+import { DashboardMetrics } from "@/components/dashboard/dashboard-metrics"
+import { ConversationChart } from "@/components/dashboard/conversation-chart"
 import { RecentConversations } from "@/components/dashboard/recent-conversations"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
@@ -117,6 +115,11 @@ export default function DashboardPage() {
                 <span className="sr-only md:not-sr-only">Atualizar</span>
               </Button>
               
+              <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                <Settings2 className="h-4 w-4" />
+                Personalizar Dashboard
+              </Button>
+              
               <Button
                 variant="outline"
                 size="icon"
@@ -148,131 +151,12 @@ export default function DashboardPage() {
               </div>
             </header>
 
-            {/* Stats Grid */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-              <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Conversas Totais
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {initialLoading ? (
-                    <>
-                      <Skeleton className="h-8 w-20 mb-1" />
-                      <Skeleton className="h-4 w-32" />
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-2xl font-bold text-foreground">{stats.totalConversations}</div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">Este mês</p>
-                        <Badge variant="secondary" className="text-xs">
-                          +{getPercentageChange(stats.totalConversations, stats.previousPeriod.totalConversations)}%
-                        </Badge>
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Agendamentos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {initialLoading ? (
-                    <>
-                      <Skeleton className="h-8 w-20 mb-1" />
-                      <Skeleton className="h-4 w-32" />
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-2xl font-bold text-foreground">{stats.appointmentCount}</div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">Este mês</p>
-                        <Badge variant="secondary" className="text-xs">
-                          +{getPercentageChange(stats.appointmentCount, stats.previousPeriod.appointmentCount)}%
-                        </Badge>
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Perfis Ativos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {initialLoading ? (
-                    <>
-                      <Skeleton className="h-8 w-20 mb-1" />
-                      <Skeleton className="h-4 w-32" />
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-2xl font-bold text-foreground">{stats.profileCount}</div>
-                      <p className="text-xs text-muted-foreground">Assistentes configurados</p>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-border/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Instâncias WhatsApp
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {initialLoading ? (
-                    <>
-                      <Skeleton className="h-8 w-20 mb-1" />
-                      <Skeleton className="h-4 w-32" />
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-2xl font-bold text-foreground">
-                        {stats.connectedInstanceCount}/{stats.instanceCount}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">WhatsApp conectado</p>
-                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 text-xs">
-                          Online
-                        </Badge>
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            <DashboardMetrics />
 
             {/* Charts and Activity */}
             <div className="grid gap-4 grid-cols-1 lg:grid-cols-7 mb-8">
-              <Card className="lg:col-span-4 shadow-card border-border/50">
-                <CardHeader>
-                  <CardTitle>Conversas</CardTitle>
-                  <CardDescription>Número de conversas nos últimos 30 dias</CardDescription>
-                </CardHeader>
-                <CardContent className="pl-2">
-                  <Overview data={stats.chartData} isLoading={initialLoading} />
-                </CardContent>
-              </Card>
-
-              <Card className="lg:col-span-3 shadow-card border-border/50">
-                <CardHeader>
-                  <CardTitle>Conversas Recentes</CardTitle>
-                  <CardDescription>Últimas conversas registradas</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <RecentConversations isLoading={initialLoading} />
-                </CardContent>
-              </Card>
+              <ConversationChart />
+              <RecentConversations />
             </div>
           </div>
         </main>
