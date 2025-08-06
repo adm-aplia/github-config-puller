@@ -1,6 +1,6 @@
 import { useState } from "react"
-const apliaLogoFull = "/aplia-logo-full.png"
-const apliaLogoIcon = "/aplia-logo-icon.png"
+const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
+const apliaLogoIcon = "/lovable-uploads/940f8f03-f853-4fdf-ab6f-2a3b5c24ae05.png"
 import { 
   LayoutDashboard, 
   Users, 

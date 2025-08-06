@@ -1,6 +1,6 @@
 import { useState } from "react"
-const apliaLogoFull = "/aplia-logo-full.png"
-const apliaLogoIcon = "/aplia-logo-icon.png"
+const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
+const apliaLogoIcon = "/lovable-uploads/940f8f03-f853-4fdf-ab6f-2a3b5c24ae05.png"
 import { 
   LayoutDashboard, 
   Users, 
@@ -73,7 +73,7 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className={cn("ml-auto", isCollapsed && "mx-auto")}
+            className={cn("ml-auto md:hidden", isCollapsed && "mx-auto")}
           >
             {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </Button>
@@ -86,14 +86,18 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
               <NavLink
                 key={item.title}
                 to={item.url}
-                className={({ isActive: navIsActive }) =>
-                  cn(
+                className={({ isActive: navIsActive }) => {
+                  const isItemActive = item.url === "/dashboard" 
+                    ? currentPath === "/dashboard" 
+                    : currentPath.startsWith(item.url) && item.url !== "/dashboard"
+                  
+                  return cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
-                    navIsActive || isActive(item.url)
+                    isItemActive
                       ? "bg-accent text-primary font-medium"
                       : "text-sidebar-foreground hover:bg-accent/50 hover:text-sidebar-accent-foreground"
                   )
-                }
+                }}
               >
                 <item.icon className="h-5 w-5" />
                 {!isCollapsed && <span>{item.title}</span>}
