@@ -88,9 +88,17 @@ export const useProfessionalProfiles = () => {
         return false;
       }
 
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user?.id) throw new Error('User not authenticated');
+
       const { data, error } = await supabase
         .from('professional_profiles')
-        .insert([{...profileData, user_id: (await supabase.auth.getUser()).data.user?.id}])
+        .insert({
+          ...profileData,
+          user_id: userData.user.id,
+          fullname: profileData.fullname || '',
+          specialty: profileData.specialty || ''
+        })
         .select()
         .single();
 

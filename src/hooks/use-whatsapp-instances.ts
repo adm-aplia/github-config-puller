@@ -68,15 +68,22 @@ export const useWhatsAppInstances = () => {
         return false;
       }
 
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user?.id) throw new Error('User not authenticated');
+
       const { data, error } = await supabase
         .from('whatsapp_instances')
-        .insert([{...instanceData, user_id: (await supabase.auth.getUser()).data.user?.id}])
+        .insert({
+          ...instanceData,
+          user_id: userData.user.id,
+          instance_name: instanceData.instance_name || 'Nova Instância'
+        })
         .select()
         .single();
 
       if (error) throw error;
 
-      setInstances(prev => [data, ...prev]);
+      setInstances(prev => [data as WhatsAppInstance, ...prev]);
       
       toast({
         title: 'Instância criada',
@@ -108,7 +115,7 @@ export const useWhatsAppInstances = () => {
 
       setInstances(prev => 
         prev.map(instance => 
-          instance.id === id ? { ...instance, ...data } : instance
+          instance.id === id ? { ...instance, ...data } as WhatsAppInstance : instance
         )
       );
 
@@ -174,7 +181,7 @@ export const useWhatsAppInstances = () => {
 
       setInstances(prev => 
         prev.map(instance => 
-          instance.id === id ? data : instance
+          instance.id === id ? data as WhatsAppInstance : instance
         )
       );
 
@@ -219,7 +226,7 @@ export const useWhatsAppInstances = () => {
 
       setInstances(prev => 
         prev.map(instance => 
-          instance.id === id ? data : instance
+          instance.id === id ? data as WhatsAppInstance : instance
         )
       );
 
