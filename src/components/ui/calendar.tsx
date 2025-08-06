@@ -34,7 +34,7 @@ function Calendar({
         head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
         cell: "h-9 w-9 text-center text-sm p-0 relative",
-        day: "h-9 w-9 p-0 font-normal rounded-md bg-transparent text-foreground hover:bg-muted cursor-pointer flex items-center justify-center",
+        day: "h-9 w-9 p-0 font-normal rounded-md bg-transparent text-foreground cursor-pointer flex items-center justify-center",
         day_selected: "bg-transparent text-foreground",
         day_today: "bg-transparent text-foreground",
         day_outside: "text-muted-foreground opacity-50",
