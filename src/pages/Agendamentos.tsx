@@ -18,6 +18,7 @@ import {
   RotateCcw
 } from "lucide-react"
 import { useState } from "react"
+import { ptBR } from "date-fns/locale"
 
 const mockAppointments = [
   { id: 1, patient: "Maria Silva", time: "09:00", status: "confirmed", type: "Consulta", date: new Date(2025, 7, 4) },
@@ -69,13 +70,13 @@ export default function AgendamentosPage() {
     const appointmentCount = dayAppointments.length
     
     return (
-      <div className="relative w-full h-full flex flex-col items-center justify-center">
-        <span>{date.getDate()}</span>
+      <div className="relative w-full h-full flex flex-col items-center justify-center p-1">
+        <span className="text-sm font-medium">{date.getDate()}</span>
         {appointmentCount > 0 && (
-          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
-            <span className="text-xs bg-secondary text-secondary-foreground px-1 rounded text-[10px]">
+          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-full px-1">
+            <div className="text-xs bg-blue-100 text-blue-600 px-1 py-0.5 rounded text-center font-medium border border-blue-200">
               {appointmentCount} consulta{appointmentCount > 1 ? 's' : ''}
-            </span>
+            </div>
           </div>
         )}
       </div>
@@ -189,6 +190,7 @@ export default function AgendamentosPage() {
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     className="w-full rounded-md border"
+                    locale={ptBR}
                     classNames={{
                       months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
                       month: "space-y-4 w-full",
@@ -202,8 +204,8 @@ export default function AgendamentosPage() {
                       head_row: "flex w-full",
                       head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] text-center",
                       row: "flex w-full mt-2",
-                      cell: "h-16 w-full text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                      day: "h-16 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                      cell: "h-20 w-full text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 border-r border-b border-gray-100",
+                      day: "h-20 w-full p-1 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
                       day_range_end: "day-range-end",
                       day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
                       day_today: "bg-accent text-accent-foreground",
