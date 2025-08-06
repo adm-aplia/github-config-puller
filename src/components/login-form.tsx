@@ -17,6 +17,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log("Form submitted!", { email, password })
     e.preventDefault()
     
     if (!email || !password) {
@@ -29,25 +30,35 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
     }
 
     setIsLoading(true)
+    console.log("Starting login process...")
     
     try {
       if (onLogin) {
+        console.log("Calling onLogin function...")
         await onLogin(email, password)
       } else {
-        // Simulação de login para demonstração
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        toast({
-          title: "Login realizado com sucesso!",
-          description: "Bem-vindo à plataforma Aplia.",
-        })
+        console.log("No onLogin function, using demo mode...")
+        // Credenciais de teste
+        if (email === "admin@aplia.com" && password === "123456") {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          console.log("Demo login successful!")
+          toast({
+            title: "Login realizado com sucesso!",
+            description: "Bem-vindo à plataforma Aplia.",
+          })
+        } else {
+          throw new Error("Credenciais inválidas")
+        }
       }
     } catch (error) {
+      console.error("Login error:", error)
       toast({
         title: "Erro no login",
-        description: "Verifique suas credenciais e tente novamente.",
+        description: "Use: admin@aplia.com / 123456",
         variant: "destructive"
       })
     } finally {
+      console.log("Login process finished")
       setIsLoading(false)
     }
   }
@@ -70,6 +81,13 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
           <CardDescription className="text-center">
             Digite suas credenciais para acessar sua conta
           </CardDescription>
+          
+          {/* Credenciais de teste */}
+          <div className="bg-accent/50 p-3 rounded-lg border border-border/50">
+            <p className="text-sm font-medium text-accent-foreground mb-1">Credenciais de teste:</p>
+            <p className="text-xs text-muted-foreground">Email: admin@aplia.com</p>
+            <p className="text-xs text-muted-foreground">Senha: 123456</p>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
