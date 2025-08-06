@@ -137,30 +137,33 @@ export default function WhatsAppPage() {
                   </div>
 
                   {/* Ações */}
-                  <div className="flex justify-end gap-2">
-                    {instance.status === "connected" ? (
-                      <Button variant="outline" className="h-9">
-                        <UserPlus className="h-4 w-4 mr-1" />
-                        Alterar Perfil
-                      </Button>
-                    ) : (
-                      <>
-                        <Button variant="outline" className="h-9">
-                          <UserPlus className="h-4 w-4 mr-1" />
-                          Atribuir Perfil
+                  <div className="flex justify-end items-center gap-2">
+                    <div className="flex gap-2">
+                      {instance.status === "connected" ? (
+                        <Button variant="outline" size="sm" className="h-8 text-xs">
+                          <UserPlus className="h-3 w-3 mr-1" />
+                          Alterar Perfil
                         </Button>
-                        <Button variant="outline" className="h-9">
-                          <QrCode className="h-4 w-4 mr-1" />
-                          QR Code
-                        </Button>
-                      </>
-                    )}
+                      ) : (
+                        <>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <UserPlus className="h-3 w-3 mr-1" />
+                            Atribuir Perfil
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <QrCode className="h-3 w-3 mr-1" />
+                            QR Code
+                          </Button>
+                        </>
+                      )}
+                    </div>
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
-                          className="h-8 w-8 p-0 border-gray-300 bg-white hover:bg-gray-50"
+                          size="sm"
+                          className="h-8 w-8 p-0 ml-2 border-gray-300 bg-white hover:bg-gray-50 flex-shrink-0"
                         >
                           <EllipsisVertical className="h-4 w-4" />
                         </Button>
