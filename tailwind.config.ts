@@ -18,6 +18,9 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Poppins', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -62,21 +65,12 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Cores específicas da marca Aplia
 				aplia: {
-					blue: {
-						DEFAULT: 'hsl(var(--aplia-blue))', // #172138
-						light: 'hsl(var(--aplia-blue-light))'
-					},
-					coral: {
-						DEFAULT: 'hsl(var(--aplia-coral))', // #EA545F 
-						light: 'hsl(var(--aplia-coral-light))'
-					},
-					gray: {
-						DEFAULT: 'hsl(var(--aplia-gray))', // #E5E5E5
-						dark: 'hsl(var(--aplia-gray-dark))'
-					}
-				}
+					dark: "hsl(var(--aplia-dark))",
+					coral: "hsl(var(--aplia-coral))",
+					"light-gray": "hsl(var(--aplia-light-gray))",
+					white: "hsl(var(--aplia-white))",
+				},
 			},
 			backgroundImage: {
 				'gradient-primary': 'var(--gradient-primary)',
