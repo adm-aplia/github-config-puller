@@ -76,17 +76,17 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mt-2">
               Visão geral da sua plataforma Aplia
               <span className="text-xs ml-2">
                 Última atualização: {lastUpdated.toLocaleTimeString('pt-BR')}
               </span>
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="sm"
@@ -105,12 +105,14 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        <DashboardMetrics />
+        <div className="space-y-8">
+          <DashboardMetrics />
 
-        {/* Charts and Activity */}
-        <div className="grid gap-4 grid-cols-1 lg:grid-cols-7 mb-8">
-          <ConversationChart />
-          <RecentConversations />
+          {/* Charts and Activity */}
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
+            <ConversationChart />
+            <RecentConversations />
+          </div>
         </div>
       </div>
     </DashboardLayout>
