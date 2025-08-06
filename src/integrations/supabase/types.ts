@@ -707,10 +707,6 @@ export type Database = {
       }
       user_settings: {
         Row: {
-          ai_model: string | null
-          ai_provider: string | null
-          api_key: string | null
-          api_url: string | null
           created_at: string | null
           id: string
           language: string | null
@@ -721,10 +717,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          ai_model?: string | null
-          ai_provider?: string | null
-          api_key?: string | null
-          api_url?: string | null
           created_at?: string | null
           id?: string
           language?: string | null
@@ -735,10 +727,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          ai_model?: string | null
-          ai_provider?: string | null
-          api_key?: string | null
-          api_url?: string | null
           created_at?: string | null
           id?: string
           language?: string | null

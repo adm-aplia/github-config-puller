@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useAuth } from "@/components/auth-provider"
 const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
 const apliaLogoIcon = "/lovable-uploads/940f8f03-f853-4fdf-ab6f-2a3b5c24ae05.png"
 // Logo para modo escuro (assumindo que é a mesma imagem mas com tratamento CSS)
@@ -14,7 +15,8 @@ import {
   Settings,
   ChevronUp,
   Menu,
-  X
+  X,
+  LogOut
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 import { Button } from "@/components/ui/button"
@@ -40,6 +42,7 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
   const location = useLocation()
   const currentPath = location.pathname
   const [isDark, setIsDark] = useState(false)
+  const { user, signOut } = useAuth()
 
   useEffect(() => {
     // Detectar tema atual
@@ -131,34 +134,34 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
         {/* Footer - User Info */}
         <div className="border-t p-2">
           <Separator className="mb-2" />
-          <Button
-            variant="ghost"
-            className="w-full justify-between px-3 py-2 h-auto text-left hover:bg-muted"
-          >
-            <div className="flex items-center gap-3">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 px-3 py-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  N
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
               {!isCollapsed && (
                 <div className="flex flex-col items-start min-w-0 flex-1">
-                  <span className="text-xs text-muted-foreground truncate w-full">
-                    Plano Profissional
-                  </span>
                   <span className="text-sm font-medium text-foreground truncate w-full">
-                    Nathan Almeida
+                    {user?.email?.split('@')[0] || 'Usuário'}
                   </span>
                   <span className="text-xs text-muted-foreground truncate w-full">
-                    nathancwb@gmail.com
+                    {user?.email || 'email@exemplo.com'}
                   </span>
                 </div>
               )}
             </div>
-            {!isCollapsed && (
-              <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2" />
-            )}
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+              onClick={signOut}
+            >
+              <LogOut className="h-4 w-4" />
+              {!isCollapsed && <span className="ml-2">Sair</span>}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
