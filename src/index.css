@@ -10,84 +10,104 @@ html {
 /* Design system Aplia - cores e tokens customizados */
 @layer base {
   :root {
-    /* Modo Claro com cores Aplia */
-    --background: 0 0% 100%; /* Branco Aplia (#FFFFFF) */
+    /* Modo Claro com cores Aplia - tons mais suaves e unificados */
+    --background: 250 250% 98%; /* Fundo mais suave, quase branco */
     --foreground: 224 42% 16%; /* Azul Escuro Aplia (#172138) para texto */
 
-    --card: 0 0% 100%; /* Fundo do card: Branco */
+    --card: 250 250% 98%; /* Mesmo fundo para cards */
     --card-foreground: 224 42% 16%; /* Texto do card: Azul Escuro Aplia */
 
-    --popover: 0 0% 100%; /* Fundo do popover: Branco */
-    --popover-foreground: 224 42% 16%; /* Texto do popover: Azul Escuro Aplia */
+    --popover: 250 250% 98%; /* Fundo do popover */
+    --popover-foreground: 224 42% 16%; /* Texto do popover */
 
-    --primary: 355 79% 62%; /* Primária (ações): Vermelho Coral Aplia (#EA545F) */
-    --primary-foreground: 0 0% 100%; /* Texto sobre primária: Branco (#FFFFFF) */
+    --primary: 224 42% 16%; /* Primária agora é azul escuro Aplia */
+    --primary-foreground: 0 0% 100%; /* Texto sobre primária: Branco */
 
-    --secondary: 0 0% 90%; /* Secundária (elementos menos proeminentes): Cinza Claro Aplia (#E5E5E5) */
-    --secondary-foreground: 224 42% 16%; /* Texto sobre secundária: Azul Escuro Aplia */
+    --secondary: 224 20% 94%; /* Secundária mais suave */
+    --secondary-foreground: 224 42% 16%; /* Texto sobre secundária */
 
-    --muted: 0 0% 90%; /* Muted (fundos suaves): Cinza Claro Aplia (#E5E5E5) */
-    --muted-foreground: 224 42% 35%; /* Texto muted: Azul Escuro Aplia (mais suave) */
+    --muted: 224 20% 96%; /* Muted ainda mais suave */
+    --muted-foreground: 224 30% 45%; /* Texto muted mais legível */
 
-    --accent: 355 80% 96%; /* Accent (hover, fundos sutis): Vermelho Coral Aplia (bem claro, #FDEAEB) */
-    --accent-foreground: 355 79% 55%; /* Texto sobre accent: Vermelho Coral Aplia (mais escuro) */
+    --accent: 224 20% 94%; /* Accent suave */
+    --accent-foreground: 224 42% 16%; /* Texto sobre accent */
 
-    --destructive: 355 79% 62%; /* Destructive: Vermelho Coral Aplia (#EA545F) */
+    --destructive: 355 79% 62%; /* Destructive: Vermelho Coral apenas para erros */
     --destructive-foreground: 0 0% 100%; /* Texto sobre destructive: Branco */
 
-    --border: 0 0% 90%; /* Bordas: Cinza Claro Aplia (#E5E5E5) */
-    --input: 0 0% 90%; /* Bordas de input: Cinza Claro Aplia */
-    --ring: 355 79% 62%; /* Anel de foco: Vermelho Coral Aplia */
+    --border: 224 20% 90%; /* Bordas muito suaves */
+    --input: 224 20% 92%; /* Bordas de input suaves */
+    --ring: 224 42% 16%; /* Anel de foco: Azul Escuro Aplia */
 
     --radius: 0.5rem;
 
-    /* Gradientes Aplia */
-    --gradient-primary: linear-gradient(135deg, hsl(355, 79%, 62%), hsl(355, 79%, 70%));
-    --gradient-background: linear-gradient(180deg, hsl(213, 100%, 96%), hsl(240, 100%, 98%));
+    /* Sidebar com a mesma cor do background */
+    --sidebar-background: 250 250% 98%; /* Mesmo fundo */
+    --sidebar-foreground: 224 42% 16%; /* Texto azul escuro */
+    --sidebar-primary: 224 42% 16%; /* Azul escuro para itens ativos */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 224 20% 94%; /* Hover suave */
+    --sidebar-accent-foreground: 224 42% 16%;
+    --sidebar-border: 224 20% 90%; /* Bordas suaves */
+    --sidebar-ring: 224 42% 16%;
+
+    /* Gradientes mais suaves */
+    --gradient-primary: linear-gradient(135deg, hsl(224, 42%, 16%), hsl(224, 42%, 24%));
+    --gradient-background: linear-gradient(180deg, hsl(250, 250%, 98%), hsl(250, 250%, 96%));
     --gradient-dark-background: linear-gradient(180deg, hsl(224, 42%, 8%), hsl(224, 42%, 12%));
 
-    /* Sombras */
-    --shadow-elegant: 0 10px 30px -10px hsl(355 79% 62% / 0.3);
-    --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+    /* Sombras mais sutis */
+    --shadow-elegant: 0 4px 12px -4px hsl(224 42% 16% / 0.1);
+    --shadow-card: 0 1px 3px 0 hsl(224 42% 16% / 0.1);
 
-    /* Cores específicas Aplia */
+    /* Cores específicas Aplia mais suaves */
     --aplia-blue: 224 42% 16%; /* #172138 */
     --aplia-blue-light: 224 42% 25%; 
-    --aplia-coral: 355 79% 62%; /* #EA545F */
+    --aplia-coral: 355 79% 62%; /* #EA545F - usado apenas para highlights */
     --aplia-coral-light: 355 79% 70%;
-    --aplia-gray: 0 0% 90%; /* #E5E5E5 */
-    --aplia-gray-dark: 0 0% 60%;
+    --aplia-gray: 224 20% 94%; /* Cinza mais suave */
+    --aplia-gray-dark: 224 20% 60%;
   }
 
   .dark {
     /* Modo Escuro com cores Aplia */
-    --background: 224 42% 8%; /* Azul Escuro Aplia (mais escuro) (#0F1419) */
+    --background: 224 42% 8%; /* Azul Escuro Aplia (mais escuro) */
     --foreground: 0 0% 100%; /* Texto claro: Branco */
 
-    --card: 224 42% 10%; /* Card: Azul Escuro Aplia (#141D2E) */
+    --card: 224 42% 10%; /* Card: Azul Escuro Aplia */
     --card-foreground: 0 0% 100%; /* Texto do card: Branco */
 
     --popover: 224 42% 10%; /* Popover: Azul Escuro Aplia */
     --popover-foreground: 0 0% 100%; /* Texto do popover: Branco */
 
-    --primary: 355 79% 62%; /* Primária: Vermelho Coral Aplia (mantém no escuro) */
+    --primary: 224 42% 16%; /* Primária: Azul Escuro Aplia */
     --primary-foreground: 0 0% 100%; /* Texto sobre primária: Branco */
 
-    --secondary: 224 42% 15%; /* Secundária: Azul Escuro Aplia (mais claro) */
+    --secondary: 224 42% 15%; /* Secundária: Azul Escuro Aplia */
     --secondary-foreground: 0 0% 100%; /* Texto sobre secundária: Branco */
 
-    --muted: 224 42% 15%; /* Muted: Azul Escuro Aplia (mais claro) */
+    --muted: 224 42% 15%; /* Muted: Azul Escuro Aplia */
     --muted-foreground: 0 0% 70%; /* Texto muted: Cinza claro */
 
-    --accent: 355 79% 20%; /* Accent: Vermelho Coral Aplia (escuro) */
+    --accent: 224 42% 20%; /* Accent: Azul mais claro */
     --accent-foreground: 0 0% 100%; /* Texto sobre accent: Branco */
 
-    --destructive: 355 79% 62%; /* Destructive: Vermelho Coral Aplia */
+    --destructive: 355 79% 62%; /* Destructive: Vermelho Coral */
     --destructive-foreground: 0 0% 100%; /* Texto sobre destructive: Branco */
 
-    --border: 224 42% 20%; /* Bordas: Azul Escuro Aplia (mais claro) */
-    --input: 224 42% 20%; /* Bordas de input: Azul Escuro Aplia (mais claro) */
-    --ring: 355 79% 62%; /* Anel de foco: Vermelho Coral Aplia */
+    --border: 224 42% 20%; /* Bordas: Azul Escuro Aplia */
+    --input: 224 42% 20%; /* Bordas de input */
+    --ring: 224 42% 16%; /* Anel de foco */
+
+    /* Sidebar dark mode */
+    --sidebar-background: 224 42% 8%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 224 42% 16%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 224 42% 15%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 224 42% 20%;
+    --sidebar-ring: 224 42% 16%;
   }
 }
 

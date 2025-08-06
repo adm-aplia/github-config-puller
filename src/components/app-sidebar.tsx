@@ -45,15 +45,17 @@ export function AppSidebar() {
 
   return (
     <Sidebar className={state === "collapsed" ? "w-14" : "w-64"} collapsible="icon">
-      <SidebarHeader className="border-b border-border/50">
+      <SidebarHeader className="border-b border-border/30">
         <div className="flex h-14 items-center px-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <Bot className="h-5 w-5 text-white" />
+            <div className="flex items-center gap-1">
+              <div className="w-6 h-6 rounded bg-aplia-coral flex items-center justify-center">
+                <div className="w-3 h-3 bg-white rounded-sm"></div>
+              </div>
+              {state !== "collapsed" && (
+                <span className="text-lg font-semibold text-foreground">Aplia</span>
+              )}
             </div>
-            {state !== "collapsed" && (
-              <span className="text-xl font-bold text-foreground">Aplia</span>
-            )}
           </div>
         </div>
       </SidebarHeader>
@@ -71,8 +73,8 @@ export function AppSidebar() {
                       className={({ isActive }) =>
                         `flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${
                           isActive 
-                            ? "bg-muted text-primary font-medium" 
-                            : "text-muted-foreground hover:bg-muted/50"
+                            ? "bg-accent text-primary font-medium" 
+                            : "text-muted-foreground hover:bg-accent/50"
                         }`
                       }
                     >
@@ -87,21 +89,27 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/50 p-2">
-        <Separator className="mb-2" />
+      <SidebarFooter className="border-t border-border/30 p-2">
         {state !== "collapsed" ? (
-          <Button variant="ghost" className="w-full justify-start px-3 py-2 h-auto text-left">
+          <div className="p-3">
             <div className="flex flex-col items-start min-w-0 flex-1">
-              <span className="text-xs text-muted-foreground truncate w-full mb-1">
-                Carregando plano...
+              <span className="text-xs text-muted-foreground mb-1">
+                Plano Profissional
               </span>
               <span className="text-sm font-medium text-foreground truncate w-full">
-                Carregando...
+                Nathan Almeida
+              </span>
+              <span className="text-xs text-muted-foreground truncate w-full">
+                nathancwb@gmail.com
               </span>
             </div>
-          </Button>
+          </div>
         ) : (
-          <div className="w-8 h-8 rounded bg-muted"></div>
+          <div className="flex justify-center p-2">
+            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+              N
+            </div>
+          </div>
         )}
       </SidebarFooter>
     </Sidebar>

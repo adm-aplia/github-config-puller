@@ -97,12 +97,12 @@ export default function DashboardPage() {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-gradient-background dark:bg-gradient-dark-background">
+      <div className="flex h-screen w-full bg-background">
         <AppSidebar />
         
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
           {/* Header */}
-          <header className="flex h-16 items-center gap-4 px-6 border-b border-border/50 bg-card/80 backdrop-blur-sm">
+          <header className="flex h-16 items-center gap-4 px-6 border-b border-border/30 bg-background">
             <SidebarTrigger className="mr-2" />
             
             <div className="flex items-center gap-4 flex-1 justify-end">
