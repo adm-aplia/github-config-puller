@@ -165,19 +165,15 @@ export default function WhatsAppPage() {
                           size="sm"
                           className="h-8 w-8 p-0 ml-2 border-gray-300 bg-white hover:bg-gray-50 flex-shrink-0"
                         >
-                          <EllipsisVertical className="h-4 w-4" />
+                          <EllipsisVertical className="h-4 w-4 text-black" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
-                        <DropdownMenuItem className="flex items-center gap-2">
+                        <DropdownMenuItem className="flex items-center gap-2 text-black">
                           <Settings className="h-4 w-4" />
                           Configurações
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="flex items-center gap-2">
-                          <UserCheck className="h-4 w-4" />
-                          Reconectar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="flex items-center gap-2">
+                        <DropdownMenuItem className="flex items-center gap-2 text-black">
                           <UserX className="h-4 w-4" />
                           Desconectar
                         </DropdownMenuItem>
