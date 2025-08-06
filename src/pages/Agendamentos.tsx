@@ -69,25 +69,12 @@ export default function AgendamentosPage() {
     const dayAppointments = getAppointmentsForDate(date)
     const appointmentCount = dayAppointments.length
     
-    // Get status-based color for appointments
-    const getAppointmentColor = () => {
-      if (appointmentCount === 0) return ""
-      const hasConfirmed = dayAppointments.some(apt => apt.status === "confirmed")
-      const hasPending = dayAppointments.some(apt => apt.status === "pending")
-      const hasCancelled = dayAppointments.some(apt => apt.status === "cancelled")
-      
-      if (hasCancelled) return "bg-red-500 text-white"
-      if (hasConfirmed) return "bg-blue-500 text-white"
-      if (hasPending) return "bg-blue-100 text-blue-700"
-      return "bg-gray-100 text-gray-700"
-    }
-    
     return (
       <div className="relative w-full h-full flex flex-col justify-between p-1">
         <span className="text-sm font-medium text-left">{date.getDate()}</span>
         {appointmentCount > 0 && (
           <div className="w-full">
-            <div className={`text-xs px-1 py-0.5 rounded text-center font-medium ${getAppointmentColor()}`}>
+            <div className="text-xs px-2 py-1 bg-blue-500 text-white rounded-md text-center font-medium">
               {appointmentCount} consulta{appointmentCount > 1 ? 's' : ''}
             </div>
           </div>
