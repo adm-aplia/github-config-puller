@@ -31,15 +31,16 @@ function Calendar({
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
-        head_cell:
-          "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
         cell: "h-9 w-9 text-center text-sm p-0 relative",
-        day: "h-9 w-9 p-0 font-normal rounded-md bg-transparent text-foreground hover:bg-muted/30 focus:outline-none cursor-pointer",
-        day_selected: "bg-primary text-primary-foreground hover:bg-primary/90",
-        day_today: "bg-transparent text-foreground font-normal",
-        day_outside: "text-muted-foreground/50 opacity-50",
-        day_disabled: "text-muted-foreground/30 opacity-30 cursor-not-allowed",
+        day: "h-9 w-9 p-0 font-normal rounded-md bg-transparent text-foreground hover:bg-muted cursor-pointer flex items-center justify-center",
+        day_selected: "bg-transparent text-foreground",
+        day_today: "bg-transparent text-foreground",
+        day_outside: "text-muted-foreground opacity-50",
+        day_disabled: "text-muted-foreground opacity-30 cursor-not-allowed",
+        day_range_end: "",
+        day_range_middle: "",
         day_hidden: "invisible",
         ...classNames,
       }}
@@ -51,6 +52,7 @@ function Calendar({
     />
   );
 }
+
 Calendar.displayName = "Calendar";
 
 export { Calendar };
