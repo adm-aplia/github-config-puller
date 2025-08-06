@@ -1,15 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
-
-interface User {
-  id: string
-  email: string
-  name: string
-}
+import { supabase } from "@/integrations/supabase/client"
+import { User, Session } from "@supabase/supabase-js"
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  session: Session | null
+  signUp: (email: string, password: string) => Promise<{ error: any }>
+  signIn: (email: string, password: string) => Promise<{ error: any }>
+  signOut: () => Promise<void>
   isLoading: boolean
   isInitialized: boolean
 }
@@ -22,59 +20,87 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
-    // Simular verificação de autenticação inicial
-    const initAuth = async () => {
-      try {
-        // Verificar se há dados de usuário no localStorage
-        const savedUser = localStorage.getItem('aplia_user')
-        if (savedUser) {
-          setUser(JSON.parse(savedUser))
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session)
+        setUser(session?.user ?? null)
+        if (!isInitialized) {
+          setIsInitialized(true)
         }
-      } catch (error) {
-        console.error('Erro ao inicializar autenticação:', error)
-      } finally {
+      }
+    )
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (!isInitialized) {
         setIsInitialized(true)
       }
-    }
+    })
 
-    initAuth()
-  }, [])
+    return () => subscription.unsubscribe()
+  }, [isInitialized])
 
-  const login = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string) => {
     setIsLoading(true)
     try {
-      // Simular chamada de API
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      const redirectUrl = `${window.location.origin}/dashboard`
       
-      // Simular usuário logado
-      const mockUser: User = {
-        id: '1',
+      const { error } = await supabase.auth.signUp({
         email,
-        name: email.split('@')[0]
-      }
-      
-      setUser(mockUser)
-      localStorage.setItem('aplia_user', JSON.stringify(mockUser))
-    } catch (error) {
-      throw new Error('Erro no login')
+        password,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
+      })
+      return { error }
     } finally {
       setIsLoading(false)
     }
   }
 
+  const signIn = async (email: string, password: string) => {
+    setIsLoading(true)
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+      return { error }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+  }
+
+  // Legacy login function for backward compatibility
+  const login = async (email: string, password: string) => {
+    const { error } = await signIn(email, password)
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
   const logout = () => {
-    setUser(null)
-    localStorage.removeItem('aplia_user')
+    signOut()
   }
 
   const value: AuthContextType = {
     user,
-    login,
-    logout,
+    session,
+    signUp,
+    signIn,
+    signOut,
     isLoading,
     isInitialized
   }

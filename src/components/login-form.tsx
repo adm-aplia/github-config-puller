@@ -7,10 +7,10 @@ import { Loader2, Mail, Lock, Bot } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface LoginFormProps {
-  onLogin?: (email: string, password: string) => Promise<void>
+  onSignIn?: (email: string, password: string) => Promise<{ error: any }>
 }
 
-export default function LoginForm({ onLogin }: LoginFormProps) {
+export default function LoginForm({ onSignIn }: LoginFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -33,28 +33,24 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
     console.log("Starting login process...")
     
     try {
-      if (onLogin) {
-        console.log("Calling onLogin function...")
-        await onLogin(email, password)
-      } else {
-        console.log("No onLogin function, using demo mode...")
-        // Credenciais de teste
-        if (email === "admin@aplia.com" && password === "123456") {
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          console.log("Demo login successful!")
-          toast({
-            title: "Login realizado com sucesso!",
-            description: "Bem-vindo à plataforma Aplia.",
-          })
-        } else {
-          throw new Error("Credenciais inválidas")
+      if (onSignIn) {
+        console.log("Calling signIn function...")
+        const { error } = await onSignIn(email, password)
+        if (error) {
+          throw new Error(error.message)
         }
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Bem-vindo à plataforma Aplia.",
+        })
+      } else {
+        throw new Error("Função de login não configurada")
       }
     } catch (error) {
       console.error("Login error:", error)
       toast({
         title: "Erro no login",
-        description: "Use: admin@aplia.com / 123456",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
         variant: "destructive"
       })
     } finally {
@@ -82,12 +78,6 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
             Digite suas credenciais para acessar sua conta
           </CardDescription>
           
-          {/* Credenciais de teste */}
-          <div className="bg-accent/50 p-3 rounded-lg border border-border/50">
-            <p className="text-sm font-medium text-accent-foreground mb-1">Credenciais de teste:</p>
-            <p className="text-xs text-muted-foreground">Email: admin@aplia.com</p>
-            <p className="text-xs text-muted-foreground">Senha: 123456</p>
-          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

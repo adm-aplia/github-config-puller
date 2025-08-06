@@ -8,7 +8,7 @@ import { useState } from "react"
 
 export default function LoginPage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
-  const { user, login } = useAuth()
+  const { user, signIn } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function LoginPage() {
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <LoginForm onLogin={login} />
+        <LoginForm onSignIn={signIn} />
       </div>
     </div>
   )
