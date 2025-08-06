@@ -34,19 +34,12 @@ function Calendar({
         head_cell:
           "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
-        day: cn(
-          "h-9 w-9 p-0 font-normal rounded-md transition-colors hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-        ),
-        day_range_end: "day-range-end",
-        day_selected:
-          "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary focus:text-primary-foreground",
-        day_today: "bg-transparent text-foreground border border-muted-foreground/30",
-        day_outside:
-          "day-outside text-muted-foreground/50 opacity-50",
-        day_disabled: "text-muted-foreground/30 opacity-30",
-        day_range_middle:
-          "aria-selected:bg-muted aria-selected:text-muted-foreground",
+        cell: "h-9 w-9 text-center text-sm p-0 relative",
+        day: "h-9 w-9 p-0 font-normal rounded-md bg-transparent text-foreground hover:bg-muted/30 focus:outline-none cursor-pointer",
+        day_selected: "bg-primary text-primary-foreground hover:bg-primary/90",
+        day_today: "bg-transparent text-foreground font-normal",
+        day_outside: "text-muted-foreground/50 opacity-50",
+        day_disabled: "text-muted-foreground/30 opacity-30 cursor-not-allowed",
         day_hidden: "invisible",
         ...classNames,
       }}
