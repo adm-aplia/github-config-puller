@@ -20,10 +20,13 @@ import {
 import { useState } from "react"
 
 const mockAppointments = [
-  { id: 1, patient: "Maria Silva", time: "09:00", status: "confirmed", type: "Consulta" },
-  { id: 2, patient: "João Santos", time: "10:30", status: "pending", type: "Retorno" },
-  { id: 3, patient: "Ana Costa", time: "14:00", status: "completed", type: "Consulta" },
-  { id: 4, patient: "Pedro Lima", time: "15:30", status: "cancelled", type: "Consulta" },
+  { id: 1, patient: "Maria Silva", time: "09:00", status: "confirmed", type: "Consulta", date: new Date(2025, 7, 4) },
+  { id: 2, patient: "João Santos", time: "10:30", status: "pending", type: "Retorno", date: new Date(2025, 7, 4) },
+  { id: 3, patient: "Ana Costa", time: "14:00", status: "completed", type: "Consulta", date: new Date(2025, 7, 5) },
+  { id: 4, patient: "Pedro Lima", time: "15:30", status: "cancelled", type: "Consulta", date: new Date(2025, 7, 11) },
+  { id: 5, patient: "Teste", time: "09:00", status: "pending", type: "Consulta", date: new Date(2025, 7, 15) },
+  { id: 6, patient: "Outro Teste", time: "10:00", status: "confirmed", type: "Consulta", date: new Date(2025, 7, 15) },
+  { id: 7, patient: "Consulta Teste", time: "14:00", status: "confirmed", type: "Consulta", date: new Date(2025, 7, 20) },
 ]
 
 const stats = [
@@ -49,6 +52,35 @@ export default function AgendamentosPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [viewPeriod, setViewPeriod] = useState("today")
   const [selectedProfessional, setSelectedProfessional] = useState("all")
+
+  // Get appointments for a specific date
+  const getAppointmentsForDate = (date: Date) => {
+    return mockAppointments.filter(apt => 
+      apt.date.toDateString() === date.toDateString()
+    )
+  }
+
+  // Get appointments for selected date
+  const selectedDateAppointments = selectedDate ? getAppointmentsForDate(selectedDate) : []
+
+  // Custom day content renderer
+  const renderDayContent = (date: Date) => {
+    const dayAppointments = getAppointmentsForDate(date)
+    const appointmentCount = dayAppointments.length
+    
+    return (
+      <div className="relative w-full h-full flex flex-col items-center justify-center">
+        <span>{date.getDate()}</span>
+        {appointmentCount > 0 && (
+          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
+            <span className="text-xs bg-secondary text-secondary-foreground px-1 rounded text-[10px]">
+              {appointmentCount} consulta{appointmentCount > 1 ? 's' : ''}
+            </span>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <DashboardLayout>
@@ -150,13 +182,39 @@ export default function AgendamentosPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="flex justify-center">
+              <CardContent className="p-6">
+                <div className="w-full">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    className="rounded-md border w-fit"
+                    className="w-full rounded-md border"
+                    classNames={{
+                      months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
+                      month: "space-y-4 w-full",
+                      caption: "flex justify-center pt-1 relative items-center",
+                      caption_label: "text-sm font-medium",
+                      nav: "space-x-1 flex items-center",
+                      nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                      nav_button_previous: "absolute left-1",
+                      nav_button_next: "absolute right-1",
+                      table: "w-full border-collapse space-y-1",
+                      head_row: "flex w-full",
+                      head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] text-center",
+                      row: "flex w-full mt-2",
+                      cell: "h-16 w-full text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                      day: "h-16 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                      day_range_end: "day-range-end",
+                      day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                      day_today: "bg-accent text-accent-foreground",
+                      day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+                      day_disabled: "text-muted-foreground opacity-50",
+                      day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                      day_hidden: "invisible",
+                    }}
+                    components={{
+                      DayContent: ({ date }) => renderDayContent(date)
+                    }}
                   />
                 </div>
               </CardContent>
@@ -174,7 +232,7 @@ export default function AgendamentosPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockAppointments.map((appointment) => {
+                  {selectedDateAppointments.map((appointment) => {
                     const statusBadge = getStatusBadge(appointment.status)
                     return (
                       <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -190,7 +248,7 @@ export default function AgendamentosPage() {
                       </div>
                     )
                   })}
-                  {mockAppointments.length === 0 && (
+                  {selectedDateAppointments.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
                       <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>Nenhum agendamento para esta data</p>
