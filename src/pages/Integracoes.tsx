@@ -1,9 +1,8 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CalendarDays, Settings, Link, ExternalLink } from "lucide-react"
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
 
 const integrations = [
   {
@@ -67,89 +66,79 @@ const statusConfig = {
 
 export default function IntegracoesPage() {
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full bg-background">
-        <AppSidebar />
-        
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background">
-          <header className="flex h-16 items-center gap-4 px-6 border-b border-border/30 bg-background">
-            <SidebarTrigger className="mr-2" />
-          </header>
-
-          <div className="container mx-auto px-6 py-8">
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight">Integrações</h1>
-                  <p className="text-muted-foreground">
-                    Conecte seus serviços favoritos com a Aplia
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                {integrations.map((integration) => {
-                  const config = statusConfig[integration.status]
-                  const IconComponent = integration.icon
-
-                  return (
-                    <Card key={integration.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                              <IconComponent className="h-5 w-5 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <CardTitle className="text-lg">{integration.name}</CardTitle>
-                              <CardDescription className="mt-1">
-                                {integration.description}
-                              </CardDescription>
-                            </div>
-                          </div>
-                          <Badge className={config.color}>
-                            {config.label}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      
-                      <CardContent className="space-y-4">
-                        {integration.connectedAccount && (
-                          <div className="text-sm">
-                            <p className="text-muted-foreground">Conta conectada:</p>
-                            <p className="font-medium">{integration.connectedAccount}</p>
-                          </div>
-                        )}
-                        
-                        {integration.lastSync && (
-                          <div className="text-xs text-muted-foreground">
-                            Última sincronização: {integration.lastSync}
-                          </div>
-                        )}
-                        
-                        <div className="flex gap-2 pt-2">
-                          <Button 
-                            variant={config.buttonVariant} 
-                            size="sm" 
-                            className="flex-1"
-                          >
-                            {config.buttonText}
-                          </Button>
-                          {integration.status !== 'available' && (
-                            <Button variant="outline" size="sm">
-                              <ExternalLink className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </div>
+    <DashboardLayout>
+      <div className="container mx-auto px-6 py-8">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Integrações</h1>
+              <p className="text-muted-foreground">
+                Conecte seus serviços favoritos com a Aplia
+              </p>
             </div>
           </div>
-        </main>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {integrations.map((integration) => {
+              const config = statusConfig[integration.status]
+              const IconComponent = integration.icon
+
+              return (
+                <Card key={integration.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                          <IconComponent className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{integration.name}</CardTitle>
+                          <CardDescription className="mt-1">
+                            {integration.description}
+                          </CardDescription>
+                        </div>
+                      </div>
+                      <Badge className={config.color}>
+                        {config.label}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-4">
+                    {integration.connectedAccount && (
+                      <div className="text-sm">
+                        <p className="text-muted-foreground">Conta conectada:</p>
+                        <p className="font-medium">{integration.connectedAccount}</p>
+                      </div>
+                    )}
+                    
+                    {integration.lastSync && (
+                      <div className="text-xs text-muted-foreground">
+                        Última sincronização: {integration.lastSync}
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        variant={config.buttonVariant} 
+                        size="sm" 
+                        className="flex-1"
+                      >
+                        {config.buttonText}
+                      </Button>
+                      {integration.status !== 'available' && (
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
       </div>
-    </SidebarProvider>
+    </DashboardLayout>
   )
 }
