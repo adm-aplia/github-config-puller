@@ -7,6 +7,7 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useConversations } from "@/hooks/use-conversations"
 import { useConversationSummaries, ConversationSummary } from "@/hooks/use-conversation-summaries"
 import { SummaryModal } from "@/components/conversation/summary-modal"
+import { ChatModal } from "@/components/conversation/chat-modal"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useState } from "react"
 
@@ -28,12 +29,21 @@ export default function ConversasPage() {
   const [selectedSummary, setSelectedSummary] = useState<ConversationSummary | null>(null);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [selectedContactName, setSelectedContactName] = useState<string>("");
+  
+  // Chat modal states
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const [selectedConversation, setSelectedConversation] = useState<any>(null);
 
   const handleSummaryClick = async (conversationId: string, contactName: string) => {
     setSelectedContactName(contactName);
     setIsSummaryModalOpen(true);
     const summary = await fetchSummary(conversationId);
     setSelectedSummary(summary);
+  };
+
+  const handleConversationClick = (conversation: any) => {
+    setSelectedConversation(conversation);
+    setIsChatModalOpen(true);
   };
 
   const formatTimestamp = (dateString: string) => {
@@ -95,7 +105,11 @@ export default function ConversasPage() {
           ) : (
             <div className="grid gap-4">
               {conversations.map((conversation) => (
-                <Card key={conversation.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                <Card 
+                  key={conversation.id} 
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => handleConversationClick(conversation)}
+                >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4 flex-1">
@@ -162,6 +176,17 @@ export default function ConversasPage() {
           summary={selectedSummary}
           loading={summaryLoading}
           contactName={selectedContactName}
+        />
+
+        <ChatModal
+          isOpen={isChatModalOpen}
+          onClose={() => {
+            setIsChatModalOpen(false);
+            setSelectedConversation(null);
+          }}
+          conversationId={selectedConversation?.id || ""}
+          contactName={selectedConversation?.contact_name || selectedConversation?.contact_phone || ""}
+          contactPhone={selectedConversation?.contact_phone || ""}
         />
       </div>
     </DashboardLayout>
