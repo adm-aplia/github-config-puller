@@ -62,10 +62,13 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="flex flex-col items-center mb-6">
-        <div className="w-16 h-16 rounded-xl bg-gradient-primary flex items-center justify-center mb-4 shadow-elegant">
-          <Bot className="h-8 w-8 text-white" />
-        </div>
-        <h1 className="text-3xl font-bold text-foreground">Aplia</h1>
+      <div className="flex items-center justify-center mb-4">
+        <img 
+          src="/aplia-logo-full.png" 
+          alt="Aplia" 
+          className="h-12 w-auto"
+        />
+      </div>
         <p className="text-muted-foreground text-center mt-2">
           Assistentes de IA para Profissionais da Saúde
         </p>
