@@ -2,10 +2,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Filter, MessageSquare, Clock } from "lucide-react"
+import { Search, Filter, MessageSquare, Clock, Bot } from "lucide-react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useConversations } from "@/hooks/use-conversations"
+import { useConversationSummaries, ConversationSummary } from "@/hooks/use-conversation-summaries"
+import { SummaryModal } from "@/components/conversation/summary-modal"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useState } from "react"
 
 const statusColors = {
   active: "bg-green-500",
@@ -21,6 +24,17 @@ const statusLabels = {
 
 export default function ConversasPage() {
   const { conversations, loading } = useConversations();
+  const { fetchSummary, loading: summaryLoading } = useConversationSummaries();
+  const [selectedSummary, setSelectedSummary] = useState<ConversationSummary | null>(null);
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  const [selectedContactName, setSelectedContactName] = useState<string>("");
+
+  const handleSummaryClick = async (conversationId: string, contactName: string) => {
+    setSelectedContactName(contactName);
+    setIsSummaryModalOpen(true);
+    const summary = await fetchSummary(conversationId);
+    setSelectedSummary(summary);
+  };
 
   const formatTimestamp = (dateString: string) => {
     const date = new Date(dateString);
@@ -115,9 +129,21 @@ export default function ConversasPage() {
                           <Clock className="h-3 w-3" />
                           {conversation.last_message_at ? formatTimestamp(conversation.last_message_at) : 'N/A'}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground mb-2">
                           {conversation.message_count || 0} mensagens
                         </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSummaryClick(conversation.id, conversation.contact_name || conversation.contact_phone);
+                          }}
+                          className="text-xs"
+                        >
+                          <Bot className="h-3 w-3 mr-1" />
+                          Resumo feito pela IA
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -126,6 +152,17 @@ export default function ConversasPage() {
             </div>
           )}
         </div>
+
+        <SummaryModal
+          isOpen={isSummaryModalOpen}
+          onClose={() => {
+            setIsSummaryModalOpen(false);
+            setSelectedSummary(null);
+          }}
+          summary={selectedSummary}
+          loading={summaryLoading}
+          contactName={selectedContactName}
+        />
       </div>
     </DashboardLayout>
   )
