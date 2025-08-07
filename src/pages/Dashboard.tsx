@@ -7,13 +7,14 @@ import { DashboardMetrics } from "@/components/dashboard/dashboard-metrics"
 import { ConversationChart } from "@/components/dashboard/conversation-chart"
 import { RecentConversations } from "@/components/dashboard/recent-conversations"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { useDashboardStats } from "@/hooks/use-dashboard-stats"
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { stats, chartData, loading: statsLoading, refetch } = useDashboardStats()
 
   const [stats, setStats] = useState({
     totalConversations: 147,

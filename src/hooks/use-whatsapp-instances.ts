@@ -7,7 +7,7 @@ export interface WhatsAppInstance {
   user_id: string;
   instance_name: string;
   phone_number?: string;
-  status: 'connected' | 'disconnected' | 'qr_pending';
+  status: 'connected' | 'qr_pending' | 'disconnected';
   professional_profile_id?: string;
   profile_name?: string;
   profile_picture_url?: string;
@@ -16,37 +16,33 @@ export interface WhatsAppInstance {
   updated_at: string;
 }
 
-export interface UserLimits {
-  max_instancias_whatsapp: number;
-  uso_instancias: number;
-}
-
 export const useWhatsAppInstances = () => {
   const [instances, setInstances] = useState<WhatsAppInstance[]>([]);
-  const [limits, setLimits] = useState<UserLimits | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchInstances = async () => {
     try {
-      const { data: instancesData, error: instancesError } = await supabase
+      const { data, error } = await supabase
         .from('whatsapp_instances')
-        .select('*')
+        .select(`
+          *,
+          professional_profiles(fullname, specialty)
+        `)
         .order('created_at', { ascending: false });
 
-      if (instancesError) throw instancesError;
+      if (error) throw error;
 
-      const { data: limitsData, error: limitsError } = await supabase
-        .from('usuario_limites')
-        .select('max_instancias_whatsapp, uso_instancias')
-        .single();
+      const formattedInstances = data?.map(instance => ({
+        ...instance,
+        status: instance.status as 'connected' | 'qr_pending' | 'disconnected',
+        profile_name: instance.professional_profiles?.fullname,
+        profile_specialty: instance.professional_profiles?.specialty
+      } as WhatsAppInstance)) || [];
 
-      if (limitsError && limitsError.code !== 'PGRST116') throw limitsError;
-
-      setInstances((instancesData || []) as WhatsAppInstance[]);
-      setLimits(limitsData || { max_instancias_whatsapp: 1, uso_instancias: 0 });
+      setInstances(formattedInstances);
     } catch (error) {
-      console.error('Error fetching instances:', error);
+      console.error('Error fetching WhatsApp instances:', error);
       toast({
         title: 'Erro ao carregar instâncias',
         description: 'Não foi possível carregar as instâncias do WhatsApp.',
@@ -59,35 +55,28 @@ export const useWhatsAppInstances = () => {
 
   const createInstance = async (instanceData: Partial<WhatsAppInstance>) => {
     try {
-      if (limits && instances.length >= limits.max_instancias_whatsapp) {
-        toast({
-          title: 'Limite atingido',
-          description: `Você atingiu o limite de ${limits.max_instancias_whatsapp} instâncias do WhatsApp.`,
-          variant: 'destructive',
-        });
-        return false;
-      }
-
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
         .from('whatsapp_instances')
         .insert({
-          ...instanceData,
           user_id: userData.user.id,
-          instance_name: instanceData.instance_name || 'Nova Instância'
+          instance_name: instanceData.instance_name || '',
+          phone_number: instanceData.phone_number,
+          professional_profile_id: instanceData.professional_profile_id,
+          status: 'qr_pending'
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      setInstances(prev => [data as WhatsAppInstance, ...prev]);
+      setInstances(prev => [{ ...data, status: data.status as 'connected' | 'qr_pending' | 'disconnected' } as WhatsAppInstance, ...prev]);
       
       toast({
         title: 'Instância criada',
-        description: 'Instância do WhatsApp criada com sucesso.',
+        description: 'Nova instância do WhatsApp criada com sucesso.',
       });
 
       return true;
@@ -115,7 +104,7 @@ export const useWhatsAppInstances = () => {
 
       setInstances(prev => 
         prev.map(instance => 
-          instance.id === id ? { ...instance, ...data } as WhatsAppInstance : instance
+          instance.id === id ? { ...instance, ...data, status: data.status as 'connected' | 'qr_pending' | 'disconnected' } as WhatsAppInstance : instance
         )
       );
 
@@ -164,102 +153,16 @@ export const useWhatsAppInstances = () => {
     }
   };
 
-  const connectInstance = async (id: string) => {
-    try {
-      // Simular conexão (aqui você integraria com sua API do WhatsApp)
-      const { data, error } = await supabase
-        .from('whatsapp_instances')
-        .update({ 
-          status: 'qr_pending',
-          last_connected_at: new Date().toISOString() 
-        })
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setInstances(prev => 
-        prev.map(instance => 
-          instance.id === id ? data as WhatsAppInstance : instance
-        )
-      );
-
-      toast({
-        title: 'Conectando...',
-        description: 'Iniciando processo de conexão. Escaneie o QR Code.',
-      });
-
-      // Simular mudança para conectado após alguns segundos
-      setTimeout(async () => {
-        await updateInstance(id, { 
-          status: 'connected',
-          phone_number: '+55 11 99999-9999' // Mock phone number
-        });
-      }, 5000);
-
-      return true;
-    } catch (error) {
-      console.error('Error connecting instance:', error);
-      toast({
-        title: 'Erro na conexão',
-        description: 'Não foi possível conectar a instância do WhatsApp.',
-        variant: 'destructive',
-      });
-      return false;
-    }
-  };
-
-  const disconnectInstance = async (id: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('whatsapp_instances')
-        .update({ 
-          status: 'disconnected',
-          phone_number: null 
-        })
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setInstances(prev => 
-        prev.map(instance => 
-          instance.id === id ? data as WhatsAppInstance : instance
-        )
-      );
-
-      toast({
-        title: 'Desconectado',
-        description: 'Instância do WhatsApp desconectada com sucesso.',
-      });
-
-      return true;
-    } catch (error) {
-      console.error('Error disconnecting instance:', error);
-      toast({
-        title: 'Erro ao desconectar',
-        description: 'Não foi possível desconectar a instância do WhatsApp.',
-        variant: 'destructive',
-      });
-      return false;
-    }
-  };
-
   useEffect(() => {
     fetchInstances();
   }, []);
 
   return {
     instances,
-    limits,
     loading,
     createInstance,
     updateInstance,
     deleteInstance,
-    connectInstance,
-    disconnectInstance,
     refetch: fetchInstances,
   };
 };
