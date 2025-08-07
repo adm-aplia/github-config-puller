@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState } from "react"
+import { ChartData } from "@/hooks/use-dashboard-stats"
 
 // Dados baseados nas métricas do dashboard com mais pontos para linha suave
 const data7Days = [
@@ -91,39 +91,37 @@ function createSmoothPath(points: {x: number, y: number}[]) {
   return path
 }
 
-export function ConversationChart() {
-  const [period, setPeriod] = useState("7")
-  
-  const getDataForPeriod = () => {
-    switch(period) {
-      case "30": return data30Days
-      case "90": return data90Days
-      default: return data7Days
-    }
+interface ConversationChartProps {
+  chartData: ChartData[]
+  loading: boolean
+}
+
+export function ConversationChart({ chartData, loading }: ConversationChartProps) {
+  if (loading) {
+    return (
+      <Card className="col-span-1 lg:col-span-4">
+        <CardHeader>
+          <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+          <div className="h-4 w-48 bg-muted animate-pulse rounded" />
+        </CardHeader>
+        <CardContent>
+          <div className="h-[280px] w-full bg-muted animate-pulse rounded" />
+        </CardContent>
+      </Card>
+    )
   }
-  
-  const chartData = getDataForPeriod()
-  const maxValue = Math.max(...chartData.map(d => Math.max(d.conversations, d.agendamentos)))
+
+  const maxValue = Math.max(...chartData.map(d => d.conversations), 100)
   
   return (
     <Card className="col-span-1 lg:col-span-4">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
         <div>
-          <CardTitle className="text-lg font-semibold">Gráfico</CardTitle>
+          <CardTitle className="text-lg font-semibold">Conversas dos Últimos 7 Dias</CardTitle>
           <CardDescription className="mt-2">
-            Conversas e agendamentos dos últimos {period} dias
+            Evolução das conversas por dia
           </CardDescription>
         </div>
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7">7 dias</SelectItem>
-            <SelectItem value="30">30 dias</SelectItem>
-            <SelectItem value="90">90 dias</SelectItem>
-          </SelectContent>
-        </Select>
       </CardHeader>
       
       <CardContent className="pt-2 pb-8">
@@ -158,19 +156,6 @@ export function ConversationChart() {
                   className="drop-shadow-sm"
                   style={{ vectorEffect: 'non-scaling-stroke' }}
                 />
-                
-                {/* Create smooth agendamento line */}
-                <path
-                  d={createSmoothPath(chartData.map((item, index) => ({
-                    x: (index / (chartData.length - 1)) * 100,
-                    y: 100 - (item.agendamentos / maxValue) * 85
-                  })))}
-                  fill="none"
-                  stroke="hsl(var(--secondary))"
-                  strokeWidth="0.8"
-                  className="drop-shadow-sm"
-                  style={{ vectorEffect: 'non-scaling-stroke' }}
-                />
               </svg>
               
               {/* X-axis labels - only show dates that have text */}
@@ -194,13 +179,6 @@ export function ConversationChart() {
             <span className="text-sm font-medium">Conversas</span>
             <span className="text-xs text-muted-foreground">
               ({chartData.reduce((sum, item) => sum + item.conversations, 0)} total)
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 bg-secondary rounded-full shadow-sm"></div>
-            <span className="text-sm font-medium">Agendamentos</span>
-            <span className="text-xs text-muted-foreground">
-              ({chartData.reduce((sum, item) => sum + item.agendamentos, 0)} total)
             </span>
           </div>
         </div>

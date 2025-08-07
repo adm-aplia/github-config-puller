@@ -16,46 +16,16 @@ export default function DashboardPage() {
   const navigate = useNavigate()
   const { stats, chartData, loading: statsLoading, refetch } = useDashboardStats()
 
-  const [stats, setStats] = useState({
-    totalConversations: 147,
-    activeConversations: 23,
-    profileCount: 8,
-    instanceCount: 12,
-    connectedInstanceCount: 10,
-    messageCount: 1284,
-    appointmentCount: 89,
-    chartData: [
-      { date: "01/01", conversations: 12 },
-      { date: "02/01", conversations: 19 },
-      { date: "03/01", conversations: 15 },
-      { date: "04/01", conversations: 25 },
-      { date: "05/01", conversations: 22 },
-      { date: "06/01", conversations: 30 },
-      { date: "07/01", conversations: 28 }
-    ],
-    previousPeriod: {
-      totalConversations: 132,
-      messageCount: 1156,
-      appointmentCount: 76,
-    },
-  })
-
   useEffect(() => {
     if (!user) {
       navigate('/')
-    } else {
-      // Simular carregamento inicial
-      setTimeout(() => {
-        setInitialLoading(false)
-      }, 1500)
     }
   }, [user, navigate])
 
   const refreshDashboard = async () => {
     setLoading(true)
     try {
-      // Simular atualização de dados
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await refetch()
       setLastUpdated(new Date())
     } catch (error) {
       console.error("Erro ao atualizar dashboard:", error)
@@ -107,11 +77,11 @@ export default function DashboardPage() {
         </header>
 
         <div className="space-y-8">
-          <DashboardMetrics />
+          <DashboardMetrics stats={stats} loading={statsLoading} />
 
           {/* Charts and Activity */}
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
-            <ConversationChart />
+            <ConversationChart chartData={chartData} loading={statsLoading} />
             <RecentConversations />
           </div>
         </div>
