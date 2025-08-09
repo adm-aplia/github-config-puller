@@ -47,33 +47,53 @@ export const useAppointments = () => {
 
   const createAppointmentsFromGoogleEvents = async (events: any[], professionalId?: string) => {
     try {
+      console.log('Creating appointments from Google events:', { events, professionalId });
+      
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
 
-      const appointmentsToInsert = events.map(event => ({
-        user_id: userData.user.id,
-        patient_name: event.summary || 'Sem título',
-        patient_email: event.attendees && event.attendees.length > 0 ? event.attendees[0] : null,
-        patient_phone: '(00) 00000-0000', // Default phone since Google Calendar doesn't provide this
-        appointment_date: event.start,
-        duration_minutes: 60, // Default duration
-        appointment_type: event.summary || 'Consulta',
-        status: 'confirmed',
-        notes: event.location ? `Local: ${event.location}` : null,
-        agent_id: professionalId || null,
-      }));
+      if (!events || events.length === 0) {
+        throw new Error('No events provided');
+      }
+
+      const appointmentsToInsert = events.map(event => {
+        console.log('Processing event:', event);
+        return {
+          user_id: userData.user.id,
+          patient_name: event.summary || 'Sem título',
+          patient_email: event.attendees && event.attendees.length > 0 ? event.attendees[0] : null,
+          patient_phone: '(00) 00000-0000', // Default phone since Google Calendar doesn't provide this
+          appointment_date: event.start,
+          duration_minutes: 60, // Default duration
+          appointment_type: event.summary || 'Consulta',
+          status: 'confirmed',
+          notes: event.location ? `Local: ${event.location}` : null,
+          ...(professionalId && { agent_id: professionalId }),
+        };
+      });
+
+      console.log('Appointments to insert:', appointmentsToInsert);
 
       const { data, error } = await supabase
         .from('appointments')
         .insert(appointmentsToInsert)
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
+      console.log('Successfully inserted appointments:', data);
       setAppointments(prev => [...prev, ...data]);
       return data.length;
     } catch (error) {
       console.error('Error creating appointments from Google events:', error);
+      toast({
+        title: 'Erro ao importar eventos',
+        description: error instanceof Error ? error.message : 'Erro desconhecido ao importar eventos',
+        variant: 'destructive',
+      });
       throw error;
     }
   };
