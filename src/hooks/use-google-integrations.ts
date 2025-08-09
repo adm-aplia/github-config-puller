@@ -31,7 +31,7 @@ export const useGoogleIntegrations = () => {
     try {
       const { data: credentialsData, error: credentialsError } = await supabase
         .from('google_credentials')
-        .select('*')
+        .select('id, user_id, email, name, expires_at, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       if (credentialsError) throw credentialsError;

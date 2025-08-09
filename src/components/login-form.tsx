@@ -18,7 +18,7 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("Form submitted!", { email, password })
+    
     e.preventDefault()
     
     if (!email || !password) {
@@ -31,11 +31,11 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
     }
 
     setIsLoading(true)
-    console.log("Starting login process...")
+    
     
     try {
       if (onSignIn) {
-        console.log("Calling signIn function...")
+        
         const { error } = await onSignIn(email, password)
         if (error) {
           throw new Error(error.message)
@@ -55,7 +55,7 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
         variant: "destructive"
       })
     } finally {
-      console.log("Login process finished")
+      
       setIsLoading(false)
     }
   }
