@@ -9,18 +9,17 @@ const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png
 const apliaLogoFullDark = "/lovable-uploads/e9a17318-593a-428d-b166-e4f8be819529.png"
 
 export default function CadastroPage() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+    }
+    return 'light'
+  })
   const { user } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
     document.title = 'Criar conta — Aplia'
-  }, [])
-
-  useEffect(() => {
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setTheme(isDark ? 'dark' : 'light')
-    document.documentElement.classList.toggle('dark', isDark)
   }, [])
 
   useEffect(() => {
