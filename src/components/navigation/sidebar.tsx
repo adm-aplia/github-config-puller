@@ -66,10 +66,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   }, [])
 
   const isActive = (path: string) => {
-    if (path === "/dashboard") {
-      return location.pathname === "/dashboard"
-    }
-    return location.pathname.startsWith(path)
+    return false // Sempre retorna false para não destacar nenhum item
   }
 
   const handleSignOut = async () => {
@@ -128,24 +125,16 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       {/* Navigation */}
       <div className="flex-1 overflow-auto py-2">
         <nav className="grid items-start px-2 text-sm font-medium">
-          {navigationItems.map((item) => {
-            const active = isActive(item.url)
-            return (
-              <NavLink
-                key={item.title}
-                to={item.url}
-                aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
-                  active
-                    ? "hover:text-primary bg-accent text-primary font-medium"
-                    : "text-sidebar-foreground hover:bg-accent/50 hover:text-sidebar-accent-foreground"
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span>{item.title}</span>
-              </NavLink>
-            )
-          })}
+          {navigationItems.map((item) => (
+            <NavLink
+              key={item.title}
+              to={item.url}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sidebar-foreground hover:bg-accent/50 hover:text-sidebar-accent-foreground"
+            >
+              <item.icon className="h-5 w-5" />
+              <span>{item.title}</span>
+            </NavLink>
+          ))}
         </nav>
       </div>
 

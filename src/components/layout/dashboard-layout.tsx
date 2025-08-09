@@ -15,8 +15,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen w-full bg-background flex">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:flex w-64 border-r border-border/30 bg-background">
+      {/* Desktop Sidebar - Fixed */}
+      <div className="hidden md:flex w-64 border-r border-border/30 bg-background fixed h-full z-40">
         <Sidebar />
       </div>
 
@@ -33,7 +33,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </Sheet>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col md:ml-64">
         {/* Header */}
         <header className="flex h-16 items-center justify-end gap-4 px-6 border-b border-border/30 bg-background">
           <div className="flex items-center gap-4">
