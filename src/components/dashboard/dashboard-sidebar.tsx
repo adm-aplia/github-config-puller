@@ -71,9 +71,9 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
       "flex flex-col h-screen bg-background border-r transition-all duration-300 fixed left-0 top-0 z-40",
       isCollapsed ? "w-14" : "w-64"
     )}>
-      <div className="flex flex-col w-full">
+      <div className="flex flex-col w-full h-full">
         {/* Header */}
-        <div className="flex h-14 items-center px-4">
+        <div className="flex h-14 items-center px-4 flex-shrink-0">
           {!isCollapsed ? (
             <div className="flex items-center gap-2">
               <img 
@@ -101,8 +101,8 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
           </Button>
         </div>
 
-        {/* Navigation */}
-        <div className="flex-1 overflow-auto py-2">
+        {/* Navigation - Área que cresce e permite scroll */}
+        <div className="flex-1 overflow-auto py-2 min-h-0">
           <nav className="grid items-start px-2 text-sm font-medium">
             {navigation.map((item) => (
               <NavLink
@@ -128,11 +128,10 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
           </nav>
         </div>
 
-        {/* Footer - User Info - Sempre na parte inferior */}
-        <div className="mt-auto border-t p-2">
-          <Separator className="mb-2" />
-          <div className="space-y-2">
-            <div className="flex items-center gap-3 px-3 py-2">
+        {/* Footer - User Info - Sempre na parte inferior, separado do menu */}
+        <div className="border-t p-3 flex-shrink-0 bg-background">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 px-2 py-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                   {getUserDisplayName().charAt(0).toUpperCase()}
@@ -152,7 +151,7 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 px-2"
               onClick={signOut}
             >
               <LogOut className="h-4 w-4" />
