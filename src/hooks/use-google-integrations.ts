@@ -7,8 +7,6 @@ export interface GoogleCredential {
   user_id: string;
   email: string;
   name?: string;
-  access_token?: string;
-  refresh_token?: string;
   expires_at?: string;
   created_at: string;
   updated_at: string;
@@ -58,20 +56,23 @@ export const useGoogleIntegrations = () => {
 
   const connectGoogleAccount = async () => {
     try {
-      // Simular OAuth flow do Google
-      // Em uma implementação real, você redirecionaria para o Google OAuth
+      // SECURITY WARNING: This is a mock implementation
+      // In production, implement proper OAuth 2.0 flow with secure token handling
       const mockCredential = {
         email: 'usuario@gmail.com',
         name: 'Usuário Google',
-        access_token: 'mock_access_token',
-        refresh_token: 'mock_refresh_token',
         expires_at: new Date(Date.now() + 3600000).toISOString(), // 1 hora
       };
 
       const { data, error } = await supabase
         .from('google_credentials')
-        .insert([{...mockCredential, user_id: (await supabase.auth.getUser()).data.user?.id}])
-        .select()
+        .insert([{
+          email: mockCredential.email,
+          name: mockCredential.name,
+          expires_at: mockCredential.expires_at,
+          user_id: (await supabase.auth.getUser()).data.user?.id
+        }])
+        .select('id, user_id, email, name, expires_at, created_at, updated_at')
         .single();
 
       if (error) throw error;
@@ -208,7 +209,7 @@ export const useGoogleIntegrations = () => {
 
   const refreshGoogleToken = async (credentialId: string) => {
     try {
-      // Em uma implementação real, você usaria o refresh_token para obter um novo access_token
+      // SECURITY NOTE: In production, implement secure token refresh via Edge Function
       const newExpiresAt = new Date(Date.now() + 3600000).toISOString();
 
       const { data, error } = await supabase
@@ -218,7 +219,7 @@ export const useGoogleIntegrations = () => {
           updated_at: new Date().toISOString(),
         })
         .eq('id', credentialId)
-        .select()
+        .select('id, user_id, email, name, expires_at, created_at, updated_at')
         .single();
 
       if (error) throw error;
