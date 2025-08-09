@@ -104,7 +104,7 @@ export function AppSidebar() {
                       className={({ isActive }) =>
                         `flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                           isActive 
-                            ? "bg-accent text-primary font-medium" 
+                            ? "bg-aplia-coral text-white font-medium" 
                             : "text-sidebar-foreground hover:bg-accent/50 hover:text-sidebar-accent-foreground"
                         }`
                       }

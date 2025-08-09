@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CalendarDays, RefreshCw, Mail, Check, Trash2 } from "lucide-react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
-import { GoogleCalendarImport } from "@/components/google/google-calendar-import"
+
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function IntegracoesPage() {
@@ -153,8 +153,6 @@ export default function IntegracoesPage() {
               </CardContent>
             </Card>
 
-            {/* Componente de Importação do Google Calendar */}
-            <GoogleCalendarImport onImportComplete={refetch} />
           </div>
         </div>
       </div>
