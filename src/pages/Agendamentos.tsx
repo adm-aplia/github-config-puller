@@ -9,6 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { useAuth } from "@/components/auth-provider"
+import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
+import { useAppointments } from "@/hooks/use-appointments"
 import { 
   Calendar as CalendarIcon, 
   Plus, 
@@ -73,12 +76,18 @@ export default function AgendamentosPage() {
   const [isGoogleEventsDialogOpen, setIsGoogleEventsDialogOpen] = useState(false)
   const [startDate, setStartDate] = useState<Date | undefined>()
   const [endDate, setEndDate] = useState<Date | undefined>()
+  const [isImporting, setIsImporting] = useState(false)
+  
+  const { user } = useAuth()
+  const { profiles, loading: profilesLoading } = useProfessionalProfiles()
+  const { appointments, loading: appointmentsLoading, createAppointmentsFromGoogleEvents } = useAppointments()
 
   // Get appointments for a specific date
   const getAppointmentsForDate = (date: Date) => {
-    return mockAppointments.filter(apt => 
-      apt.date.toDateString() === date.toDateString()
-    )
+    return appointments.filter(apt => {
+      const aptDate = new Date(apt.appointment_date)
+      return aptDate.toDateString() === date.toDateString()
+    })
   }
 
   // Get appointments for selected date
@@ -86,10 +95,12 @@ export default function AgendamentosPage() {
 
   // Function to pull Google Calendar events
   const handleGoogleEventsSync = async () => {
-    if (!startDate || !endDate) return
+    if (!startDate || !endDate || !user?.email) return
+
+    setIsImporting(true)
 
     const query = {
-      my_email: "nathancwb@gmail.com",
+      my_email: user.email,
       calendarId: "primary",
       timeMin: startDate.toISOString(),
       timeMax: endDate.toISOString()
@@ -105,13 +116,22 @@ export default function AgendamentosPage() {
       })
       
       if (response.ok) {
-        console.log('Eventos enviados com sucesso')
-        setIsGoogleEventsDialogOpen(false)
-        setStartDate(undefined)
-        setEndDate(undefined)
+        const data = await response.json()
+        if (data && data[0]?.response) {
+          const events = JSON.parse(data[0].response)
+          const eventsCount = await createAppointmentsFromGoogleEvents(events)
+          
+          alert(`Foram atualizados ${eventsCount} eventos`)
+          setIsGoogleEventsDialogOpen(false)
+          setStartDate(undefined)
+          setEndDate(undefined)
+        }
       }
     } catch (error) {
       console.error('Erro ao enviar eventos:', error)
+      alert('Erro ao importar eventos do Google Agenda')
+    } finally {
+      setIsImporting(false)
     }
   }
 
@@ -219,16 +239,19 @@ export default function AgendamentosPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
-                      <SelectTrigger className="w-48">
+                      <SelectTrigger className="w-56">
                         <SelectValue>
                           {selectedProfessional === "all" ? "Todos os profissionais" : 
-                           selectedProfessional === "dra-mariana" ? "Dra. Mariana" : "Dr. Carlos"}
+                           profiles.find(p => p.id === selectedProfessional)?.fullname || "Profissional não encontrado"}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Todos os profissionais</SelectItem>
-                        <SelectItem value="dra-mariana">Dra. Mariana</SelectItem>
-                        <SelectItem value="dr-carlos">Dr. Carlos</SelectItem>
+                        {profiles.map(profile => (
+                          <SelectItem key={profile.id} value={profile.id}>
+                            {profile.fullname}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     
@@ -239,6 +262,7 @@ export default function AgendamentosPage() {
                             <DialogTrigger asChild>
                               <Button variant="outline" size="sm" className="flex items-center gap-1">
                                 <Download className="h-4 w-4" />
+                                Eventos Google Agenda
                                 <HelpCircle className="h-3 w-3" />
                               </Button>
                             </DialogTrigger>
@@ -304,10 +328,10 @@ export default function AgendamentosPage() {
                                 <div className="flex gap-2 pt-4">
                                   <Button 
                                     onClick={handleGoogleEventsSync}
-                                    disabled={!startDate || !endDate}
+                                    disabled={!startDate || !endDate || isImporting}
                                     className="flex-1"
                                   >
-                                    Importar Eventos
+                                    {isImporting ? "Importando..." : "Importar Eventos"}
                                   </Button>
                                   <Button 
                                     variant="outline" 
@@ -375,67 +399,90 @@ export default function AgendamentosPage() {
             {/* Appointments List */}
             <Card>
               <CardHeader>
-                <CardTitle>
-                  Agendamentos para {selectedDate?.toLocaleDateString('pt-BR') || 'Hoje'}
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Agendamentos do Dia
                 </CardTitle>
                 <CardDescription>
-                  {selectedDateAppointments.length} agendamentos encontrados
+                  {selectedDate ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Selecione uma data"}
+                  {selectedDateAppointments.length > 0 && (
+                    <span className="ml-2 text-sm font-medium">
+                      ({selectedDateAppointments.length} agendamento{selectedDateAppointments.length > 1 ? 's' : ''})
+                    </span>
+                  )}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {selectedDateAppointments.map((appointment) => {
-                    const statusBadge = getStatusBadge(appointment.status)
-                    return (
-                      <div key={appointment.id} className="flex items-center justify-between p-2 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="font-medium">{appointment.patient}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {appointment.time} • {appointment.type}
+              <CardContent className="p-4">
+                {appointmentsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <RefreshCw className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : selectedDateAppointments.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Nenhum agendamento encontrado</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Não há agendamentos para {selectedDate ? format(selectedDate, "dd 'de' MMMM", { locale: ptBR }) : "esta data"}.
+                    </p>
+                    <Button size="sm" className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      Novo Agendamento
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {selectedDateAppointments.map((appointment, index) => {
+                      const statusBadge = getStatusBadge(appointment.status)
+                      const appointmentDate = new Date(appointment.appointment_date)
+                      const timeString = appointmentDate.toLocaleTimeString('pt-BR', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })
+                      
+                      return (
+                        <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
+                          <div className="flex items-center gap-3">
+                            <div className="w-2 h-8 bg-blue-500 rounded-full"></div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{appointment.patient_name}</span>
+                                <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+                              </div>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                <span className="flex items-center gap-1">
+                                  <Clock4 className="h-3 w-3" />
+                                  {timeString}
+                                </span>
+                                <span>{appointment.appointment_type || 'Consulta'}</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={statusBadge.variant}>
-                            {statusBadge.label}
-                          </Badge>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuContent align="end" className="w-40">
                               <DropdownMenuItem className="flex items-center gap-2">
                                 <Eye className="h-4 w-4" />
-                                Ver Detalhes
+                                Visualizar
                               </DropdownMenuItem>
                               <DropdownMenuItem className="flex items-center gap-2">
                                 <Edit className="h-4 w-4" />
                                 Editar
                               </DropdownMenuItem>
-                              {appointment.status === 'pending' && (
-                                <DropdownMenuItem className="flex items-center gap-2">
-                                  <UserCheck className="h-4 w-4" />
-                                  Confirmar
-                                </DropdownMenuItem>
-                              )}
-                              {appointment.status === 'confirmed' && (
-                                <DropdownMenuItem className="flex items-center gap-2">
-                                  <CheckCircle className="h-4 w-4" />
-                                  Marcar como Concluído
-                                </DropdownMenuItem>
-                              )}
+                              <DropdownMenuItem className="flex items-center gap-2">
+                                <UserCheck className="h-4 w-4" />
+                                Confirmar
+                              </DropdownMenuItem>
                               <DropdownMenuItem className="flex items-center gap-2">
                                 <Repeat className="h-4 w-4" />
                                 Remarcar
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center gap-2">
-                                <X className="h-4 w-4" />
-                                Cancelar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center gap-2">
+                              <DropdownMenuItem className="flex items-center gap-2 text-destructive">
                                 <UserX className="h-4 w-4" />
-                                Marcar Falta
+                                Cancelar
                               </DropdownMenuItem>
                               <DropdownMenuItem className="flex items-center gap-2 text-destructive">
                                 <Trash2 className="h-4 w-4" />
@@ -444,16 +491,10 @@ export default function AgendamentosPage() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
-                      </div>
-                    )
-                  })}
-                  {selectedDateAppointments.length === 0 && (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <CalendarIcon className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                      <p>Nenhum agendamento para esta data</p>
-                    </div>
-                  )}
-                </div>
+                      )
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
