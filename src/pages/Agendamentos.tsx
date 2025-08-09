@@ -5,6 +5,9 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { 
   Calendar as CalendarIcon, 
@@ -25,10 +28,14 @@ import {
   Repeat,
   X,
   UserX,
-  Trash2
+  Trash2,
+  Download,
+  HelpCircle
 } from "lucide-react"
 import { useState } from "react"
 import { ptBR } from "date-fns/locale"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
 
 const mockAppointments = [
   { id: 1, patient: "Maria Silva", time: "09:00", status: "confirmed", type: "Consulta", date: new Date(2025, 7, 4) },
@@ -63,6 +70,9 @@ export default function AgendamentosPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [viewPeriod, setViewPeriod] = useState("today")
   const [selectedProfessional, setSelectedProfessional] = useState("all")
+  const [isGoogleEventsDialogOpen, setIsGoogleEventsDialogOpen] = useState(false)
+  const [startDate, setStartDate] = useState<Date | undefined>()
+  const [endDate, setEndDate] = useState<Date | undefined>()
 
   // Get appointments for a specific date
   const getAppointmentsForDate = (date: Date) => {
@@ -73,6 +83,37 @@ export default function AgendamentosPage() {
 
   // Get appointments for selected date
   const selectedDateAppointments = selectedDate ? getAppointmentsForDate(selectedDate) : []
+
+  // Function to pull Google Calendar events
+  const handleGoogleEventsSync = async () => {
+    if (!startDate || !endDate) return
+
+    const query = {
+      my_email: "nathancwb@gmail.com",
+      calendarId: "primary",
+      timeMin: startDate.toISOString(),
+      timeMax: endDate.toISOString()
+    }
+
+    try {
+      const response = await fetch('https://aplia-n8n-editor.kopfcf.easypanel.host/webhook-test/eventos-google-agenda', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([{ query: JSON.stringify(query) }])
+      })
+      
+      if (response.ok) {
+        console.log('Eventos enviados com sucesso')
+        setIsGoogleEventsDialogOpen(false)
+        setStartDate(undefined)
+        setEndDate(undefined)
+      }
+    } catch (error) {
+      console.error('Erro ao enviar eventos:', error)
+    }
+  }
 
   // Custom day content renderer
   const renderDayContent = (date: Date) => {
@@ -179,7 +220,10 @@ export default function AgendamentosPage() {
                   <div className="flex items-center gap-2">
                     <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
                       <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Todos os profissionais" />
+                        <SelectValue>
+                          {selectedProfessional === "all" ? "Todos os profissionais" : 
+                           selectedProfessional === "dra-mariana" ? "Dra. Mariana" : "Dr. Carlos"}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Todos os profissionais</SelectItem>
@@ -187,6 +231,102 @@ export default function AgendamentosPage() {
                         <SelectItem value="dr-carlos">Dr. Carlos</SelectItem>
                       </SelectContent>
                     </Select>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Dialog open={isGoogleEventsDialogOpen} onOpenChange={setIsGoogleEventsDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="flex items-center gap-1">
+                                <Download className="h-4 w-4" />
+                                <HelpCircle className="h-3 w-3" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md">
+                              <DialogHeader>
+                                <DialogTitle>Importar Eventos do Google Agenda</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <label className="text-sm font-medium">Data Inicial</label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal",
+                                          !startDate && "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {startDate ? format(startDate, "dd/MM/yyyy") : <span>Selecione a data inicial</span>}
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                        mode="single"
+                                        selected={startDate}
+                                        onSelect={setStartDate}
+                                        initialFocus
+                                        className="pointer-events-auto"
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <label className="text-sm font-medium">Data Final</label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal",
+                                          !endDate && "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {endDate ? format(endDate, "dd/MM/yyyy") : <span>Selecione a data final</span>}
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                        mode="single"
+                                        selected={endDate}
+                                        onSelect={setEndDate}
+                                        initialFocus
+                                        className="pointer-events-auto"
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                                
+                                <div className="flex gap-2 pt-4">
+                                  <Button 
+                                    onClick={handleGoogleEventsSync}
+                                    disabled={!startDate || !endDate}
+                                    className="flex-1"
+                                  >
+                                    Importar Eventos
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => setIsGoogleEventsDialogOpen(false)}
+                                    className="flex-1"
+                                  >
+                                    Cancelar
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Use esse botão para puxar os eventos do seu google agenda</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
                     <Button variant="outline" size="sm">
                       <RefreshCw className="h-4 w-4" />
                     </Button>
