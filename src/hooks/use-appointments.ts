@@ -81,10 +81,40 @@ export const useAppointments = () => {
     fetchAppointments();
   }, []);
 
+  const updateAppointmentStatus = async (appointmentId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq('id', appointmentId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      throw error;
+    }
+  };
+
+  const deleteAppointment = async (appointmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('id', appointmentId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      throw error;
+    }
+  };
+
   return {
     appointments,
     loading,
     fetchAppointments,
     createAppointmentsFromGoogleEvents,
+    updateAppointmentStatus,
+    deleteAppointment,
   };
 };

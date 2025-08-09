@@ -12,6 +12,7 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useAuth } from "@/components/auth-provider"
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useAppointments } from "@/hooks/use-appointments"
+import { useToast } from "@/hooks/use-toast"
 import { 
   Calendar as CalendarIcon, 
   Plus, 
@@ -80,7 +81,8 @@ export default function AgendamentosPage() {
   
   const { user } = useAuth()
   const { profiles, loading: profilesLoading } = useProfessionalProfiles()
-  const { appointments, loading: appointmentsLoading, createAppointmentsFromGoogleEvents } = useAppointments()
+  const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointmentStatus, deleteAppointment } = useAppointments()
+  const { toast } = useToast()
 
   // Get appointments for a specific date
   const getAppointmentsForDate = (date: Date) => {
@@ -92,6 +94,59 @@ export default function AgendamentosPage() {
 
   // Get appointments for selected date
   const selectedDateAppointments = selectedDate ? getAppointmentsForDate(selectedDate) : []
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'bg-blue-500'
+      case 'pending':
+        return 'bg-yellow-500'
+      case 'cancelled':
+        return 'bg-red-500'
+      case 'completed':
+        return 'bg-green-500'
+      default:
+        return 'bg-yellow-500'
+    }
+  }
+
+  const handleUpdateStatus = async (appointmentId: string, newStatus: string) => {
+    try {
+      await updateAppointmentStatus(appointmentId, newStatus)
+      await fetchAppointments()
+      toast({
+        title: 'Status atualizado',
+        description: 'O status do agendamento foi atualizado com sucesso.',
+      })
+    } catch (error) {
+      toast({
+        title: 'Erro ao atualizar status',
+        description: 'Não foi possível atualizar o status do agendamento.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleDeleteAppointment = async (appointmentId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este agendamento?')) {
+      return
+    }
+    
+    try {
+      await deleteAppointment(appointmentId)
+      await fetchAppointments()
+      toast({
+        title: 'Agendamento excluído',
+        description: 'O agendamento foi excluído com sucesso.',
+      })
+    } catch (error) {
+      toast({
+        title: 'Erro ao excluir',
+        description: 'Não foi possível excluir o agendamento.',
+        variant: 'destructive',
+      })
+    }
+  }
 
   // Function to pull Google Calendar events
   const handleGoogleEventsSync = async () => {
@@ -444,7 +499,7 @@ export default function AgendamentosPage() {
                       return (
                         <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
                           <div className="flex items-center gap-3">
-                            <div className="w-2 h-8 bg-blue-500 rounded-full"></div>
+                            <div className={`w-2 h-8 ${getStatusColor(appointment.status)} rounded-full`}></div>
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="font-medium">{appointment.patient_name}</span>
@@ -465,28 +520,65 @@ export default function AgendamentosPage() {
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-40">
-                              <DropdownMenuItem className="flex items-center gap-2">
+                            <DropdownMenuContent align="end" className="min-w-[180px] z-50 bg-background border shadow-lg">
+                              <DropdownMenuItem 
+                                className="flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                                onClick={() => {
+                                  toast({
+                                    title: 'Visualizar agendamento',
+                                    description: 'Funcionalidade em desenvolvimento.',
+                                  })
+                                }}
+                              >
                                 <Eye className="h-4 w-4" />
                                 Visualizar
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center gap-2">
+                              <DropdownMenuItem 
+                                className="flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                                onClick={() => {
+                                  toast({
+                                    title: 'Editar agendamento',
+                                    description: 'Funcionalidade em desenvolvimento.',
+                                  })
+                                }}
+                              >
                                 <Edit className="h-4 w-4" />
                                 Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center gap-2">
-                                <UserCheck className="h-4 w-4" />
-                                Confirmar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center gap-2">
+                              {appointment.status !== 'confirmed' && (
+                                <DropdownMenuItem 
+                                  className="flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                                  onClick={() => handleUpdateStatus(appointment.id, 'confirmed')}
+                                >
+                                  <UserCheck className="h-4 w-4" />
+                                  Confirmar
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem 
+                                className="flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                                onClick={() => {
+                                  toast({
+                                    title: 'Remarcar agendamento',
+                                    description: 'Funcionalidade em desenvolvimento.',
+                                  })
+                                }}
+                              >
                                 <Repeat className="h-4 w-4" />
                                 Remarcar
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center gap-2 text-destructive">
-                                <UserX className="h-4 w-4" />
-                                Cancelar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="flex items-center gap-2 text-destructive">
+                              {appointment.status !== 'cancelled' && (
+                                <DropdownMenuItem 
+                                  className="flex items-center gap-2 text-destructive cursor-pointer whitespace-nowrap"
+                                  onClick={() => handleUpdateStatus(appointment.id, 'cancelled')}
+                                >
+                                  <UserX className="h-4 w-4" />
+                                  Cancelar
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem 
+                                className="flex items-center gap-2 text-destructive cursor-pointer whitespace-nowrap"
+                                onClick={() => handleDeleteAppointment(appointment.id)}
+                              >
                                 <Trash2 className="h-4 w-4" />
                                 Excluir
                               </DropdownMenuItem>
