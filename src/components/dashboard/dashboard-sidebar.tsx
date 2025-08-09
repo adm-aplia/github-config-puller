@@ -101,8 +101,8 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
           </Button>
         </div>
 
-        {/* Navigation - Área que cresce e permite scroll */}
-        <div className="flex-1 overflow-auto py-2 min-h-0">
+        {/* Navigation */}
+        <div className="flex-1 overflow-auto py-2">
           <nav className="grid items-start px-2 text-sm font-medium">
             {navigation.map((item) => (
               <NavLink
@@ -128,10 +128,10 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
           </nav>
         </div>
 
-        {/* Footer - User Info - Sempre na parte inferior, separado do menu */}
-        <div className="border-t p-3 flex-shrink-0 bg-background">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 px-2 py-2">
+        {/* Footer - User Info */}
+        <div className="border-t p-2">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 px-3 py-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                   {getUserDisplayName().charAt(0).toUpperCase()}
@@ -151,7 +151,7 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 px-2"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
               onClick={signOut}
             >
               <LogOut className="h-4 w-4" />
