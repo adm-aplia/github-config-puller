@@ -24,17 +24,47 @@ export const useDashboardStats = () => {
 
   const fetchStats = async () => {
     try {
+      setLoading(true);
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
 
-      // Buscar estatísticas do dashboard
+      // Buscar estatísticas do dashboard usando a função RPC
       const { data: statsData, error: statsError } = await supabase
         .rpc('get_dashboard_stats', { p_user_id: userData.user.id });
 
-      if (statsError) throw statsError;
+      if (statsError) {
+        console.error('Error calling get_dashboard_stats:', statsError);
+        throw statsError;
+      }
+
+      console.log('Stats data from RPC:', statsData);
 
       if (statsData && typeof statsData === 'object' && !Array.isArray(statsData)) {
         setStats(statsData as unknown as DashboardStats);
+      } else {
+        // Fallback: buscar dados diretamente das tabelas se a função RPC não funcionar
+        console.log('Using fallback stats calculation');
+        
+        const [assistentesData, instanciasData, conversasData, agendamentosData, mensagensData] = await Promise.all([
+          supabase.from('professional_profiles').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id),
+          supabase.from('whatsapp_instances').select('id, status', { count: 'exact' }).eq('user_id', userData.user.id),
+          supabase.from('conversations').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).eq('status', 'active'),
+          supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).gte('appointment_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+          supabase.from('messages').select('id', { count: 'exact', head: true }).eq('created_at', new Date().toISOString().split('T')[0])
+        ]);
+
+        const instanciasAtivas = instanciasData.data?.filter(inst => inst.status === 'connected').length || 0;
+
+        const fallbackStats: DashboardStats = {
+          total_assistentes: assistentesData.count || 0,
+          total_instancias: instanciasData.count || 0,
+          instancias_ativas: instanciasAtivas,
+          conversas_ativas: conversasData.count || 0,
+          agendamentos_mes: agendamentosData.count || 0,
+          mensagens_hoje: mensagensData.count || 0
+        };
+
+        setStats(fallbackStats);
       }
 
       // Buscar dados para o gráfico (últimos 7 dias)
@@ -73,6 +103,16 @@ export const useDashboardStats = () => {
         title: 'Erro ao carregar estatísticas',
         description: 'Não foi possível carregar as estatísticas do dashboard.',
         variant: 'destructive',
+      });
+      
+      // Em caso de erro, definir estatísticas vazias
+      setStats({
+        total_assistentes: 0,
+        total_instancias: 0,
+        instancias_ativas: 0,
+        conversas_ativas: 0,
+        agendamentos_mes: 0,
+        mensagens_hoje: 0
       });
     } finally {
       setLoading(false);
