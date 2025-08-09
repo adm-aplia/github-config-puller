@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Mail, Lock, Bot } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import logoFull from "@/assets/aplia-logo.svg"
 
 interface LoginFormProps {
   onSignIn?: (email: string, password: string) => Promise<{ error: any }>
@@ -64,9 +65,14 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
       <div className="flex flex-col items-center mb-6">
       <div className="flex items-center justify-center mb-4">
         <img 
-          src="/aplia-logo-full.png" 
-          alt="Aplia" 
+          src={logoFull}
+          alt="Aplia — Assistentes de IA para Profissionais da Saúde (logo)"
           className="h-12 w-auto"
+          width={120}
+          height={32}
+          loading="eager"
+          decoding="async"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/aplia-logo-full.png' }}
         />
       </div>
         <p className="text-muted-foreground text-center mt-2">
