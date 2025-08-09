@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, Eye, EyeOff, Check } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth-provider"
+import { Link } from "react-router-dom"
 
 export default function SignupForm() {
   const [fullName, setFullName] = useState("")
@@ -136,7 +137,7 @@ export default function SignupForm() {
           <Checkbox id="terms" checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(Boolean(v))} />
           <div className="space-y-1 leading-none">
             <Label htmlFor="terms" className="text-sm text-foreground">
-              Aceito os <a className="text-accent hover:text-accent/80 underline" href="/termos">termos de uso</a> e <a className="text-accent hover:text-accent/80 underline" href="/privacidade">política de privacidade</a>
+              Aceito os <Link className="text-accent hover:text-accent/80 underline" to="/termos">termos de uso</Link> e <Link className="text-accent hover:text-accent/80 underline" to="/privacidade">política de privacidade</Link>
             </Label>
           </div>
         </div>
@@ -164,7 +165,7 @@ export default function SignupForm() {
 
       <div className="mt-6 text-center">
         <p className="text-sm text-muted-foreground">
-          Já tem uma conta? <a className="font-medium text-accent hover:text-accent/80" href="/">Faça login aqui</a>
+          Já tem uma conta? <Link className="font-medium text-accent hover:text-accent/80" to="/">Faça login aqui</Link>
         </p>
       </div>
     </div>

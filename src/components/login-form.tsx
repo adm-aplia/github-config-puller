@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { Link } from "react-router-dom"
 
 interface LoginFormProps {
   onSignIn?: (email: string, password: string) => Promise<{ error: any }>
@@ -136,24 +137,24 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
       <div className="mt-6 text-center space-y-4">
         <p className="text-sm text-muted-foreground">
           Não tem uma conta?{" "}
-          <a href="/cadastro" className="font-medium text-accent hover:text-accent/80 underline">
+          <Link to="/cadastro" className="font-medium text-accent hover:text-accent/80 underline">
             Cadastre-se
-          </a>
+          </Link>
         </p>
         <div className="flex justify-center space-x-4 text-xs text-muted-foreground">
-          <a 
-            href="/termos" 
+          <Link 
+            to="/termos"
             className="hover:text-primary underline"
           >
             Termos de Uso
-          </a>
+          </Link>
           <span>•</span>
-          <a 
-            href="/privacidade" 
+          <Link 
+            to="/privacidade"
             className="hover:text-primary underline"
           >
             Política de Privacidade
-          </a>
+          </Link>
         </div>
       </div>
     </div>
