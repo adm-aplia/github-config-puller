@@ -97,17 +97,11 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink 
                       to={item.url} 
                       end={item.url === "/dashboard"}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
-                          isActive 
-                            ? "bg-sidebar-accent text-sidebar-foreground font-medium" 
-                            : "text-sidebar-foreground hover:bg-accent/50 hover:text-sidebar-foreground"
-                        }`
-                      }
+                      className="flex items-center gap-3 w-full"
                     >
                       <item.icon className="h-5 w-5" />
                       {state !== "collapsed" && <span>{item.title}</span>}
