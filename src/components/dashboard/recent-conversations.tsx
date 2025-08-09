@@ -51,8 +51,8 @@ export function RecentConversations() {
       const { data: userData } = await supabase.auth.getUser()
       if (!userData.user?.id) throw new Error('User not authenticated')
 
-      // Buscar conversas recentes com informações do perfil profissional
-      const { data: conversationsData, error } = await supabase
+      // First fetch conversations separately
+      const { data: conversationsData, error: conversationsError } = await supabase
         .from('conversations')
         .select(`
           id,
@@ -61,38 +61,47 @@ export function RecentConversations() {
           status,
           last_message_at,
           created_at,
-          agent_id,
-          professional_profiles:agent_id (
-            fullname,
-            specialty
-          )
+          agent_id
         `)
         .eq('user_id', userData.user.id)
         .order('last_message_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
         .limit(5)
 
-      if (error) throw error
+      if (conversationsError) throw conversationsError
 
-      // Para cada conversa, buscar a última mensagem
-      const conversationsWithMessages = await Promise.all(
+      // Fetch professional profiles and latest messages in parallel
+      const conversationsWithDetails = await Promise.all(
         (conversationsData || []).map(async (conversation) => {
+          // Fetch professional profile if agent_id exists
+          let professional_profile = null
+          if (conversation.agent_id) {
+            const { data: profileData } = await supabase
+              .from('professional_profiles')
+              .select('fullname, specialty')
+              .eq('id', conversation.agent_id)
+              .maybeSingle()
+            professional_profile = profileData
+          }
+
+          // Fetch latest message
           const { data: messageData } = await supabase
             .from('messages')
             .select('content, created_at')
             .eq('conversation_id', conversation.id)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single()
+            .maybeSingle()
 
           return {
             ...conversation,
+            professional_profile,
             latest_message: messageData
           }
         })
       )
 
-      setConversations(conversationsWithMessages)
+      setConversations(conversationsWithDetails)
     } catch (error) {
       console.error('Error fetching recent conversations:', error)
       toast({

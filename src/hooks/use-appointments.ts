@@ -15,8 +15,28 @@ export interface Appointment {
   notes?: string;
   agent_id?: string;
   conversation_id?: string;
+  google_event_id?: string;
   created_at: string;
   updated_at: string;
+}
+
+type GCalEvent = {
+  id: string;
+  summary?: string;
+  description?: string;
+  status?: string;
+  start?: { dateTime?: string; date?: string; timeZone?: string };
+  end?: { dateTime?: string; date?: string; timeZone?: string };
+  location?: string;
+  attendees?: Array<{ email?: string; responseStatus?: string }>;
+};
+
+function isoFromGCal(dt?: {dateTime?: string; date?: string; timeZone?: string}) {
+  if (!dt) return null;
+  // date (all-day) -> trata como 00:00 local em UTC
+  if (dt.date) return new Date(dt.date + 'T00:00:00').toISOString();
+  if (dt.dateTime) return new Date(dt.dateTime).toISOString();
+  return null;
 }
 
 export const useAppointments = () => {
@@ -45,38 +65,66 @@ export const useAppointments = () => {
     }
   };
 
-  const createAppointmentsFromGoogleEvents = async (events: any[], professionalId?: string) => {
+  const createAppointmentsFromGoogleEvents = async (payload: any, professionalId?: string) => {
     try {
-      console.log('Creating appointments from Google events:', { events, professionalId });
+      console.debug('[google-events] raw payload:', payload);
       
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
 
-      if (!events || events.length === 0) {
+      // Handle multiple payload formats from N8N webhook
+      const events: GCalEvent[] =
+        payload?.events ??
+        payload?.items ??
+        (Array.isArray(payload) ? payload : []);
+
+      if (!Array.isArray(events) || events.length === 0) {
         throw new Error('No events provided');
       }
 
-      const appointmentsToInsert = events.map(event => {
-        console.log('Processing event:', event);
-        return {
-          user_id: userData.user.id,
-          patient_name: event.summary || 'Sem título',
-          patient_email: event.attendees && event.attendees.length > 0 ? event.attendees[0] : null,
-          patient_phone: '(00) 00000-0000', // Default phone since Google Calendar doesn't provide this
-          appointment_date: event.start,
-          duration_minutes: 60, // Default duration
-          appointment_type: event.summary || 'Consulta',
-          status: 'confirmed',
-          notes: event.location ? `Local: ${event.location}` : null,
-          ...(professionalId && { agent_id: professionalId }),
-        };
-      });
+      const appointmentsToInsert = events
+        .filter(event => event?.id) // Only process events with valid IDs
+        .map(event => {
+          const startDate = isoFromGCal(event.start);
+          const endDate = isoFromGCal(event.end);
+          
+          // Calculate duration from start/end times
+          let durationMinutes = 60; // default
+          if (startDate && endDate) {
+            const diffMs = new Date(endDate).getTime() - new Date(startDate).getTime();
+            durationMinutes = Math.round(diffMs / (1000 * 60));
+          }
 
-      console.log('Appointments to insert:', appointmentsToInsert);
+          return {
+            user_id: userData.user.id,
+            google_event_id: event.id,
+            patient_name: event.summary || 'Sem título',
+            patient_email: event.attendees?.[0]?.email || null,
+            patient_phone: '(00) 00000-0000', // Default phone since Google Calendar doesn't provide this
+            appointment_date: startDate,
+            duration_minutes: durationMinutes,
+            appointment_type: event.summary || 'Consulta',
+            status: event.status === 'cancelled' ? 'cancelled' : 'confirmed',
+            notes: [
+              event.description,
+              event.location ? `Local: ${event.location}` : null
+            ].filter(Boolean).join('\n') || null,
+            ...(professionalId && { agent_id: professionalId }),
+          };
+        });
+
+      if (appointmentsToInsert.length === 0) {
+        throw new Error('No valid events after mapping');
+      }
+
+      console.log('Appointments to upsert:', appointmentsToInsert);
 
       const { data, error } = await supabase
         .from('appointments')
-        .insert(appointmentsToInsert)
+        .upsert(appointmentsToInsert, { 
+          onConflict: 'google_event_id',
+          ignoreDuplicates: false 
+        })
         .select();
 
       if (error) {
@@ -84,8 +132,8 @@ export const useAppointments = () => {
         throw error;
       }
 
-      console.log('Successfully inserted appointments:', data);
-      setAppointments(prev => [...prev, ...data]);
+      console.log('Successfully upserted appointments:', data);
+      await fetchAppointments(); // Refresh the list
       return data.length;
     } catch (error) {
       console.error('Error creating appointments from Google events:', error);
