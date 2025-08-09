@@ -1,12 +1,15 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Loader2, Eye, EyeOff, Check } from "lucide-react"
+import { Loader2, Eye, EyeOff, Check, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth-provider"
 import { Link } from "react-router-dom"
+import { cn } from "@/lib/utils"
+
+type PasswordStrength = "weak" | "medium" | "strong"
 
 export default function SignupForm() {
   const [fullName, setFullName] = useState("")
@@ -19,6 +22,33 @@ export default function SignupForm() {
   const { toast } = useToast()
   const { signUp, isLoading, session } = useAuth()
 
+  // Password validation rules
+  const passwordValidation = useMemo(() => {
+    const validations = {
+      hasMinLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    }
+
+    const passedCount = Object.values(validations).filter(Boolean).length
+    let strength: PasswordStrength = "weak"
+    
+    if (passedCount >= 5) strength = "strong"
+    else if (passedCount >= 3) strength = "medium"
+
+    return { ...validations, strength, isValid: passedCount >= 4 }
+  }, [password])
+
+  const getPasswordRequirements = () => [
+    { text: "Pelo menos 8 caracteres", valid: passwordValidation.hasMinLength },
+    { text: "Uma letra maiúscula", valid: passwordValidation.hasUppercase },
+    { text: "Uma letra minúscula", valid: passwordValidation.hasLowercase },
+    { text: "Um número", valid: passwordValidation.hasNumber },
+    { text: "Um caractere especial", valid: passwordValidation.hasSpecialChar },
+  ]
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -30,8 +60,12 @@ export default function SignupForm() {
       toast({ title: "Campos obrigatórios", description: "Preencha e-mail e senha.", variant: "destructive" })
       return
     }
-    if (password.length < 6) {
-      toast({ title: "Senha muito curta", description: "Use pelo menos 6 caracteres.", variant: "destructive" })
+    if (!passwordValidation.isValid) {
+      toast({ 
+        title: "Senha não atende aos requisitos", 
+        description: "A senha deve ter pelo menos 4 dos 5 requisitos de segurança.", 
+        variant: "destructive" 
+      })
       return
     }
     if (password !== confirmPassword) {
@@ -107,6 +141,55 @@ export default function SignupForm() {
               {showPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
             </button>
           </div>
+          
+          {/* Password Strength Indicator */}
+          {password && (
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Força da senha:</span>
+                <span className={cn(
+                  "text-xs font-medium px-2 py-1 rounded-full",
+                  passwordValidation.strength === "weak" && "bg-destructive/10 text-destructive",
+                  passwordValidation.strength === "medium" && "bg-yellow-500/10 text-yellow-600",
+                  passwordValidation.strength === "strong" && "bg-emerald-500/10 text-emerald-600"
+                )}>
+                  {passwordValidation.strength === "weak" && "Fraca"}
+                  {passwordValidation.strength === "medium" && "Média"}
+                  {passwordValidation.strength === "strong" && "Forte"}
+                </span>
+              </div>
+              
+              {/* Progress bar */}
+              <div className="w-full bg-muted rounded-full h-1">
+                <div 
+                  className={cn(
+                    "h-1 rounded-full transition-all duration-300",
+                    passwordValidation.strength === "weak" && "w-1/3 bg-destructive",
+                    passwordValidation.strength === "medium" && "w-2/3 bg-yellow-500",
+                    passwordValidation.strength === "strong" && "w-full bg-emerald-500"
+                  )}
+                />
+              </div>
+              
+              {/* Requirements list */}
+              <div className="space-y-1">
+                {getPasswordRequirements().map((req, index) => (
+                  <div key={index} className="flex items-center gap-2 text-xs">
+                    {req.valid ? (
+                      <Check className="h-3 w-3 text-emerald-500" />
+                    ) : (
+                      <X className="h-3 w-3 text-muted-foreground" />
+                    )}
+                    <span className={cn(
+                      req.valid ? "text-emerald-600" : "text-muted-foreground"
+                    )}>
+                      {req.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
