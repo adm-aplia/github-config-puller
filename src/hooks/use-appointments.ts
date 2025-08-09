@@ -81,18 +81,26 @@ export const useAppointments = () => {
     fetchAppointments();
   }, []);
 
-  const updateAppointmentStatus = async (appointmentId: string, newStatus: string) => {
+  const updateAppointment = async (appointmentId: string, updates: Partial<Appointment>) => {
     try {
       const { error } = await supabase
         .from('appointments')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', appointmentId);
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error updating appointment status:', error);
+      console.error('Error updating appointment:', error);
       throw error;
     }
+  };
+
+  const updateAppointmentStatus = async (appointmentId: string, newStatus: string) => {
+    return updateAppointment(appointmentId, { status: newStatus });
+  };
+
+  const rescheduleAppointment = async (appointmentId: string, newDateTime: string) => {
+    return updateAppointment(appointmentId, { appointment_date: newDateTime });
   };
 
   const deleteAppointment = async (appointmentId: string) => {
@@ -114,7 +122,9 @@ export const useAppointments = () => {
     loading,
     fetchAppointments,
     createAppointmentsFromGoogleEvents,
+    updateAppointment,
     updateAppointmentStatus,
+    rescheduleAppointment,
     deleteAppointment,
   };
 };

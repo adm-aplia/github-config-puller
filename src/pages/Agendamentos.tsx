@@ -37,8 +37,12 @@ import {
   HelpCircle
 } from "lucide-react"
 import { useState } from "react"
-import { ptBR } from "date-fns/locale"
 import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { Appointment } from "@/hooks/use-appointments"
+import { AppointmentViewModal } from "@/components/appointments/appointment-view-modal"
+import { AppointmentEditModal } from "@/components/appointments/appointment-edit-modal"
+import { AppointmentRescheduleModal } from "@/components/appointments/appointment-reschedule-modal"
 import { cn } from "@/lib/utils"
 
 const mockAppointments = [
@@ -81,8 +85,14 @@ export default function AgendamentosPage() {
   
   const { user } = useAuth()
   const { profiles, loading: profilesLoading } = useProfessionalProfiles()
-  const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointmentStatus, deleteAppointment } = useAppointments()
+  const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment } = useAppointments()
   const { toast } = useToast()
+
+  // Modal states
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
 
   // Get appointments for a specific date
   const getAppointmentsForDate = (date: Date) => {
@@ -122,6 +132,42 @@ export default function AgendamentosPage() {
       toast({
         title: 'Erro ao atualizar status',
         description: 'Não foi possível atualizar o status do agendamento.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleEditAppointment = async (appointmentData: Partial<Appointment>) => {
+    if (!selectedAppointment) return
+    
+    try {
+      await updateAppointment(selectedAppointment.id, appointmentData)
+      await fetchAppointments()
+      toast({
+        title: 'Agendamento atualizado',
+        description: 'O agendamento foi atualizado com sucesso.',
+      })
+    } catch (error) {
+      toast({
+        title: 'Erro ao atualizar',
+        description: 'Não foi possível atualizar o agendamento.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleReschedule = async (appointmentId: string, newDateTime: string) => {
+    try {
+      await rescheduleAppointment(appointmentId, newDateTime)
+      await fetchAppointments()
+      toast({
+        title: 'Agendamento remarcado',
+        description: 'O agendamento foi remarcado com sucesso.',
+      })
+    } catch (error) {
+      toast({
+        title: 'Erro ao remarcar',
+        description: 'Não foi possível remarcar o agendamento.',
         variant: 'destructive',
       })
     }
@@ -524,10 +570,8 @@ export default function AgendamentosPage() {
                               <DropdownMenuItem 
                                 className="flex items-center gap-2 cursor-pointer whitespace-nowrap"
                                 onClick={() => {
-                                  toast({
-                                    title: 'Visualizar agendamento',
-                                    description: 'Funcionalidade em desenvolvimento.',
-                                  })
+                                  setSelectedAppointment(appointment)
+                                  setViewModalOpen(true)
                                 }}
                               >
                                 <Eye className="h-4 w-4" />
@@ -536,10 +580,8 @@ export default function AgendamentosPage() {
                               <DropdownMenuItem 
                                 className="flex items-center gap-2 cursor-pointer whitespace-nowrap"
                                 onClick={() => {
-                                  toast({
-                                    title: 'Editar agendamento',
-                                    description: 'Funcionalidade em desenvolvimento.',
-                                  })
+                                  setSelectedAppointment(appointment)
+                                  setEditModalOpen(true)
                                 }}
                               >
                                 <Edit className="h-4 w-4" />
@@ -557,10 +599,8 @@ export default function AgendamentosPage() {
                               <DropdownMenuItem 
                                 className="flex items-center gap-2 cursor-pointer whitespace-nowrap"
                                 onClick={() => {
-                                  toast({
-                                    title: 'Remarcar agendamento',
-                                    description: 'Funcionalidade em desenvolvimento.',
-                                  })
+                                  setSelectedAppointment(appointment)
+                                  setRescheduleModalOpen(true)
                                 }}
                               >
                                 <Repeat className="h-4 w-4" />
@@ -594,6 +634,27 @@ export default function AgendamentosPage() {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <AppointmentViewModal
+        appointment={selectedAppointment}
+        open={viewModalOpen}
+        onOpenChange={setViewModalOpen}
+      />
+      
+      <AppointmentEditModal
+        appointment={selectedAppointment}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onSave={handleEditAppointment}
+      />
+      
+      <AppointmentRescheduleModal
+        appointment={selectedAppointment}
+        open={rescheduleModalOpen}
+        onOpenChange={setRescheduleModalOpen}
+        onReschedule={handleReschedule}
+      />
     </DashboardLayout>
   )
 }
