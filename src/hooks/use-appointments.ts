@@ -68,6 +68,7 @@ export const useAppointments = () => {
   const createAppointmentsFromGoogleEvents = async (payload: any, professionalId?: string) => {
     try {
       console.debug('[google-events] raw payload:', payload);
+      console.debug('[google-events] professionalId:', professionalId);
       
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
@@ -109,7 +110,7 @@ export const useAppointments = () => {
               event.description,
               event.location ? `Local: ${event.location}` : null
             ].filter(Boolean).join('\n') || null,
-            ...(professionalId && { agent_id: professionalId }),
+            agent_id: professionalId || null,
           };
         });
 

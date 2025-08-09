@@ -225,7 +225,8 @@ export default function AgendamentosPage() {
       my_email: user.email,
       calendarId: "primary",
       timeMin: startDate.toISOString(),
-      timeMax: endDate.toISOString()
+      timeMax: endDate.toISOString(),
+      professionalProfileId: selectedProfessionalForImport
     }
 
     console.log('Sending webhook request with query:', query);
