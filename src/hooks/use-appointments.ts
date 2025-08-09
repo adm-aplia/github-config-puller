@@ -45,7 +45,7 @@ export const useAppointments = () => {
     }
   };
 
-  const createAppointmentsFromGoogleEvents = async (events: any[], agentId?: string) => {
+  const createAppointmentsFromGoogleEvents = async (events: any[]) => {
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
@@ -60,7 +60,6 @@ export const useAppointments = () => {
         appointment_type: event.summary || 'Consulta',
         status: 'confirmed',
         notes: event.location ? `Local: ${event.location}` : null,
-        agent_id: agentId || null,
       }));
 
       const { data, error } = await supabase

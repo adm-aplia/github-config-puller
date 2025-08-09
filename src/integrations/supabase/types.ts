@@ -78,13 +78,6 @@ export type Database = {
             referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_appointments_professional_profile"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "professional_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       assinaturas: {
@@ -426,6 +419,13 @@ export type Database = {
             columns: ["google_credential_id"]
             isOneToOne: false
             referencedRelation: "google_credentials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "google_profile_links_google_credential_id_fkey"
+            columns: ["google_credential_id"]
+            isOneToOne: false
+            referencedRelation: "google_credentials_safe"
             referencedColumns: ["id"]
           },
           {
@@ -888,7 +888,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      google_credentials_safe: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          expires_at: string | null
+          id: string | null
+          name: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          expires_at?: string | null
+          id?: string | null
+          name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          expires_at?: string | null
+          id?: string | null
+          name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_user_limits: {

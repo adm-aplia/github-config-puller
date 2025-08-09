@@ -36,15 +36,33 @@ import {
   Download,
   HelpCircle
 } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Appointment } from "@/hooks/use-appointments"
 import { AppointmentViewModal } from "@/components/appointments/appointment-view-modal"
 import { AppointmentEditModal } from "@/components/appointments/appointment-edit-modal"
 import { AppointmentRescheduleModal } from "@/components/appointments/appointment-reschedule-modal"
-import { useAppointmentStats } from "@/hooks/use-appointment-stats"
 import { cn } from "@/lib/utils"
+
+const mockAppointments = [
+  { id: 1, patient: "Maria Silva", time: "09:00", status: "confirmed", type: "Consulta", date: new Date(2025, 7, 4) },
+  { id: 2, patient: "João Santos", time: "10:30", status: "pending", type: "Retorno", date: new Date(2025, 7, 4) },
+  { id: 3, patient: "Ana Costa", time: "14:00", status: "completed", type: "Consulta", date: new Date(2025, 7, 5) },
+  { id: 4, patient: "Pedro Lima", time: "15:30", status: "cancelled", type: "Consulta", date: new Date(2025, 7, 11) },
+  { id: 5, patient: "Teste", time: "09:00", status: "pending", type: "Consulta", date: new Date(2025, 7, 15) },
+  { id: 6, patient: "Outro Teste", time: "10:00", status: "confirmed", type: "Consulta", date: new Date(2025, 7, 15) },
+  { id: 7, patient: "Consulta Teste", time: "14:00", status: "confirmed", type: "Consulta", date: new Date(2025, 7, 20) },
+]
+
+const stats = [
+  { title: "Total de Agendamentos", value: "24", icon: CalendarIcon, color: "default" },
+  { title: "Agendados", value: "8", percentage: "33%", icon: Clock, color: "secondary" },
+  { title: "Confirmados", value: "12", percentage: "50%", icon: CheckCircle, color: "default" },
+  { title: "Concluídos", value: "3", percentage: "13%", icon: CheckCircle, color: "default" },
+  { title: "Cancelados", value: "1", percentage: "4%", icon: XCircle, color: "destructive" },
+  { title: "Remarcados", value: "0", percentage: "0%", icon: RotateCcw, color: "default" },
+]
 
 const getStatusBadge = (status: string) => {
   const statusConfig = {
@@ -64,20 +82,11 @@ export default function AgendamentosPage() {
   const [startDate, setStartDate] = useState<Date | undefined>()
   const [endDate, setEndDate] = useState<Date | undefined>()
   const [isImporting, setIsImporting] = useState(false)
-  const [selectedImportProfileId, setSelectedImportProfileId] = useState<string | undefined>()
   
   const { user } = useAuth()
   const { profiles, loading: profilesLoading } = useProfessionalProfiles()
   const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment } = useAppointments()
-const { stats, loading: statsLoading, getPercentage } = useAppointmentStats(viewPeriod as 'today' | '7days' | '30days')
-const { toast } = useToast()
-
-// Preseleciona o primeiro perfil quando carregar
-useEffect(() => {
-  if (!profilesLoading && profiles.length > 0 && !selectedImportProfileId) {
-    setSelectedImportProfileId(profiles[0].id)
-  }
-}, [profilesLoading, profiles, selectedImportProfileId])
+  const { toast } = useToast()
 
   // Modal states
   const [viewModalOpen, setViewModalOpen] = useState(false)
@@ -187,7 +196,7 @@ useEffect(() => {
 
   // Function to pull Google Calendar events
   const handleGoogleEventsSync = async () => {
-    if (!startDate || !endDate || !user?.email || !selectedImportProfileId) return
+    if (!startDate || !endDate || !user?.email) return
 
     setIsImporting(true)
 
@@ -211,7 +220,7 @@ useEffect(() => {
         const data = await response.json()
         if (data && data[0]?.response) {
           const events = JSON.parse(data[0].response)
-          const eventsCount = await createAppointmentsFromGoogleEvents(events, selectedImportProfileId)
+          const eventsCount = await createAppointmentsFromGoogleEvents(events)
           
           alert(`Foram atualizados ${eventsCount} eventos`)
           setIsGoogleEventsDialogOpen(false)
@@ -295,92 +304,24 @@ useEffect(() => {
             </div>
 
             <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-              <Card>
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-muted-foreground">Total de Agendamentos</span>
-                      <span className="text-xl font-bold">{statsLoading ? '...' : stats.total}</span>
+              {stats.map((stat, index) => (
+                <Card key={index}>
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-sm text-muted-foreground">{stat.title}</span>
+                        <span className="text-xl font-bold">{stat.value}</span>
+                        {stat.percentage && (
+                          <Badge variant={stat.color as any} className="w-fit mt-1 text-xs">
+                            {stat.percentage}
+                          </Badge>
+                        )}
+                      </div>
+                      <stat.icon className="h-5 w-5 text-muted-foreground" />
                     </div>
-                    <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-muted-foreground">Agendados</span>
-                      <span className="text-xl font-bold">{statsLoading ? '...' : stats.scheduled}</span>
-                      <Badge variant="secondary" className="w-fit mt-1 text-xs">
-                        {statsLoading ? '...' : getPercentage(stats.scheduled)}
-                      </Badge>
-                    </div>
-                    <Clock className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-muted-foreground">Confirmados</span>
-                      <span className="text-xl font-bold">{statsLoading ? '...' : stats.confirmed}</span>
-                      <Badge variant="default" className="w-fit mt-1 text-xs">
-                        {statsLoading ? '...' : getPercentage(stats.confirmed)}
-                      </Badge>
-                    </div>
-                    <CheckCircle className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-muted-foreground">Concluídos</span>
-                      <span className="text-xl font-bold">{statsLoading ? '...' : stats.completed}</span>
-                      <Badge variant="default" className="w-fit mt-1 text-xs">
-                        {statsLoading ? '...' : getPercentage(stats.completed)}
-                      </Badge>
-                    </div>
-                    <CheckCircle className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-muted-foreground">Cancelados</span>
-                      <span className="text-xl font-bold">{statsLoading ? '...' : stats.cancelled}</span>
-                      <Badge variant="destructive" className="w-fit mt-1 text-xs">
-                        {statsLoading ? '...' : getPercentage(stats.cancelled)}
-                      </Badge>
-                    </div>
-                    <XCircle className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-muted-foreground">Remarcados</span>
-                      <span className="text-xl font-bold">{statsLoading ? '...' : stats.rescheduled}</span>
-                      <Badge variant="default" className="w-fit mt-1 text-xs">
-                        {statsLoading ? '...' : getPercentage(stats.rescheduled)}
-                      </Badge>
-                    </div>
-                    <RotateCcw className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
 
@@ -428,21 +369,6 @@ useEffect(() => {
                                 <DialogTitle>Importar Eventos do Google Agenda</DialogTitle>
                               </DialogHeader>
                               <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">Perfil profissional</label>
-                                  <Select value={selectedImportProfileId} onValueChange={setSelectedImportProfileId}>
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Selecione o perfil" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {profiles.map(profile => (
-                                        <SelectItem key={profile.id} value={profile.id}>
-                                          {profile.fullname}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
                                 <div className="space-y-2">
                                   <label className="text-sm font-medium">Data Inicial</label>
                                   <Popover>
@@ -500,7 +426,7 @@ useEffect(() => {
                                 <div className="flex gap-2 pt-4">
                                   <Button 
                                     onClick={handleGoogleEventsSync}
-                                    disabled={!startDate || !endDate || !selectedImportProfileId || isImporting}
+                                    disabled={!startDate || !endDate || isImporting}
                                     className="flex-1"
                                   >
                                     {isImporting ? "Importando..." : "Importar Eventos"}

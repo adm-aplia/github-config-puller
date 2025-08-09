@@ -7,7 +7,7 @@ import { AuthProvider } from "@/components/auth-provider";
 import EmailVerification from "@/components/email-verification";
 import { useEmailVerification } from "@/hooks/use-email-verification";
 import { ProtectedRoute } from "@/components/auth/protected-route";
-
+import { SidebarProvider } from "@/hooks/use-sidebar";
 import Index from "./pages/Index";
 import LoginPage from "./pages/Login";
 import CadastroPage from "./pages/Cadastro";
@@ -31,7 +31,7 @@ function AppContent() {
   }
 
   return (
-    <>
+    <SidebarProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
@@ -51,7 +51,7 @@ function AppContent() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </>
+    </SidebarProvider>
   )
 }
 
