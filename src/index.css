@@ -44,7 +44,7 @@ html {
 
     /* Sidebar tokens */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 35% 15%;
+    --sidebar-foreground: 0 0% 0%;
     --sidebar-primary: 356 75% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 356 75% 62%;
@@ -98,7 +98,7 @@ html {
 
     /* Sidebar tokens - dark */
     --sidebar-background: 222 30% 12%;
-    --sidebar-foreground: 0 0% 95%;
+    --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 356 75% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 356 75% 62%;
