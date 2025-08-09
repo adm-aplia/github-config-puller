@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { useAuth } from "@/components/auth-provider"
+import { useTheme } from "@/hooks/use-theme"
 const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
 const apliaLogoIcon = "/lovable-uploads/940f8f03-f853-4fdf-ab6f-2a3b5c24ae05.png"
 // Logo para modo escuro (assumindo que é a mesma imagem mas com tratamento CSS)
@@ -41,26 +42,9 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProps) {
   const location = useLocation()
   const currentPath = location.pathname
-  const [isDark, setIsDark] = useState(false)
+  const { theme } = useTheme()
   const { user, signOut } = useAuth()
 
-  useEffect(() => {
-    // Detectar tema atual
-    const checkTheme = () => {
-      setIsDark(document.documentElement.classList.contains('dark'))
-    }
-    
-    checkTheme()
-    
-    // Observer para mudanças de tema
-    const observer = new MutationObserver(checkTheme)
-    observer.observe(document.documentElement, { 
-      attributes: true, 
-      attributeFilter: ['class'] 
-    })
-    
-    return () => observer.disconnect()
-  }, [])
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
@@ -80,7 +64,7 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
           {!isCollapsed ? (
             <div className="flex items-center gap-2">
               <img 
-                src={isDark ? apliaLogoFullDark : apliaLogoFull} 
+                src={theme === 'dark' ? apliaLogoFullDark : apliaLogoFull} 
                 alt="Aplia" 
                 className="h-8 w-auto"
               />
@@ -88,7 +72,7 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
           ) : (
             <div className="flex items-center justify-center">
               <img 
-                src={isDark ? apliaLogoIconDark : apliaLogoIcon} 
+                src={theme === 'dark' ? apliaLogoIconDark : apliaLogoIcon} 
                 alt="Aplia" 
                 className="h-8 w-8"
               />
