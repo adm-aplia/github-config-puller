@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar"
 import { SidebarProvider } from "@/hooks/use-sidebar"
 import { useTheme } from "@/hooks/use-theme"
+import { cn } from "@/lib/utils"
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -21,9 +22,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <DashboardSidebar isCollapsed={isCollapsed} onToggle={handleToggle} />
-        <main className="flex-1 overflow-hidden">
+        <main className={cn(
+          "flex-1 overflow-auto transition-all duration-300",
+          isCollapsed ? "ml-14" : "ml-64"
+        )}>
           {/* Header com botão de tema */}
-          <header className="flex h-16 items-center justify-end gap-4 px-6 border-b border-border/30 bg-background">
+          <header className="sticky top-0 z-40 flex h-16 items-center justify-end gap-4 px-6 border-b border-border/30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex items-center gap-4">
               <Button
                 variant="outline"
@@ -40,7 +44,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </Button>
             </div>
           </header>
-          {children}
+          <div className="p-6">
+            {children}
+          </div>
         </main>
       </div>
     </SidebarProvider>

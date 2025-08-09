@@ -55,7 +55,7 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
 
   return (
     <div className={cn(
-      "flex min-h-screen bg-background border-r transition-all duration-300",
+      "fixed left-0 top-0 z-50 flex min-h-screen bg-background border-r transition-all duration-300",
       isCollapsed ? "w-14" : "w-64"
     )}>
       <div className="flex flex-col w-full">
