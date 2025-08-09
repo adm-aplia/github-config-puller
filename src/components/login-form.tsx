@@ -201,6 +201,9 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
               </>
             )}
           </Button>
+          <p className="mt-2 text-xs text-muted-foreground text-center">
+            Se você já autorizou nosso app antes, o login será automático
+          </p>
         </div>
       </form>
 
