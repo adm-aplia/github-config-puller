@@ -107,7 +107,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   return (
     <div className="flex flex-col w-full h-full">
       {/* Header */}
-      <div className="flex h-14 items-center px-4">
+      <div className="flex h-14 items-center px-4 flex-shrink-0">
         <div className="flex items-center gap-2">
           <img 
             src={isDark ? apliaLogoFullDark : apliaLogoFull} 
@@ -126,7 +126,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-auto py-2">
+      <div className="flex-1 overflow-auto py-2 min-h-0">
         <nav className="grid items-start px-2 text-sm font-medium">
           {navigationItems.map((item) => {
             const active = isActive(item.url)
