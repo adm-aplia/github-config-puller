@@ -68,16 +68,21 @@ export const useAppointments = () => {
   const createAppointmentsFromGoogleEvents = async (payload: any, professionalId?: string) => {
     try {
       console.debug('[google-events] raw payload:', payload);
-      console.debug('[google-events] professionalId:', professionalId);
+      console.debug('[google-events] professionalId param:', professionalId);
       
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
 
+      // Extract professionalProfileId from the webhook response
+      const professionalProfileId = payload?.professionalProfileId || professionalId;
+      console.debug('[google-events] using professionalProfileId:', professionalProfileId);
+
       // Handle multiple payload formats from N8N webhook
+      const eventsData = payload?.response ? JSON.parse(payload.response) : payload;
       const events: GCalEvent[] =
-        payload?.events ??
-        payload?.items ??
-        (Array.isArray(payload) ? payload : []);
+        eventsData?.events ??
+        eventsData?.items ??
+        (Array.isArray(eventsData) ? eventsData : []);
 
       if (!Array.isArray(events) || events.length === 0) {
         throw new Error('No events provided');
@@ -110,7 +115,7 @@ export const useAppointments = () => {
               event.description,
               event.location ? `Local: ${event.location}` : null
             ].filter(Boolean).join('\n') || null,
-            agent_id: professionalId || null,
+            agent_id: professionalProfileId || null,
           };
         });
 

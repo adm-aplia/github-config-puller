@@ -247,11 +247,10 @@ export default function AgendamentosPage() {
         const data = await response.json()
         console.log('Webhook response data:', data);
         
-        if (data && data[0]?.response) {
-          const events = JSON.parse(data[0].response)
-          console.log('Parsed events:', events);
+        if (data && data[0]) {
+          console.log('Processing webhook data:', data[0]);
           
-          const eventsCount = await createAppointmentsFromGoogleEvents(events, selectedProfessionalForImport)
+          const eventsCount = await createAppointmentsFromGoogleEvents(data[0], selectedProfessionalForImport)
           
           toast({
             title: 'Sucesso',
