@@ -141,13 +141,19 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
           </Button>
         </p>
         <div className="flex justify-center space-x-4 text-xs text-muted-foreground">
-          <Button variant="link" className="p-0 h-auto text-xs hover:text-primary underline">
+          <a 
+            href="/termos" 
+            className="hover:text-primary underline"
+          >
             Termos de Uso
-          </Button>
+          </a>
           <span>•</span>
-          <Button variant="link" className="p-0 h-auto text-xs hover:text-primary underline">
+          <a 
+            href="/privacidade" 
+            className="hover:text-primary underline"
+          >
             Política de Privacidade
-          </Button>
+          </a>
         </div>
       </div>
     </div>

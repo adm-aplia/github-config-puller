@@ -14,6 +14,8 @@ import AgendamentosPage from "./pages/Agendamentos";
 import ConversasPage from "./pages/Conversas";
 import WhatsAppPage from "./pages/WhatsApp";
 import IntegracoesPage from "./pages/Integracoes";
+import TermosServico from "./pages/TermosServico";
+import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +31,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<LoginPage />} />
               <Route path="/home" element={<Index />} />
+              <Route path="/termos" element={<TermosServico />} />
+              <Route path="/privacidade" element={<PoliticaPrivacidade />} />
               <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
               <Route path="/dashboard/perfis" element={<ProtectedRoute><PerfilsPage /></ProtectedRoute>} />
               <Route path="/dashboard/agendamentos" element={<ProtectedRoute><AgendamentosPage /></ProtectedRoute>} />
