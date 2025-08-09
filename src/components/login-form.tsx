@@ -2,10 +2,8 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Mail, Lock, Bot } from "lucide-react"
+import { Loader2, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import logoFull from "@/assets/aplia-logo.svg"
 
 interface LoginFormProps {
   onSignIn?: (email: string, password: string) => Promise<{ error: any }>
@@ -15,6 +13,7 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,101 +60,96 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="flex flex-col items-center mb-6">
-      <div className="flex items-center justify-center mb-4">
-        <img 
-          src={logoFull}
-          alt="Aplia — Assistentes de IA para Profissionais da Saúde (logo)"
-          className="h-12 w-auto"
-          width={120}
-          height={32}
-          loading="eager"
-          decoding="async"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/aplia-logo-full.png' }}
-        />
+    <div className="bg-white dark:bg-gray-800 py-8 px-6 shadow-xl sm:rounded-2xl sm:px-10 border border-gray-200 dark:border-gray-700">
+      <div className="mb-6 text-center">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Acesse sua conta</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Entre com suas credenciais</p>
       </div>
-        <p className="text-muted-foreground text-center mt-2">
-          Assistentes de IA para Profissionais da Saúde
-        </p>
-      </div>
-
-      <Card className="shadow-card border-border/50">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Entrar na plataforma</CardTitle>
-          <CardDescription className="text-center">
-            Digite suas credenciais para acessar sua conta
-          </CardDescription>
-          
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-primary hover:opacity-90 shadow-elegant" 
+      
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-foreground">E-mail</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="seu@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="bg-background border-border focus:ring-primary focus:border-primary rounded-lg"
+            disabled={isLoading}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-foreground">Senha</Label>
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Sua senha"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="bg-background border-border focus:ring-primary focus:border-primary rounded-lg pr-10"
               disabled={isLoading}
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              onClick={() => setShowPassword(!showPassword)}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Entrando...
-                </>
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" aria-hidden="true" />
               ) : (
-                "Entrar"
+                <Eye className="h-5 w-5" aria-hidden="true" />
               )}
-            </Button>
-          </form>
-
-          <div className="mt-6 space-y-4">
-            <div className="text-center">
-              <Button variant="link" className="text-sm text-muted-foreground">
-                Esqueceu a senha?
-              </Button>
-            </div>
-            
-            <div className="text-center border-t border-border pt-4">
-              <p className="text-sm text-muted-foreground">
-                Não tem uma conta?{" "}
-                <Button variant="link" className="p-0 text-primary font-semibold">
-                  Cadastre-se grátis
-                </Button>
-              </p>
-            </div>
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="text-sm">
+            <Button variant="link" className="p-0 font-medium text-primary hover:text-primary/80">
+              Esqueceu sua senha?
+            </Button>
+          </div>
+        </div>
+
+        <div>
+          <Button 
+            type="submit" 
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed" 
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Entrando...
+              </>
+            ) : (
+              "Entrar"
+            )}
+          </Button>
+        </div>
+      </form>
+
+      <div className="mt-6 text-center space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Não tem uma conta?{" "}
+          <Button variant="link" className="p-0 font-medium text-primary hover:text-primary/80">
+            Cadastre-se
+          </Button>
+        </p>
+        <div className="flex justify-center space-x-4 text-xs text-muted-foreground">
+          <Button variant="link" className="p-0 h-auto text-xs hover:text-primary underline">
+            Termos de Uso
+          </Button>
+          <span>•</span>
+          <Button variant="link" className="p-0 h-auto text-xs hover:text-primary underline">
+            Política de Privacidade
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

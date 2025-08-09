@@ -31,21 +31,31 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gradient-primary relative">
+    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gradient-to-br from-aplia-light-gray to-aplia-white dark:from-gray-900 dark:to-gray-800 relative">
       <div className="absolute top-4 right-4">
         <Button
           variant="outline"
           size="icon"
           onClick={toggleTheme}
-          className="bg-card/80 backdrop-blur-sm border-border hover:bg-accent"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800"
           aria-label="Alternar tema"
         >
           {theme === "dark" ? (
-            <Sun className="h-4 w-4 text-yellow-500" />
+            <Sun className="h-4 w-4" />
           ) : (
-            <Moon className="h-4 w-4" />
+            <Moon className="h-4 w-4 text-gray-700" />
           )}
         </Button>
+      </div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="flex justify-center mb-8">
+          <img 
+            alt="Aplia — Assistentes de IA para Profissionais da Saúde" 
+            className="h-12 w-auto" 
+            src="/aplia-logo-full.png"
+          />
+        </div>
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
