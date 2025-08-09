@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,7 +21,8 @@ export default function SignupForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const { toast } = useToast()
-  const { signUp, isLoading, session } = useAuth()
+  const { signUp, isLoading } = useAuth()
+  const navigate = useNavigate()
 
   // Password validation rules
   const passwordValidation = useMemo(() => {
@@ -85,8 +87,13 @@ export default function SignupForm() {
 
     toast({
       title: "Conta criada com sucesso!",
-      description: session ? "Redirecionando..." : "Verifique seu e-mail para confirmar o cadastro.",
+      description: "Verifique seu e-mail para confirmar o cadastro e depois faça login.",
     })
+
+    // Redirecionar para login após cadastro bem-sucedido
+    setTimeout(() => {
+      navigate("/")
+    }, 2000)
   }
 
   return (

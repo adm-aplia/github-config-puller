@@ -10,6 +10,7 @@ interface AuthContextType {
   signOut: () => Promise<void>
   isLoading: boolean
   isInitialized: boolean
+  isEmailConfirmed: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -102,7 +103,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signIn,
     signOut,
     isLoading,
-    isInitialized
+    isInitialized,
+    isEmailConfirmed: user?.email_confirmed_at !== null
   }
 
   return (
