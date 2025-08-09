@@ -81,10 +81,10 @@ export default function AgendamentosPage() {
     
     return (
       <div className="relative w-full h-full flex flex-col justify-between p-1">
-        <span className="text-sm font-medium text-left">{date.getDate()}</span>
+        <span className="text-xs font-medium text-left">{date.getDate()}</span>
         {appointmentCount > 0 && (
           <div className="w-full">
-            <div className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded-md text-center font-medium">
+            <div className="text-xs px-1 py-0.5 bg-gray-200 text-gray-700 rounded text-center font-medium">
               {appointmentCount} consulta{appointmentCount > 1 ? 's' : ''}
             </div>
           </div>
@@ -95,24 +95,24 @@ export default function AgendamentosPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-6 py-8">
-        <div className="flex flex-col gap-6">
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col gap-4">
           {/* Header */}
-          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Agendamentos</h1>
-              <p className="text-muted-foreground">Estatísticas e calendário de agendamentos da sua clínica</p>
+              <h1 className="text-2xl font-bold tracking-tight">Agendamentos</h1>
+              <p className="text-sm text-muted-foreground">Estatísticas e calendário de agendamentos da sua clínica</p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
                 <RefreshCw className="h-4 w-4" />
                 Atualizar
               </Button>
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
                 Filtrar
               </Button>
-              <Button className="flex items-center gap-2 bg-secondary hover:bg-secondary/90">
+              <Button size="sm" className="flex items-center gap-2 bg-secondary hover:bg-secondary/90">
                 <Plus className="h-4 w-4" />
                 Novo Agendamento
               </Button>
@@ -121,9 +121,9 @@ export default function AgendamentosPage() {
 
           {/* Statistics Section */}
           <div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
               <div>
-                <h2 className="text-xl font-semibold">Estatísticas de Agendamentos</h2>
+                <h2 className="text-lg font-semibold">Estatísticas de Agendamentos</h2>
                 <p className="text-sm text-muted-foreground">Acompanhe o desempenho dos seus agendamentos</p>
               </div>
               <div className="flex items-center gap-2">
@@ -141,14 +141,14 @@ export default function AgendamentosPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               {stats.map((stat, index) => (
                 <Card key={index}>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
                         <span className="text-sm text-muted-foreground">{stat.title}</span>
-                        <span className="text-2xl font-bold">{stat.value}</span>
+                        <span className="text-xl font-bold">{stat.value}</span>
                         {stat.percentage && (
                           <Badge variant={stat.color as any} className="w-fit mt-1 text-xs">
                             {stat.percentage}
@@ -164,7 +164,7 @@ export default function AgendamentosPage() {
           </div>
 
           {/* Calendar and Appointments Section */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Calendar */}
             <Card>
               <CardHeader>
@@ -193,7 +193,7 @@ export default function AgendamentosPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="w-full">
                   <Calendar
                     mode="single"
@@ -214,8 +214,8 @@ export default function AgendamentosPage() {
                       head_row: "flex w-full",
                       head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] text-center",
                       row: "flex w-full mt-2",
-                      cell: "h-20 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
-                      day: "h-20 w-full p-1 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
+                      cell: "h-16 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
+                      day: "h-16 w-full p-1 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
                       day_range_end: "day-range-end",
                       day_selected: "bg-red-500 text-white hover:bg-red-600 focus:bg-red-600",
                       day_today: "bg-transparent text-foreground",
@@ -243,11 +243,11 @@ export default function AgendamentosPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {selectedDateAppointments.map((appointment) => {
                     const statusBadge = getStatusBadge(appointment.status)
                     return (
-                      <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div key={appointment.id} className="flex items-center justify-between p-2 border rounded-lg">
                         <div className="flex-1">
                           <div className="font-medium">{appointment.patient}</div>
                           <div className="text-sm text-muted-foreground">
@@ -308,8 +308,8 @@ export default function AgendamentosPage() {
                     )
                   })}
                   {selectedDateAppointments.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <div className="text-center py-6 text-muted-foreground">
+                      <CalendarIcon className="h-10 w-10 mx-auto mb-3 opacity-50" />
                       <p>Nenhum agendamento para esta data</p>
                     </div>
                   )}
