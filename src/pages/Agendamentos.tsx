@@ -81,6 +81,7 @@ export default function AgendamentosPage() {
   const [isGoogleEventsDialogOpen, setIsGoogleEventsDialogOpen] = useState(false)
   const [startDate, setStartDate] = useState<Date | undefined>()
   const [endDate, setEndDate] = useState<Date | undefined>()
+  const [selectedProfessionalForImport, setSelectedProfessionalForImport] = useState<string>("")
   const [isImporting, setIsImporting] = useState(false)
   
   const { user } = useAuth()
@@ -220,7 +221,7 @@ export default function AgendamentosPage() {
         const data = await response.json()
         if (data && data[0]?.response) {
           const events = JSON.parse(data[0].response)
-          const eventsCount = await createAppointmentsFromGoogleEvents(events)
+          const eventsCount = await createAppointmentsFromGoogleEvents(events, selectedProfessionalForImport)
           
           alert(`Foram atualizados ${eventsCount} eventos`)
           setIsGoogleEventsDialogOpen(false)
@@ -396,39 +397,55 @@ export default function AgendamentosPage() {
                                   </Popover>
                                 </div>
                                 
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">Data Final</label>
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button
-                                        variant="outline"
-                                        className={cn(
-                                          "w-full justify-start text-left font-normal",
-                                          !endDate && "text-muted-foreground"
-                                        )}
-                                      >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {endDate ? format(endDate, "dd/MM/yyyy") : <span>Selecione a data final</span>}
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                      <Calendar
-                                        mode="single"
-                                        selected={endDate}
-                                        onSelect={setEndDate}
-                                        initialFocus
-                                        className="pointer-events-auto"
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
-                                </div>
+                                 <div className="space-y-2">
+                                   <label className="text-sm font-medium">Data Final</label>
+                                   <Popover>
+                                     <PopoverTrigger asChild>
+                                       <Button
+                                         variant="outline"
+                                         className={cn(
+                                           "w-full justify-start text-left font-normal",
+                                           !endDate && "text-muted-foreground"
+                                         )}
+                                       >
+                                         <CalendarIcon className="mr-2 h-4 w-4" />
+                                         {endDate ? format(endDate, "dd/MM/yyyy") : <span>Selecione a data final</span>}
+                                       </Button>
+                                     </PopoverTrigger>
+                                     <PopoverContent className="w-auto p-0">
+                                       <Calendar
+                                         mode="single"
+                                         selected={endDate}
+                                         onSelect={setEndDate}
+                                         initialFocus
+                                         className="pointer-events-auto"
+                                       />
+                                     </PopoverContent>
+                                   </Popover>
+                                 </div>
+                                 
+                                 <div className="space-y-2">
+                                   <label className="text-sm font-medium">Perfil Profissional</label>
+                                   <Select value={selectedProfessionalForImport} onValueChange={setSelectedProfessionalForImport}>
+                                     <SelectTrigger>
+                                       <SelectValue placeholder="Selecione o perfil profissional" />
+                                     </SelectTrigger>
+                                     <SelectContent>
+                                       {profiles.map(profile => (
+                                         <SelectItem key={profile.id} value={profile.id}>
+                                           {profile.fullname}
+                                         </SelectItem>
+                                       ))}
+                                     </SelectContent>
+                                   </Select>
+                                 </div>
                                 
                                 <div className="flex gap-2 pt-4">
-                                  <Button 
-                                    onClick={handleGoogleEventsSync}
-                                    disabled={!startDate || !endDate || isImporting}
-                                    className="flex-1"
-                                  >
+                                   <Button 
+                                     onClick={handleGoogleEventsSync}
+                                     disabled={!startDate || !endDate || !selectedProfessionalForImport || isImporting}
+                                     className="flex-1"
+                                   >
                                     {isImporting ? "Importando..." : "Importar Eventos"}
                                   </Button>
                                   <Button 
