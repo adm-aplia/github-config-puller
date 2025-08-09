@@ -5,7 +5,7 @@ import { User, Session } from "@supabase/supabase-js"
 interface AuthContextType {
   user: User | null
   session: Session | null
-  signUp: (email: string, password: string) => Promise<{ error: any }>
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
   isLoading: boolean
@@ -48,16 +48,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => subscription.unsubscribe()
   }, [isInitialized])
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, fullName?: string) => {
     setIsLoading(true)
     try {
       const redirectUrl = `${window.location.origin}/dashboard`
-      
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: redirectUrl,
+          data: fullName ? { full_name: fullName } : undefined
         }
       })
       return { error }

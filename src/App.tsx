@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/auth/protected-route";
 import { SidebarProvider } from "@/hooks/use-sidebar";
 import Index from "./pages/Index";
 import LoginPage from "./pages/Login";
+import CadastroPage from "./pages/Cadastro";
 import DashboardPage from "./pages/Dashboard";
 import PerfilsPage from "./pages/Perfis";
 import AgendamentosPage from "./pages/Agendamentos";
@@ -31,6 +32,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<LoginPage />} />
               <Route path="/home" element={<Index />} />
+              <Route path="/cadastro" element={<CadastroPage />} />
               <Route path="/termos" element={<TermosServico />} />
               <Route path="/privacidade" element={<PoliticaPrivacidade />} />
               <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />

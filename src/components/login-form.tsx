@@ -136,9 +136,9 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
       <div className="mt-6 text-center space-y-4">
         <p className="text-sm text-muted-foreground">
           Não tem uma conta?{" "}
-          <Button variant="link" className="p-0 font-medium text-primary hover:text-primary/80">
+          <a href="/cadastro" className="font-medium text-accent hover:text-accent/80 underline">
             Cadastre-se
-          </Button>
+          </a>
         </p>
         <div className="flex justify-center space-x-4 text-xs text-muted-foreground">
           <a 
