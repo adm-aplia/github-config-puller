@@ -64,6 +64,7 @@ export default function AgendamentosPage() {
   const [startDate, setStartDate] = useState<Date | undefined>()
   const [endDate, setEndDate] = useState<Date | undefined>()
   const [isImporting, setIsImporting] = useState(false)
+  const [selectedImportProfileId, setSelectedImportProfileId] = useState<string | undefined>()
   
   const { user } = useAuth()
   const { profiles, loading: profilesLoading } = useProfessionalProfiles()
@@ -179,7 +180,7 @@ export default function AgendamentosPage() {
 
   // Function to pull Google Calendar events
   const handleGoogleEventsSync = async () => {
-    if (!startDate || !endDate || !user?.email) return
+    if (!startDate || !endDate || !user?.email || !selectedImportProfileId) return
 
     setIsImporting(true)
 
@@ -203,7 +204,7 @@ export default function AgendamentosPage() {
         const data = await response.json()
         if (data && data[0]?.response) {
           const events = JSON.parse(data[0].response)
-          const eventsCount = await createAppointmentsFromGoogleEvents(events)
+          const eventsCount = await createAppointmentsFromGoogleEvents(events, selectedImportProfileId)
           
           alert(`Foram atualizados ${eventsCount} eventos`)
           setIsGoogleEventsDialogOpen(false)
@@ -421,6 +422,21 @@ export default function AgendamentosPage() {
                               </DialogHeader>
                               <div className="space-y-4">
                                 <div className="space-y-2">
+                                  <label className="text-sm font-medium">Perfil profissional</label>
+                                  <Select value={selectedImportProfileId} onValueChange={setSelectedImportProfileId}>
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Selecione o perfil" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {profiles.map(profile => (
+                                        <SelectItem key={profile.id} value={profile.id}>
+                                          {profile.fullname}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-2">
                                   <label className="text-sm font-medium">Data Inicial</label>
                                   <Popover>
                                     <PopoverTrigger asChild>
@@ -477,7 +493,7 @@ export default function AgendamentosPage() {
                                 <div className="flex gap-2 pt-4">
                                   <Button 
                                     onClick={handleGoogleEventsSync}
-                                    disabled={!startDate || !endDate || isImporting}
+                                    disabled={!startDate || !endDate || !selectedImportProfileId || isImporting}
                                     className="flex-1"
                                   >
                                     {isImporting ? "Importando..." : "Importar Eventos"}
