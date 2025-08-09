@@ -64,7 +64,7 @@ export function AppSidebar() {
     return () => observer.disconnect()
   }, [])
 
-  const isActive = (path: string) => currentPath === path
+  const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + "/")
   const isExpanded = items.some((i) => isActive(i.url))
 
   return (
