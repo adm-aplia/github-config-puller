@@ -197,7 +197,27 @@ export default function AgendamentosPage() {
 
   // Function to pull Google Calendar events
   const handleGoogleEventsSync = async () => {
-    if (!startDate || !endDate || !user?.email) return
+    console.log('handleGoogleEventsSync called', { startDate, endDate, selectedProfessionalForImport, userEmail: user?.email });
+    
+    if (!startDate || !endDate || !user?.email) {
+      console.log('Missing required data:', { startDate, endDate, userEmail: user?.email });
+      toast({
+        title: 'Erro',
+        description: 'Dados necessários estão faltando: datas ou email do usuário.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (!selectedProfessionalForImport) {
+      console.log('Missing professional profile');
+      toast({
+        title: 'Erro',
+        description: 'Selecione um perfil profissional.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     setIsImporting(true)
 
@@ -208,6 +228,8 @@ export default function AgendamentosPage() {
       timeMax: endDate.toISOString()
     }
 
+    console.log('Sending webhook request with query:', query);
+
     try {
       const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/eventos-google-agenda', {
         method: 'POST',
@@ -217,21 +239,45 @@ export default function AgendamentosPage() {
         body: JSON.stringify([{ query: JSON.stringify(query) }])
       })
       
+      console.log('Webhook response status:', response.status);
+      console.log('Webhook response ok:', response.ok);
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('Webhook response data:', data);
+        
         if (data && data[0]?.response) {
           const events = JSON.parse(data[0].response)
+          console.log('Parsed events:', events);
+          
           const eventsCount = await createAppointmentsFromGoogleEvents(events, selectedProfessionalForImport)
           
-          alert(`Foram atualizados ${eventsCount} eventos`)
+          toast({
+            title: 'Sucesso',
+            description: `Foram importados ${eventsCount} eventos`,
+          });
           setIsGoogleEventsDialogOpen(false)
           setStartDate(undefined)
           setEndDate(undefined)
+          setSelectedProfessionalForImport("")
+        } else {
+          console.log('No events in response');
+          toast({
+            title: 'Aviso',
+            description: 'Nenhum evento encontrado no período selecionado.',
+          });
         }
+      } else {
+        console.log('Webhook response not ok:', await response.text());
+        throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
       console.error('Erro ao enviar eventos:', error)
-      alert('Erro ao importar eventos do Google Agenda')
+      toast({
+        title: 'Erro ao importar eventos',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        variant: 'destructive',
+      });
     } finally {
       setIsImporting(false)
     }
