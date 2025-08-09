@@ -107,7 +107,7 @@ export default function AgendamentosPage() {
     }
 
     try {
-      const response = await fetch('https://aplia-n8n-editor.kopfcf.easypanel.host/webhook-test/eventos-google-agenda', {
+      const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/eventos-google-agenda', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -255,17 +255,14 @@ export default function AgendamentosPage() {
                       </SelectContent>
                     </Select>
                     
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Dialog open={isGoogleEventsDialogOpen} onOpenChange={setIsGoogleEventsDialogOpen}>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" size="sm" className="flex items-center gap-1">
-                                <Download className="h-4 w-4" />
-                                Eventos Google Agenda
-                                <HelpCircle className="h-3 w-3" />
-                              </Button>
-                            </DialogTrigger>
+                    <div className="flex items-center gap-1">
+                      <Dialog open={isGoogleEventsDialogOpen} onOpenChange={setIsGoogleEventsDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="flex items-center gap-2">
+                            <Download className="h-4 w-4" />
+                            Eventos Google Agenda
+                          </Button>
+                        </DialogTrigger>
                             <DialogContent className="sm:max-w-md">
                               <DialogHeader>
                                 <DialogTitle>Importar Eventos do Google Agenda</DialogTitle>
@@ -343,13 +340,18 @@ export default function AgendamentosPage() {
                                 </div>
                               </div>
                             </DialogContent>
-                          </Dialog>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Use esse botão para puxar os eventos do seu google agenda</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                      </Dialog>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Use esse botão para puxar os eventos do seu google agenda</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                     
                     <Button variant="outline" size="sm">
                       <RefreshCw className="h-4 w-4" />
