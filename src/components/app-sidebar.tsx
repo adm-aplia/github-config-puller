@@ -91,7 +91,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <div className="flex-1 overflow-auto py-2">
         <nav className="grid items-start px-2 text-sm font-medium">
           {items.map((item) => {
             const active = isActive(item.url)
@@ -103,7 +103,7 @@ export function AppSidebar() {
                 aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                   active
-                    ? "bg-accent text-primary font-medium"
+                    ? "hover:text-primary bg-accent text-primary font-medium"
                     : "text-sidebar-foreground hover:bg-accent/50 hover:text-sidebar-accent-foreground"
                 }`}
               >
@@ -113,7 +113,7 @@ export function AppSidebar() {
             )
           })}
         </nav>
-      </SidebarContent>
+      </div>
 
       <SidebarFooter className="border-t border-border/30 p-2">
         {state !== "collapsed" ? (
