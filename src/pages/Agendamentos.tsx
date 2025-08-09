@@ -164,9 +164,9 @@ export default function AgendamentosPage() {
           </div>
 
           {/* Calendar and Appointments Section */}
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6">
             {/* Calendar */}
-            <Card className="lg:col-span-2">
+            <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -239,7 +239,7 @@ export default function AgendamentosPage() {
                   Agendamentos para {selectedDate?.toLocaleDateString('pt-BR') || 'Hoje'}
                 </CardTitle>
                 <CardDescription>
-                  {mockAppointments.length} agendamentos encontrados
+                  {selectedDateAppointments.length} agendamentos encontrados
                 </CardDescription>
               </CardHeader>
               <CardContent>
