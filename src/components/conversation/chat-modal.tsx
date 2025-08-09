@@ -94,9 +94,6 @@ export const ChatModal = ({ isOpen, onClose, conversationId, contactName, contac
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </div>
 
