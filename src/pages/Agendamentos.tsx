@@ -36,7 +36,7 @@ import {
   Download,
   HelpCircle
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Appointment } from "@/hooks/use-appointments"
@@ -69,8 +69,15 @@ export default function AgendamentosPage() {
   const { user } = useAuth()
   const { profiles, loading: profilesLoading } = useProfessionalProfiles()
   const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment } = useAppointments()
-  const { stats, loading: statsLoading, getPercentage } = useAppointmentStats(viewPeriod as 'today' | '7days' | '30days')
-  const { toast } = useToast()
+const { stats, loading: statsLoading, getPercentage } = useAppointmentStats(viewPeriod as 'today' | '7days' | '30days')
+const { toast } = useToast()
+
+// Preseleciona o primeiro perfil quando carregar
+useEffect(() => {
+  if (!profilesLoading && profiles.length > 0 && !selectedImportProfileId) {
+    setSelectedImportProfileId(profiles[0].id)
+  }
+}, [profilesLoading, profiles, selectedImportProfileId])
 
   // Modal states
   const [viewModalOpen, setViewModalOpen] = useState(false)
