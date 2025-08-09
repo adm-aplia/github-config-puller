@@ -4,19 +4,14 @@ import { Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import LoginForm from "@/components/login-form"
 import { useAuth } from "@/components/auth-provider"
-import { useState } from "react"
+import { useTheme } from "@/hooks/use-theme"
 
 // Logos da Aplia
 const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
 const apliaLogoFullDark = "/lovable-uploads/e9a17318-593a-428d-b166-e4f8be819529.png"
 
 export default function LoginPage() {
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-    }
-    return 'light'
-  })
+  const { theme, toggleTheme } = useTheme()
   const { user, signIn } = useAuth()
   const navigate = useNavigate()
 
@@ -25,12 +20,6 @@ export default function LoginPage() {
       navigate('/dashboard')
     }
   }, [user, navigate])
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark'
-    setTheme(newTheme)
-    document.documentElement.classList.toggle('dark', newTheme === 'dark')
-  }
 
   return (
     <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gradient-to-br from-aplia-light-gray to-aplia-white dark:from-gray-900 dark:to-gray-800 relative">

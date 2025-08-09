@@ -7,6 +7,7 @@ interface AuthContextType {
   session: Session | null
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
+  signInWithGoogle: () => Promise<{ error: any }>
   signOut: () => Promise<void>
   isLoading: boolean
   isInitialized: boolean
@@ -80,6 +81,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+  const signInWithGoogle = async () => {
+    setIsLoading(true)
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      })
+      return { error }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const signOut = async () => {
     await supabase.auth.signOut()
   }
@@ -101,6 +117,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     session,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     isLoading,
     isInitialized,
