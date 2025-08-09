@@ -92,26 +92,27 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink 
-                      to={item.url} 
-                      end={item.url === "/dashboard"}
-                      className="flex items-center gap-3 w-full"
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {state !== "collapsed" && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <nav className="grid items-start px-2 text-sm font-medium">
+          {items.map((item) => {
+            const active = isActive(item.url)
+            return (
+              <NavLink
+                key={item.title}
+                to={item.url}
+                end={item.url === "/dashboard"}
+                aria-current={active ? "page" : undefined}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                  active
+                    ? "bg-accent text-primary font-medium"
+                    : "text-sidebar-foreground hover:bg-accent/50 hover:text-sidebar-accent-foreground"
+                }`}
+              >
+                <item.icon className="h-5 w-5" />
+                {state !== "collapsed" && <span>{item.title}</span>}
+              </NavLink>
+            )
+          })}
+        </nav>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border/30 p-2">
