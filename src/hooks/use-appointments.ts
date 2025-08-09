@@ -25,18 +25,29 @@ type GCalEvent = {
   summary?: string;
   description?: string;
   status?: string;
-  start?: { dateTime?: string; date?: string; timeZone?: string };
-  end?: { dateTime?: string; date?: string; timeZone?: string };
+  start?: string;
+  end?: string;
   location?: string;
   attendees?: Array<{ email?: string; responseStatus?: string }>;
+  organizer?: string;
+  htmlLink?: string;
 };
 
-function isoFromGCal(dt?: {dateTime?: string; date?: string; timeZone?: string}) {
-  if (!dt) return null;
-  // date (all-day) -> trata como 00:00 local em UTC
-  if (dt.date) return new Date(dt.date + 'T00:00:00').toISOString();
-  if (dt.dateTime) return new Date(dt.dateTime).toISOString();
-  return null;
+function parseGoogleDate(dateString?: string): string | null {
+  if (!dateString) return null;
+  
+  try {
+    // Tentar parsear a data diretamente como ISO string
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      console.warn('[parseGoogleDate] Invalid date string:', dateString);
+      return null;
+    }
+    return date.toISOString();
+  } catch (error) {
+    console.error('[parseGoogleDate] Error parsing date:', dateString, error);
+    return null;
+  }
 }
 
 export const useAppointments = () => {
@@ -91,8 +102,18 @@ export const useAppointments = () => {
       const appointmentsToInsert = events
         .filter(event => event?.id) // Only process events with valid IDs
         .map(event => {
-          const startDate = isoFromGCal(event.start);
-          const endDate = isoFromGCal(event.end);
+          console.debug('[mapping-event] Processing event:', event);
+          
+          const startDate = parseGoogleDate(event.start);
+          const endDate = parseGoogleDate(event.end);
+          
+          console.debug('[mapping-event] Parsed dates:', { startDate, endDate });
+          
+          // Validar se a data de início é válida (obrigatória)
+          if (!startDate) {
+            console.error('[mapping-event] Missing or invalid start date for event:', event.id);
+            return null; // Será filtrado depois
+          }
           
           // Calculate duration from start/end times
           let durationMinutes = 60; // default
@@ -101,7 +122,7 @@ export const useAppointments = () => {
             durationMinutes = Math.round(diffMs / (1000 * 60));
           }
 
-          return {
+          const appointment = {
             user_id: userData.user.id,
             google_event_id: event.id,
             patient_name: event.summary || 'Sem título',
@@ -117,7 +138,11 @@ export const useAppointments = () => {
             ].filter(Boolean).join('\n') || null,
             agent_id: professionalProfileId || null,
           };
-        });
+          
+          console.debug('[mapping-event] Created appointment:', appointment);
+          return appointment;
+        })
+        .filter(Boolean); // Remove eventos com erro de parsing
 
       if (appointmentsToInsert.length === 0) {
         throw new Error('No valid events after mapping');
