@@ -6,6 +6,10 @@ import LoginForm from "@/components/login-form"
 import { useAuth } from "@/components/auth-provider"
 import { useState } from "react"
 
+// Logos da Aplia
+const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
+const apliaLogoFullDark = "/lovable-uploads/e9a17318-593a-428d-b166-e4f8be819529.png"
+
 export default function LoginPage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const { user, signIn } = useAuth()
@@ -53,7 +57,7 @@ export default function LoginPage() {
           <img 
             alt="Aplia — Assistentes de IA para Profissionais da Saúde" 
             className="h-12 w-auto" 
-            src="/aplia-logo-full.png"
+            src={theme === 'dark' ? apliaLogoFullDark : apliaLogoFull}
           />
         </div>
       </div>
