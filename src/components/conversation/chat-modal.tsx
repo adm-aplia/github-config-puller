@@ -2,9 +2,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useMessages, Message } from "@/hooks/use-messages";
 import { useEffect, useState } from "react";
-import { Send, ArrowLeft, Phone, MoreVertical } from "lucide-react";
+import { Send, ArrowLeft, Phone, MoreVertical, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -50,6 +51,11 @@ export const ChatModal = ({ isOpen, onClose, conversationId, contactName, contac
       .slice(0, 2);
   };
 
+  const handlePhoneCall = () => {
+    // Criar link para fazer chamada
+    window.open(`tel:${contactPhone}`, '_self');
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[80vh] p-0 flex flex-col">
@@ -70,11 +76,26 @@ export const ChatModal = ({ isOpen, onClose, conversationId, contactName, contac
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={handlePhoneCall}>
               <Phone className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="h-4 w-4" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigator.clipboard.writeText(contactPhone)}>
+                  Copiar número
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.open(`https://wa.me/${contactPhone.replace(/\D/g, '')}`, '_blank')}>
+                  Abrir WhatsApp
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
