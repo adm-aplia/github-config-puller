@@ -128,14 +128,14 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
           </nav>
         </div>
 
-        {/* Footer - User Info */}
-        <div className="border-t p-2">
+        {/* Footer - User Info - Sempre na parte inferior */}
+        <div className="mt-auto border-t p-2">
           <Separator className="mb-2" />
           <div className="space-y-2">
             <div className="flex items-center gap-3 px-3 py-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                  {getUserDisplayName().charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               {!isCollapsed && (
