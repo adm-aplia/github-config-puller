@@ -46,6 +46,19 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
   const { user, signOut } = useAuth()
 
 
+  // Função para extrair o nome completo do usuário
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name
+    }
+    // Acessar raw_user_meta_data através de any para evitar erros TypeScript
+    const rawMetadata = (user as any)?.raw_user_meta_data
+    if (rawMetadata?.full_name) {
+      return rawMetadata.full_name
+    }
+    return user?.email?.split('@')[0] || 'Usuário'
+  }
+
   const isActive = (path: string) => {
     if (path === "/dashboard") {
       return currentPath === "/dashboard"
@@ -55,7 +68,7 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
 
   return (
     <div className={cn(
-      "flex min-h-screen bg-background border-r transition-all duration-300",
+      "flex flex-col h-screen bg-background border-r transition-all duration-300 fixed left-0 top-0 z-40",
       isCollapsed ? "w-14" : "w-64"
     )}>
       <div className="flex flex-col w-full">
@@ -128,7 +141,7 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
               {!isCollapsed && (
                 <div className="flex flex-col items-start min-w-0 flex-1">
                   <span className="text-sm font-medium text-foreground truncate w-full">
-                    {user?.email?.split('@')[0] || 'Usuário'}
+                    {getUserDisplayName()}
                   </span>
                   <span className="text-xs text-muted-foreground truncate w-full">
                     {user?.email || 'email@exemplo.com'}
