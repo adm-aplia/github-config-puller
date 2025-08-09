@@ -48,7 +48,7 @@ html {
     --sidebar-primary: 356 75% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 356 75% 62%;
-    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 0 0% 90%;
     --sidebar-ring: 222 35% 15%;
 
