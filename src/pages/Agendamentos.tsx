@@ -45,31 +45,14 @@ import { AppointmentEditModal } from "@/components/appointments/appointment-edit
 import { AppointmentRescheduleModal } from "@/components/appointments/appointment-reschedule-modal"
 import { cn } from "@/lib/utils"
 
-const mockAppointments = [
-  { id: 1, patient: "Maria Silva", time: "09:00", status: "confirmed", type: "Consulta", date: new Date(2025, 7, 4) },
-  { id: 2, patient: "João Santos", time: "10:30", status: "pending", type: "Retorno", date: new Date(2025, 7, 4) },
-  { id: 3, patient: "Ana Costa", time: "14:00", status: "completed", type: "Consulta", date: new Date(2025, 7, 5) },
-  { id: 4, patient: "Pedro Lima", time: "15:30", status: "cancelled", type: "Consulta", date: new Date(2025, 7, 11) },
-  { id: 5, patient: "Teste", time: "09:00", status: "pending", type: "Consulta", date: new Date(2025, 7, 15) },
-  { id: 6, patient: "Outro Teste", time: "10:00", status: "confirmed", type: "Consulta", date: new Date(2025, 7, 15) },
-  { id: 7, patient: "Consulta Teste", time: "14:00", status: "confirmed", type: "Consulta", date: new Date(2025, 7, 20) },
-]
-
-const stats = [
-  { title: "Total de Agendamentos", value: "24", icon: CalendarIcon, color: "default" },
-  { title: "Agendados", value: "8", percentage: "33%", icon: Clock, color: "secondary" },
-  { title: "Confirmados", value: "12", percentage: "50%", icon: CheckCircle, color: "default" },
-  { title: "Concluídos", value: "3", percentage: "13%", icon: CheckCircle, color: "default" },
-  { title: "Cancelados", value: "1", percentage: "4%", icon: XCircle, color: "destructive" },
-  { title: "Remarcados", value: "0", percentage: "0%", icon: RotateCcw, color: "default" },
-]
-
 const getStatusBadge = (status: string) => {
   const statusConfig = {
     confirmed: { label: "Confirmado", variant: "default" as const },
+    scheduled: { label: "Agendado", variant: "secondary" as const },
     pending: { label: "Pendente", variant: "secondary" as const },
     completed: { label: "Concluído", variant: "default" as const },
     cancelled: { label: "Cancelado", variant: "destructive" as const },
+    rescheduled: { label: "Remarcado", variant: "secondary" as const },
   }
   return statusConfig[status as keyof typeof statusConfig] || { label: status, variant: "default" as const }
 }
@@ -88,6 +71,26 @@ export default function AgendamentosPage() {
   const { profiles, loading: profilesLoading } = useProfessionalProfiles()
   const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment } = useAppointments()
   const { toast } = useToast()
+  // Calcular estatísticas dinamicamente baseadas nos dados reais
+  const calculateStats = () => {
+    const total = appointments.length
+    const scheduled = appointments.filter(apt => apt.status === 'scheduled').length
+    const confirmed = appointments.filter(apt => apt.status === 'confirmed').length
+    const completed = appointments.filter(apt => apt.status === 'completed').length
+    const cancelled = appointments.filter(apt => apt.status === 'cancelled').length
+    const rescheduled = appointments.filter(apt => apt.status === 'rescheduled').length
+
+    return [
+      { title: "Total de Agendamentos", value: total.toString(), icon: CalendarIcon, color: "default" },
+      { title: "Agendados", value: scheduled.toString(), percentage: total > 0 ? `${Math.round((scheduled/total)*100)}%` : "0%", icon: Clock, color: "secondary" },
+      { title: "Confirmados", value: confirmed.toString(), percentage: total > 0 ? `${Math.round((confirmed/total)*100)}%` : "0%", icon: CheckCircle, color: "default" },
+      { title: "Concluídos", value: completed.toString(), percentage: total > 0 ? `${Math.round((completed/total)*100)}%` : "0%", icon: CheckCircle, color: "default" },
+      { title: "Cancelados", value: cancelled.toString(), percentage: total > 0 ? `${Math.round((cancelled/total)*100)}%` : "0%", icon: XCircle, color: "destructive" },
+      { title: "Remarcados", value: rescheduled.toString(), percentage: total > 0 ? `${Math.round((rescheduled/total)*100)}%` : "0%", icon: RotateCcw, color: "default" },
+    ]
+  }
+
+  const stats = calculateStats()
 
   // Modal states
   const [viewModalOpen, setViewModalOpen] = useState(false)
@@ -110,14 +113,18 @@ export default function AgendamentosPage() {
     switch (status) {
       case 'confirmed':
         return 'bg-blue-500'
+      case 'scheduled':
+        return 'bg-yellow-500'
       case 'pending':
         return 'bg-yellow-500'
       case 'cancelled':
         return 'bg-red-500'
       case 'completed':
         return 'bg-green-500'
+      case 'rescheduled':
+        return 'bg-orange-500'
       default:
-        return 'bg-yellow-500'
+        return 'bg-gray-500'
     }
   }
 
