@@ -52,7 +52,7 @@ export const useConversations = () => {
             .maybeSingle();
 
           // Buscar perfil profissional se agent_id existe
-          let profileName = 'Perfil não definido';
+          let profileName = '';
           if (conversation.agent_id) {
             const { data: profile } = await supabase
               .from('professional_profiles')
@@ -60,7 +60,7 @@ export const useConversations = () => {
               .eq('id', conversation.agent_id)
               .maybeSingle();
             
-            profileName = profile?.fullname || 'Perfil não definido';
+            profileName = profile?.fullname || '';
           }
 
           return {

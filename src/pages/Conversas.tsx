@@ -113,9 +113,11 @@ export default function ConversasPage() {
                             </h3>
                           </div>
                           
-                          <p className="text-sm text-muted-foreground font-medium mb-2">
-                            {conversation.profile_name}
-                          </p>
+                          {conversation.profile_name && (
+                            <p className="text-sm text-muted-foreground font-medium mb-2">
+                              {conversation.profile_name}
+                            </p>
+                          )}
                           
                           <p className="text-sm text-foreground line-clamp-2">
                             {conversation.last_message}
