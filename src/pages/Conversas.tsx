@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Filter, MessageSquare, Clock, Bot } from "lucide-react"
@@ -11,17 +11,6 @@ import { ChatModal } from "@/components/conversation/chat-modal"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useState } from "react"
 
-const statusColors = {
-  active: "bg-green-500",
-  pending: "bg-yellow-500",
-  completed: "bg-blue-500"
-}
-
-const statusLabels = {
-  active: "Ativa",
-  pending: "Pendente", 
-  completed: "Concluída"
-}
 
 export default function ConversasPage() {
   const { conversations, loading } = useConversations();
@@ -118,14 +107,10 @@ export default function ConversasPage() {
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="mb-1">
                             <h3 className="font-semibold text-foreground">
                               {conversation.contact_name || conversation.contact_phone}
                             </h3>
-                            <Badge variant="secondary" className="text-xs">
-                              <div className={`w-2 h-2 rounded-full mr-1 ${statusColors[conversation.status]}`} />
-                              {statusLabels[conversation.status]}
-                            </Badge>
                           </div>
                           
                           <p className="text-sm text-muted-foreground font-medium mb-2">

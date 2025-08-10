@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+
 import { Skeleton } from "@/components/ui/skeleton"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
@@ -23,19 +23,6 @@ interface Conversation {
   }
 }
 
-const statusColors = {
-  active: "bg-green-500",
-  pending: "bg-yellow-500", 
-  completed: "bg-blue-500",
-  closed: "bg-gray-500"
-}
-
-const statusLabels = {
-  active: "Ativa",
-  pending: "Pendente",
-  completed: "Concluída",
-  closed: "Fechada"
-}
 
 export function RecentConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -177,15 +164,9 @@ export function RecentConversations() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-1 flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium leading-none">
-                      {conversation.contact_name || conversation.contact_phone}
-                    </p>
-                    <Badge variant="secondary" className="text-xs">
-                      <div className={`w-2 h-2 rounded-full mr-1 ${statusColors[conversation.status as keyof typeof statusColors] || statusColors.pending}`} />
-                      {statusLabels[conversation.status as keyof typeof statusLabels] || 'Pendente'}
-                    </Badge>
-                  </div>
+                  <p className="text-sm font-medium leading-none">
+                    {conversation.contact_name || conversation.contact_phone}
+                  </p>
                   {conversation.professional_profile && (
                     <p className="text-sm text-muted-foreground font-medium">
                       {conversation.professional_profile.fullname} - {conversation.professional_profile.specialty}

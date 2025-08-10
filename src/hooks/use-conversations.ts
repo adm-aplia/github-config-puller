@@ -65,7 +65,7 @@ export const useConversations = () => {
 
           return {
             ...conversation,
-            status: conversation.status as 'active' | 'pending' | 'completed',
+            
             message_count: count || 0,
             last_message: lastMessage?.content || 'Nenhuma mensagem',
             profile_name: profileName
@@ -107,7 +107,7 @@ export const useConversations = () => {
 
       if (error) throw error;
 
-      setConversations(prev => [{ ...data, status: data.status as 'active' | 'pending' | 'completed' } as Conversation, ...prev]);
+      setConversations(prev => [{ ...data } as Conversation, ...prev]);
       
       toast({
         title: 'Conversa criada',
@@ -139,7 +139,7 @@ export const useConversations = () => {
 
       setConversations(prev => 
         prev.map(conversation => 
-          conversation.id === id ? { ...conversation, ...data, status: data.status as 'active' | 'pending' | 'completed' } as Conversation : conversation
+          conversation.id === id ? { ...conversation, ...data } as Conversation : conversation
         )
       );
 
