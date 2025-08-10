@@ -58,7 +58,7 @@ export const ChatModal = ({ isOpen, onClose, conversationId, contactName, contac
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] p-0 flex flex-col">
+      <DialogContent className="max-w-4xl h-[80vh] p-0 flex flex-col [&>button]:hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-background">
           <div className="flex items-center gap-3">
