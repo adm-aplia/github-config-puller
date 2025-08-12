@@ -45,7 +45,6 @@ export function CreateInstanceModal({ open, onOpenChange, onSubmit }: CreateInst
               <Label htmlFor="displayName">Nome de exibição</Label>
               <Input
                 id="displayName"
-                placeholder="Ex.: Clínica São Lucas"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
