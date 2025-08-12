@@ -98,3 +98,40 @@ html {
     font-family: 'Poppins', sans-serif;
   }
 }
+
+/* Global beautiful scrollbars using design tokens */
+@layer base {
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--aplia-coral)) hsl(var(--muted));
+  }
+
+  /* WebKit (Chrome, Edge, Safari) */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: var(--radius);
+  }
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, hsl(var(--aplia-coral) / 0.9), hsl(var(--aplia-coral)));
+    border-radius: 9999px; /* pill shape */
+    border: 2px solid hsl(var(--muted));
+    box-shadow: var(--shadow-card);
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, hsl(var(--aplia-coral)), hsl(var(--aplia-coral) / 0.9));
+  }
+
+  /* Subtle variant for nested scroll areas if needed */
+  .scrollbar-subtle {
+    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--card));
+  }
+  .scrollbar-subtle::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.6);
+    border: 2px solid hsl(var(--card));
+  }
+}
