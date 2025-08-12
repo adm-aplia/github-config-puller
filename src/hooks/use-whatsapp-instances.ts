@@ -14,6 +14,15 @@ export interface WhatsAppInstance {
   last_connected_at?: string;
   created_at: string;
   updated_at: string;
+  // Campos adicionais da integração Evolution
+  qr_code?: string;
+  display_name?: string;
+  evolution_instance_id?: string;
+  evolution_instance_key?: string;
+  webhook_enabled?: boolean;
+  webhook_url?: string;
+  integration_provider?: string;
+  groups_ignore?: boolean;
 }
 
 export const useWhatsAppInstances = () => {
@@ -58,25 +67,60 @@ export const useWhatsAppInstances = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
 
+      console.log('[useWhatsAppInstances] Creating Evolution instance via edge function...');
+      const evoRes = await supabase.functions.invoke('evolution-manager', {
+        body: {
+          action: 'create_instance',
+          displayName: instanceData.instance_name || 'Nova Instância',
+        },
+      });
+
+      if (evoRes.error) {
+        console.error('[useWhatsAppInstances] Edge function error:', evoRes.error);
+        throw new Error(evoRes.error.message || 'Falha ao criar instância na Evolution API');
+      }
+
+      const payload = evoRes.data as {
+        instanceName: string;
+        displayName: string;
+        evolutionInstanceId: string | null;
+        evolutionInstanceKey: string | null;
+        qrCode: string | null;
+        webhookEnabled?: boolean;
+      };
+
+      console.log('[useWhatsAppInstances] Evolution payload:', payload);
+
       const { data, error } = await supabase
         .from('whatsapp_instances')
         .insert({
           user_id: userData.user.id,
-          instance_name: instanceData.instance_name || '',
+          instance_name: payload.instanceName,
+          display_name: payload.displayName,
           phone_number: instanceData.phone_number,
           professional_profile_id: instanceData.professional_profile_id,
-          status: 'qr_pending'
+          status: 'qr_pending',
+          qr_code: payload.qrCode,
+          evolution_instance_id: payload.evolutionInstanceId,
+          evolution_instance_key: payload.evolutionInstanceKey,
+          groups_ignore: true,
+          webhook_enabled: payload.webhookEnabled ?? true,
+          webhook_url: 'https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/aplia',
+          integration_provider: 'evolution',
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      setInstances(prev => [{ ...data, status: data.status as 'connected' | 'qr_pending' | 'disconnected' } as WhatsAppInstance, ...prev]);
+      setInstances(prev => [
+        { ...data, status: data.status as 'connected' | 'qr_pending' | 'disconnected' } as WhatsAppInstance,
+        ...prev,
+      ]);
       
       toast({
         title: 'Instância criada',
-        description: 'Nova instância do WhatsApp criada com sucesso.',
+        description: 'Nova instância do WhatsApp criada e configurada com sucesso.',
       });
 
       return true;

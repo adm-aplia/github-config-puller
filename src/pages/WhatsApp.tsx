@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -6,6 +7,8 @@ import { Phone, Plus, Settings, Smartphone, Signal, User, UserPlus, QrCode, Elli
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useWhatsAppInstances } from "@/hooks/use-whatsapp-instances"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useState } from "react"
+import { QrCodeDialog } from "@/components/whatsapp/QrCodeDialog"
 
 const getStatusConfig = (status: string) => {
   const configs = {
@@ -30,6 +33,8 @@ const getStatusConfig = (status: string) => {
 
 export default function WhatsAppPage() {
   const { instances, loading, createInstance, updateInstance, deleteInstance } = useWhatsAppInstances();
+  const [qrOpen, setQrOpen] = useState(false);
+  const [qrData, setQrData] = useState<{ code?: string | null; name?: string }>({});
 
   const handleCreateInstance = () => {
     createInstance({ instance_name: 'Nova Instância' });
@@ -39,6 +44,11 @@ export default function WhatsAppPage() {
     if (confirm('Tem certeza que deseja excluir esta instância?')) {
       deleteInstance(id);
     }
+  };
+
+  const handleShowQr = (name?: string, code?: string | null) => {
+    setQrData({ name, code });
+    setQrOpen(true);
   };
 
   if (loading) {
@@ -114,7 +124,7 @@ export default function WhatsAppPage() {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={instance.profile_picture_url || undefined} alt={instance.instance_name} />
-                        <AvatarFallback className="bg-gray-200 dark:bg-gray-700">
+                        <AvatarFallback className="bg-gray-2 00 dark:bg-gray-700">
                           <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                         </AvatarFallback>
                       </Avatar>
@@ -170,7 +180,12 @@ export default function WhatsAppPage() {
                               <UserPlus className="h-3 w-3 mr-1" />
                               Atribuir Perfil
                             </Button>
-                            <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 text-xs"
+                              onClick={() => handleShowQr(instance.instance_name, instance.qr_code)}
+                            >
                               <QrCode className="h-3 w-3 mr-1" />
                               QR Code
                             </Button>
@@ -214,6 +229,13 @@ export default function WhatsAppPage() {
           )}
         </div>
       </div>
+
+      <QrCodeDialog
+        open={qrOpen}
+        onOpenChange={setQrOpen}
+        instanceName={qrData.name}
+        qrCode={qrData.code}
+      />
     </DashboardLayout>
   )
 }

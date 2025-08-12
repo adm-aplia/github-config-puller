@@ -842,42 +842,66 @@ export type Database = {
       whatsapp_instances: {
         Row: {
           created_at: string | null
+          display_name: string | null
+          evolution_instance_id: string | null
+          evolution_instance_key: string | null
+          groups_ignore: boolean | null
           id: string
           instance_name: string
+          integration_provider: string | null
           last_connected_at: string | null
           phone_number: string | null
           professional_profile_id: string | null
           profile_name: string | null
           profile_picture_url: string | null
+          qr_code: string | null
           status: string | null
           updated_at: string | null
           user_id: string
+          webhook_enabled: boolean | null
+          webhook_url: string | null
         }
         Insert: {
           created_at?: string | null
+          display_name?: string | null
+          evolution_instance_id?: string | null
+          evolution_instance_key?: string | null
+          groups_ignore?: boolean | null
           id?: string
           instance_name: string
+          integration_provider?: string | null
           last_connected_at?: string | null
           phone_number?: string | null
           professional_profile_id?: string | null
           profile_name?: string | null
           profile_picture_url?: string | null
+          qr_code?: string | null
           status?: string | null
           updated_at?: string | null
           user_id: string
+          webhook_enabled?: boolean | null
+          webhook_url?: string | null
         }
         Update: {
           created_at?: string | null
+          display_name?: string | null
+          evolution_instance_id?: string | null
+          evolution_instance_key?: string | null
+          groups_ignore?: boolean | null
           id?: string
           instance_name?: string
+          integration_provider?: string | null
           last_connected_at?: string | null
           phone_number?: string | null
           professional_profile_id?: string | null
           profile_name?: string | null
           profile_picture_url?: string | null
+          qr_code?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string
+          webhook_enabled?: boolean | null
+          webhook_url?: string | null
         }
         Relationships: [
           {
