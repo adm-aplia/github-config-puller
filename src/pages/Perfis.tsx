@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { RefreshCw, Plus, User, SquarePen, Link, Trash2, AlertCircle } from "lucide-react"
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
-import { ProfileForm } from "@/components/profiles/profile-form"
+import { ProfileWizardModal } from "@/components/profiles/profile-wizard-modal"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -236,7 +236,7 @@ export default function PerfilsPage() {
         </div>
       </div>
 
-      <ProfileForm
+      <ProfileWizardModal
         profile={editingProfile}
         isOpen={showForm}
         onClose={closeForm}
