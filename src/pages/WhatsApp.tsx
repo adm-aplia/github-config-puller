@@ -138,14 +138,14 @@ export default function WhatsAppPage() {
                     {/* Nome com Avatar */}
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={instance.profile_picture_url || undefined} alt={instance.instance_name} />
+                        <AvatarImage src={instance.profile_picture_url || undefined} alt={instance.display_name || instance.instance_name} />
                         <AvatarFallback className="bg-gray-2 00 dark:bg-gray-700">
                           <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-2">
-                          <div className="font-medium">{instance.instance_name}</div>
+                          <div className="font-medium">{instance.display_name || instance.instance_name}</div>
                           <Button 
                             variant="ghost" 
                             size="sm" 

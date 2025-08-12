@@ -98,7 +98,7 @@ export const useWhatsAppInstances = () => {
         .insert({
           user_id: userData.user.id,
           instance_name: payload.instanceName,
-          display_name: payload.displayName,
+          display_name: displayName,
           phone_number: instanceData.phone_number,
           professional_profile_id: instanceData.professional_profile_id,
           status: 'qr_pending',
