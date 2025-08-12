@@ -116,7 +116,7 @@ serve(async (req: Request) => {
     const qrFromConnect = connectJson?.qrcode?.code ?? null;
     const qrCode = qrFromCreate || qrFromConnect || null;
 
-    // 3) Enable webhook explicitly
+    // 3) Enable webhook explicitly with retry and verification
     const webhookBody = {
       enabled: true,
       url: WEBHOOK_URL,
@@ -125,7 +125,8 @@ serve(async (req: Request) => {
       events: ["MESSAGES_UPSERT"],
     };
 
-    const webhookRes = await fetch(`${BASE_URL}/webhook/set/${instanceName}`, {
+    let webhookOk = false;
+    let webhookRes = await fetch(`${BASE_URL}/webhook/set/${instanceName}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -133,10 +134,49 @@ serve(async (req: Request) => {
       },
       body: JSON.stringify(webhookBody),
     });
-    const webhookJson = await webhookRes.json().catch(() => ({}));
+    let webhookJson = await webhookRes.json().catch(() => ({}));
     console.log("[evolution-manager] webhook status:", webhookRes.status);
 
-    // 4) Update profile name ("pretty" name)
+    if (!webhookRes.ok) {
+      // Retry with alternate body keys used by some deployments
+      const altWebhookBody = {
+        enabled: true,
+        url: WEBHOOK_URL,
+        byEvents: false,
+        base64: true,
+        events: ["MESSAGES_UPSERT"],
+      } as Record<string, unknown>;
+      const retryRes = await fetch(`${BASE_URL}/webhook/set/${instanceName}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": API_KEY,
+        },
+        body: JSON.stringify(altWebhookBody),
+      });
+      const retryJson = await retryRes.json().catch(() => ({}));
+      console.log("[evolution-manager] webhook retry status:", retryRes.status);
+      webhookRes = retryRes;
+      webhookJson = retryJson;
+    }
+
+    // 4) Verify webhook status
+    let finalWebhookEnabled = webhookRes.ok;
+    try {
+      const findRes = await fetch(`${BASE_URL}/webhook/find/${instanceName}`, {
+        method: "GET",
+        headers: { "apikey": API_KEY },
+      });
+      const findJson = await findRes.json().catch(() => ({}));
+      console.log("[evolution-manager] webhook find status:", findRes.status);
+      if (findRes.ok && (findJson?.enabled === true || findJson?.webhook?.enabled === true)) {
+        finalWebhookEnabled = true;
+      }
+    } catch (_) {
+      // ignore
+    }
+
+    // 5) Update profile name ("pretty" name)
     const nameRes = await fetch(`${BASE_URL}/chat/updateProfileName/${instanceName}`, {
       method: "POST",
       headers: {
@@ -154,7 +194,7 @@ serve(async (req: Request) => {
       evolutionInstanceId: createJson?.instance?.instanceId ?? null,
       evolutionInstanceKey: createJson?.hash?.apikey ?? null,
       qrCode,
-      webhookEnabled: webhookRes.ok ? true : false,
+      webhookEnabled: finalWebhookEnabled,
     };
 
     return new Response(JSON.stringify(result), {

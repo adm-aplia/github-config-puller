@@ -9,6 +9,7 @@ import { useWhatsAppInstances } from "@/hooks/use-whatsapp-instances"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useState } from "react"
 import { QrCodeDialog } from "@/components/whatsapp/QrCodeDialog"
+import { CreateInstanceModal } from "@/components/whatsapp/CreateInstanceModal"
 
 const getStatusConfig = (status: string) => {
   const configs = {
@@ -35,9 +36,18 @@ export default function WhatsAppPage() {
   const { instances, loading, createInstance, updateInstance, deleteInstance } = useWhatsAppInstances();
   const [qrOpen, setQrOpen] = useState(false);
   const [qrData, setQrData] = useState<{ code?: string | null; name?: string }>({});
+  const [createOpen, setCreateOpen] = useState(false);
+
+  const handleCreateSubmit = async (displayName: string) => {
+    const created = await createInstance({ display_name: displayName });
+    setCreateOpen(false);
+    if (created) {
+      handleShowQr(created.instance_name, created.qr_code);
+    }
+  };
 
   const handleCreateInstance = () => {
-    createInstance({ instance_name: 'Nova Instância' });
+    setCreateOpen(true);
   };
 
   const handleDeleteInstance = (id: string) => {
@@ -229,6 +239,12 @@ export default function WhatsAppPage() {
           )}
         </div>
       </div>
+
+      <CreateInstanceModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSubmit={handleCreateSubmit}
+      />
 
       <QrCodeDialog
         open={qrOpen}

@@ -67,11 +67,13 @@ export const useWhatsAppInstances = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
 
+      const displayName = instanceData.display_name || instanceData.instance_name || 'Nova Instância';
+
       console.log('[useWhatsAppInstances] Creating Evolution instance via edge function...');
       const evoRes = await supabase.functions.invoke('evolution-manager', {
         body: {
           action: 'create_instance',
-          displayName: instanceData.instance_name || 'Nova Instância',
+          displayName,
         },
       });
 
@@ -113,8 +115,10 @@ export const useWhatsAppInstances = () => {
 
       if (error) throw error;
 
+      const created = { ...data, status: data.status as 'connected' | 'qr_pending' | 'disconnected' } as WhatsAppInstance;
+
       setInstances(prev => [
-        { ...data, status: data.status as 'connected' | 'qr_pending' | 'disconnected' } as WhatsAppInstance,
+        created,
         ...prev,
       ]);
       
@@ -123,7 +127,7 @@ export const useWhatsAppInstances = () => {
         description: 'Nova instância do WhatsApp criada e configurada com sucesso.',
       });
 
-      return true;
+      return created;
     } catch (error) {
       console.error('Error creating instance:', error);
       toast({
@@ -131,7 +135,7 @@ export const useWhatsAppInstances = () => {
         description: 'Não foi possível criar a instância do WhatsApp.',
         variant: 'destructive',
       });
-      return false;
+      return null;
     }
   };
 
