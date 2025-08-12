@@ -39,8 +39,9 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { action, displayName } = await req.json();
-    console.log("[evolution-manager] action:", action, "displayName:", displayName);
+    const body = await req.json();
+    const { action, displayName, instanceName: providedInstanceName } = body || {};
+    console.log("[evolution-manager] action:", action, "displayName:", displayName, "instanceName:", providedInstanceName);
 
     const BASE_URL = Deno.env.get("EVOLUTION_API_URL");
     const API_KEY = Deno.env.get("EVOLUTION_API_KEY");
@@ -49,6 +50,26 @@ serve(async (req: Request) => {
     if (!BASE_URL || !API_KEY) {
       return new Response(JSON.stringify({ error: "Missing Evolution API config" }), {
         status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "refresh_qr") {
+      if (!providedInstanceName) {
+        return new Response(JSON.stringify({ error: "Missing instanceName" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const connectRes = await fetch(`${BASE_URL}/instance/connect/${providedInstanceName}`, {
+        method: "GET",
+        headers: { "apikey": API_KEY },
+      });
+      const connectJson = await connectRes.json().catch(() => ({}));
+      console.log("[evolution-manager] refresh connect status:", connectRes.status);
+      const qrCode = connectJson?.qrcode?.code ?? null;
+      return new Response(JSON.stringify({ qrCode }), {
+        status: connectRes.ok ? 200 : 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

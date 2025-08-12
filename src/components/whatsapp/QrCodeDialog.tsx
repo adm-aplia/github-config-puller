@@ -2,15 +2,19 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QrCodeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  instanceName?: string;
+  instanceName?: string; // Display name chosen by the user
   qrCode?: string | null;
+  instanceId?: string; // DB id for polling status/qr updates
+  instanceSlug?: string; // Evolution instance_name for refresh action
+  onConnected?: () => void; // callback to refresh list
 }
 
-export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode }: QrCodeDialogProps) {
+export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanceId, instanceSlug, onConnected }: QrCodeDialogProps) {
   const [qrImage, setQrImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,6 +39,46 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode }: QrCod
     generate();
     return () => { active = false };
   }, [qrCode]);
+
+  useEffect(() => {
+    if (!open || !instanceId) return;
+    const interval = setInterval(async () => {
+      try {
+        // Try to refresh QR via edge function if we have the slug
+        if (instanceSlug) {
+          const evoRes = await supabase.functions.invoke('evolution-manager', {
+            body: { action: 'refresh_qr', instanceName: instanceSlug },
+          });
+          const newQr = (evoRes.data as any)?.qrCode as string | null;
+          if (newQr) {
+            const dataUrl = newQr.startsWith('data:image') ? newQr : await QRCode.toDataURL(newQr);
+            setQrImage(dataUrl);
+          }
+        }
+
+        // Check DB for status and potential QR updates
+        const { data } = await supabase
+          .from('whatsapp_instances')
+          .select('status, qr_code')
+          .eq('id', instanceId)
+          .single();
+
+        if (data?.qr_code) {
+          const dataUrl = data.qr_code.startsWith('data:image') ? data.qr_code : await QRCode.toDataURL(data.qr_code);
+          setQrImage(dataUrl);
+        }
+
+        if (data?.status === 'connected') {
+          onConnected?.();
+          onOpenChange(false);
+        }
+      } catch (e) {
+        console.error('[QrCodeDialog] refresh error', e);
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [open, instanceId, instanceSlug]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

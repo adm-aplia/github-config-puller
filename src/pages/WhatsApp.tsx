@@ -33,16 +33,16 @@ const getStatusConfig = (status: string) => {
 }
 
 export default function WhatsAppPage() {
-  const { instances, loading, createInstance, updateInstance, deleteInstance } = useWhatsAppInstances();
+  const { instances, loading, createInstance, updateInstance, deleteInstance, refetch } = useWhatsAppInstances();
   const [qrOpen, setQrOpen] = useState(false);
-  const [qrData, setQrData] = useState<{ code?: string | null; name?: string }>({});
+  const [qrData, setQrData] = useState<{ id?: string; slug?: string; displayName?: string; code?: string | null }>({});
   const [createOpen, setCreateOpen] = useState(false);
 
   const handleCreateSubmit = async (displayName: string) => {
     const created = await createInstance({ display_name: displayName });
     setCreateOpen(false);
     if (created) {
-      handleShowQr(created.instance_name, created.qr_code);
+      handleShowQr(created);
     }
   };
 
@@ -56,8 +56,13 @@ export default function WhatsAppPage() {
     }
   };
 
-  const handleShowQr = (name?: string, code?: string | null) => {
-    setQrData({ name, code });
+  const handleShowQr = (instance: any) => {
+    setQrData({
+      id: instance.id,
+      slug: instance.instance_name,
+      displayName: instance.display_name || instance.instance_name,
+      code: instance.qr_code,
+    });
     setQrOpen(true);
   };
 
@@ -194,7 +199,7 @@ export default function WhatsAppPage() {
                               variant="outline" 
                               size="sm" 
                               className="h-8 text-xs"
-                              onClick={() => handleShowQr(instance.instance_name, instance.qr_code)}
+                              onClick={() => handleShowQr(instance)}
                             >
                               <QrCode className="h-3 w-3 mr-1" />
                               QR Code
@@ -249,8 +254,11 @@ export default function WhatsAppPage() {
       <QrCodeDialog
         open={qrOpen}
         onOpenChange={setQrOpen}
-        instanceName={qrData.name}
+        instanceName={qrData.displayName}
         qrCode={qrData.code}
+        instanceId={qrData.id}
+        instanceSlug={qrData.slug}
+        onConnected={refetch}
       />
     </DashboardLayout>
   )
