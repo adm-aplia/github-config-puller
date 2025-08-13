@@ -57,12 +57,15 @@ export const useGoogleIntegrations = () => {
     }
   };
 
-  const connectGoogleAccount = async () => {
+  const connectGoogleAccount = async (options?: { preferPopup?: boolean }) => {
+    const preferPopup = options?.preferPopup ?? true;
     try {
       // Em desktop, abre um popup em branco SINCRONAMENTE para manter o gesto do usuário
-      const popupRef = isMobile
+      const popupRef = isMobile || !preferPopup
         ? null
         : window.open('', 'googleAuthPopup', 'width=600,height=700,noopener');
+
+      console.log('[Google OAuth] isMobile:', isMobile, '| preferPopup:', preferPopup, '| popupRef:', !!popupRef);
 
       // Recupera usuário logado
       const { data: authData } = await supabase.auth.getUser();
@@ -83,10 +86,11 @@ export const useGoogleIntegrations = () => {
       const authUrl = buildGoogleAuthUrl({ user_id: user.id });
 
       // Log para depuração do Client ID efetivamente usado
-      console.log('Google OAuth clientId:', GOOGLE_OAUTH.clientId);
+      console.log('[Google OAuth] clientId:', GOOGLE_OAUTH.clientId);
+      console.log('[Google OAuth] authUrl built, redirecting...');
 
-      if (isMobile) {
-        // Em dispositivos móveis, redireciona na mesma aba
+      if (isMobile || !preferPopup) {
+        // Em dispositivos móveis ou quando preferPopup = false, redireciona na mesma aba
         window.location.href = authUrl;
         return true;
       }
@@ -96,25 +100,21 @@ export const useGoogleIntegrations = () => {
           // Navega o popup para a URL de autenticação
           popupRef.location.href = authUrl;
           popupRef.focus();
+          console.log('[Google OAuth] Popup aberto e navegando para authUrl');
           return true;
-        } catch {
+        } catch (err) {
+          console.warn('[Google OAuth] Falha ao usar popup, fazendo fallback para redirect.', err);
           try { popupRef.close(); } catch {}
-          toast({
-            title: 'Popup bloqueado',
-            description: 'Habilite popups para conectar com o Google ou tente novamente.',
-            variant: 'destructive',
-          });
-          return false;
+          // Fallback: redireciona a janela principal
+          window.location.href = authUrl;
+          return true;
         }
       }
 
-      // Se o popup foi bloqueado (null), não redireciona a janela principal
-      toast({
-        title: 'Popup bloqueado',
-        description: 'Habilite popups neste site para continuar com a autenticação do Google.',
-        variant: 'destructive',
-      });
-      return false;
+      // Se o popup foi bloqueado (null), faz fallback de redirect completo
+      console.warn('[Google OAuth] Popup possivelmente bloqueado. Fallback para redirect.');
+      window.location.href = authUrl;
+      return true;
     } catch (error) {
       console.error('Error starting Google OAuth:', error);
       toast({

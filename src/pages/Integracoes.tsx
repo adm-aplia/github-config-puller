@@ -57,9 +57,14 @@ export default function IntegracoesPage() {
   const handleConnectGoogle = (e?: any) => {
     e?.preventDefault?.();
     e?.stopPropagation?.();
-    connectGoogleAccount();
+    connectGoogleAccount({ preferPopup: true });
   };
 
+  const handleConnectGoogleRedirect = (e?: any) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    connectGoogleAccount({ preferPopup: false });
+  };
   const handleDisconnectGoogle = (credentialId: string) => {
     if (confirm('Tem certeza que deseja desconectar esta conta?')) {
       disconnectGoogleAccount(credentialId);
@@ -100,13 +105,19 @@ export default function IntegracoesPage() {
                 Conecte-se com outros serviços e plataformas
               </p>
             </div>
-            <Button type="button" onClick={handleConnectGoogle}>
-              <CalendarDays className="mr-2 h-4 w-4" />
-              Conectar Google Agenda
-            </Button>
-          </div>
+            <div className="flex items-center gap-2">
+              <Button type="button" onClick={handleConnectGoogle}>
+                <CalendarDays className="mr-2 h-4 w-4" />
+                Conectar Google Agenda
+              </Button>
+              <Button type="button" variant="outline" onClick={handleConnectGoogleRedirect}>
+                <CalendarDays className="mr-2 h-4 w-4" />
+                Abrir por redirecionamento
+              </Button>
+            </div>
+            </div>
 
-          <div className="space-y-6">
+            <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Google Agenda</CardTitle>
@@ -128,10 +139,16 @@ export default function IntegracoesPage() {
                   {credentials.length === 0 ? (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground mb-4">Nenhuma conta Google conectada</p>
-                      <Button type="button" onClick={handleConnectGoogle}>
-                        <CalendarDays className="mr-2 h-4 w-4" />
-                        Conectar primeira conta
-                      </Button>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button type="button" onClick={handleConnectGoogle}>
+                          <CalendarDays className="mr-2 h-4 w-4" />
+                          Conectar primeira conta
+                        </Button>
+                        <Button type="button" variant="outline" onClick={handleConnectGoogleRedirect}>
+                          <CalendarDays className="mr-2 h-4 w-4" />
+                          Abrir por redirecionamento
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="border rounded-md">
