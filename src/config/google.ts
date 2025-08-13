@@ -2,8 +2,8 @@
 // NOTE: The Client ID is public information. Replace the placeholder below with your Google OAuth Client ID.
 
 export const GOOGLE_OAUTH = {
-  // TODO: substitua pelo Client ID do seu projeto Google Cloud
-  clientId: "REPLACE_WITH_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+  // Client ID público configurado pelo usuário
+  clientId: "627990196037-rpqnsvueptd785bqmlgs47glu5hkt3if.apps.googleusercontent.com",
   authBaseUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   // Webhook N8N que fará a troca do code por tokens e salvará no Supabase
   webhookUrl:
