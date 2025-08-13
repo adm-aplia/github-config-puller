@@ -20,14 +20,20 @@ export default function AuthGoogleCallback() {
     const state = url.searchParams.get("state");
     const error = url.searchParams.get("error");
 
-    const redirectToIntegrations = (qs: string) => {
-      const target = `/dashboard/integracoes${qs}`;
+    const notifyOpener = (type: "success" | "error", detail?: string) => {
       if (window.opener && !window.opener.closed) {
         try {
-          window.opener.location.href = target;
+          window.opener.postMessage(
+            { source: "aplia-google-auth", type, detail },
+            window.location.origin
+          );
         } catch {}
         window.close();
       } else {
+        const target =
+          type === "success"
+            ? "/dashboard/integracoes?auth_success=true"
+            : `/dashboard/integracoes?auth_error=${encodeURIComponent(detail || "unknown")}`;
         window.location.replace(target);
       }
     };
@@ -35,14 +41,14 @@ export default function AuthGoogleCallback() {
     if (error) {
       setStatus("error");
       setMessage("Erro de autenticação com o Google.");
-      redirectToIntegrations(`?auth_error=${encodeURIComponent(error)}`);
+      notifyOpener("error", error || undefined);
       return;
     }
 
     if (!code) {
       setStatus("error");
       setMessage("Código de autorização não recebido.");
-      redirectToIntegrations("?auth_error=no_code");
+      notifyOpener("error", "no_code");
       return;
     }
 
@@ -76,11 +82,11 @@ export default function AuthGoogleCallback() {
 
         setStatus("success");
         setMessage("Conta Google conectada!");
-        redirectToIntegrations("?auth_success=true");
+        notifyOpener("success");
       } catch (err) {
         setStatus("error");
         setMessage("Falha ao finalizar conexão com o Google.");
-        redirectToIntegrations("?auth_error=webhook_failed");
+        notifyOpener("error", "webhook_failed");
       }
     };
 
