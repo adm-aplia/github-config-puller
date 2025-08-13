@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export interface GoogleCredential {
   id: string;
@@ -24,6 +25,7 @@ export const useGoogleIntegrations = () => {
   const [profileLinks, setProfileLinks] = useState<GoogleProfileLink[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const fetchCredentials = async () => {
     try {
@@ -56,7 +58,7 @@ export const useGoogleIntegrations = () => {
 
   const connectGoogleAccount = async () => {
     try {
-      const { buildGoogleAuthUrl } = await import('@/config/google');
+      const { buildGoogleAuthUrl, GOOGLE_OAUTH } = await import('@/config/google');
       const { data: authData } = await supabase.auth.getUser();
       const user = authData.user;
 
@@ -71,16 +73,30 @@ export const useGoogleIntegrations = () => {
 
       const authUrl = buildGoogleAuthUrl({ user_id: user.id });
 
-      // Tenta abrir popup; se bloqueado, faz redirect completo
+      // Log para depuração do Client ID efetivamente usado
+      console.log('Google OAuth clientId:', GOOGLE_OAUTH.clientId);
+
+      if (isMobile) {
+        // Em dispositivos móveis, redireciona na mesma aba
+        window.location.href = authUrl;
+        return true;
+      }
+
+      // Em desktop, tenta abrir popup; se bloqueado, faz redirect completo
       const popup = window.open(
         authUrl,
         'googleAuthPopup',
-        'width=600,height=700,noopener,noreferrer'
+        'width=600,height=700,noopener'
       );
 
-      if (!popup) {
+      if (!popup || popup.closed) {
         window.location.href = authUrl;
+        return true;
       }
+
+      try {
+        popup.focus();
+      } catch {}
 
       return true;
     } catch (error) {
