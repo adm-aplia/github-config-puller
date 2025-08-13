@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { buildGoogleAuthUrl, GOOGLE_OAUTH } from '@/config/google';
 
 export interface GoogleCredential {
   id: string;
@@ -57,17 +56,9 @@ export const useGoogleIntegrations = () => {
     }
   };
 
-  const connectGoogleAccount = async (options?: { preferPopup?: boolean }) => {
-    const preferPopup = options?.preferPopup ?? true;
+  const connectGoogleAccount = async () => {
     try {
-      // Em desktop, abre um popup em branco SINCRONAMENTE para manter o gesto do usuário
-      const popupRef = isMobile || !preferPopup
-        ? null
-        : window.open('', 'googleAuthPopup', 'width=600,height=700,noopener');
-
-      console.log('[Google OAuth] isMobile:', isMobile, '| preferPopup:', preferPopup, '| popupRef:', !!popupRef);
-
-      // Recupera usuário logado
+      const { buildGoogleAuthUrl, GOOGLE_OAUTH } = await import('@/config/google');
       const { data: authData } = await supabase.auth.getUser();
       const user = authData.user;
 
@@ -77,43 +68,36 @@ export const useGoogleIntegrations = () => {
           description: 'Faça login novamente para conectar sua conta Google.',
           variant: 'destructive',
         });
-        if (popupRef) {
-          try { popupRef.close(); } catch {}
-        }
         return null;
       }
 
       const authUrl = buildGoogleAuthUrl({ user_id: user.id });
 
       // Log para depuração do Client ID efetivamente usado
-      console.log('[Google OAuth] clientId:', GOOGLE_OAUTH.clientId);
-      console.log('[Google OAuth] authUrl built, redirecting...');
+      console.log('Google OAuth clientId:', GOOGLE_OAUTH.clientId);
 
-      if (isMobile || !preferPopup) {
-        // Em dispositivos móveis ou quando preferPopup = false, redireciona na mesma aba
+      if (isMobile) {
+        // Em dispositivos móveis, redireciona na mesma aba
         window.location.href = authUrl;
         return true;
       }
 
-      if (popupRef) {
-        try {
-          // Navega o popup para a URL de autenticação
-          popupRef.location.href = authUrl;
-          popupRef.focus();
-          console.log('[Google OAuth] Popup aberto e navegando para authUrl');
-          return true;
-        } catch (err) {
-          console.warn('[Google OAuth] Falha ao usar popup, fazendo fallback para redirect.', err);
-          try { popupRef.close(); } catch {}
-          // Fallback: redireciona a janela principal
-          window.location.href = authUrl;
-          return true;
-        }
+      // Em desktop, tenta abrir popup; se bloqueado, faz redirect completo
+      const popup = window.open(
+        authUrl,
+        'googleAuthPopup',
+        'width=600,height=700,noopener'
+      );
+
+      if (!popup || popup.closed) {
+        window.location.href = authUrl;
+        return true;
       }
 
-      // Se o popup foi bloqueado (null), faz fallback de redirect completo
-      console.warn('[Google OAuth] Popup possivelmente bloqueado. Fallback para redirect.');
-      window.location.href = authUrl;
+      try {
+        popup.focus();
+      } catch {}
+
       return true;
     } catch (error) {
       console.error('Error starting Google OAuth:', error);
