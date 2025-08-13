@@ -99,14 +99,22 @@ export const useGoogleIntegrations = () => {
           return true;
         } catch {
           try { popupRef.close(); } catch {}
-          window.location.href = authUrl; // fallback
-          return true;
+          toast({
+            title: 'Popup bloqueado',
+            description: 'Habilite popups para conectar com o Google ou tente novamente.',
+            variant: 'destructive',
+          });
+          return false;
         }
       }
 
-      // Se o popup foi bloqueado (null), faz fallback de redirect completo
-      window.location.href = authUrl;
-      return true;
+      // Se o popup foi bloqueado (null), não redireciona a janela principal
+      toast({
+        title: 'Popup bloqueado',
+        description: 'Habilite popups neste site para continuar com a autenticação do Google.',
+        variant: 'destructive',
+      });
+      return false;
     } catch (error) {
       console.error('Error starting Google OAuth:', error);
       toast({

@@ -54,7 +54,9 @@ export default function IntegracoesPage() {
     }
   }, [toast, refetch]);
 
-  const handleConnectGoogle = () => {
+  const handleConnectGoogle = (e?: any) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
     connectGoogleAccount();
   };
 
@@ -98,7 +100,7 @@ export default function IntegracoesPage() {
                 Conecte-se com outros serviços e plataformas
               </p>
             </div>
-            <Button onClick={handleConnectGoogle}>
+            <Button type="button" onClick={handleConnectGoogle}>
               <CalendarDays className="mr-2 h-4 w-4" />
               Conectar Google Agenda
             </Button>
@@ -126,7 +128,7 @@ export default function IntegracoesPage() {
                   {credentials.length === 0 ? (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground mb-4">Nenhuma conta Google conectada</p>
-                      <Button onClick={handleConnectGoogle}>
+                      <Button type="button" onClick={handleConnectGoogle}>
                         <CalendarDays className="mr-2 h-4 w-4" />
                         Conectar primeira conta
                       </Button>
