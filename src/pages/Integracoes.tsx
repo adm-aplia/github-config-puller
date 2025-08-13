@@ -7,9 +7,52 @@ import { CalendarDays, RefreshCw, Mail, Check, Trash2 } from "lucide-react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useEffect } from "react"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function IntegracoesPage() {
   const { credentials, profileLinks, loading, connectGoogleAccount, disconnectGoogleAccount, refetch } = useGoogleIntegrations();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // SEO
+    document.title = "Integrações - Google Agenda | Aplia";
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', 'Gerencie integrações e conecte o Google Agenda');
+    const canonicalHref = `${window.location.origin}/dashboard/integracoes`;
+    let linkEl = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!linkEl) {
+      linkEl = document.createElement('link');
+      linkEl.setAttribute('rel', 'canonical');
+      document.head.appendChild(linkEl);
+    }
+    linkEl.setAttribute('href', canonicalHref);
+
+    // Feedback de autenticação
+    const urlParams = new URLSearchParams(window.location.search);
+    const authError = urlParams.get('auth_error');
+    const authSuccess = urlParams.get('auth_success');
+
+    if (authError) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro na autenticação',
+        description: decodeURIComponent(authError),
+      });
+    }
+
+    if (authSuccess) {
+      toast({
+        title: 'Google Agenda conectado',
+        description: 'Sua conta foi conectada com sucesso.',
+      });
+      refetch();
+    }
+
+    if (authError || authSuccess) {
+      window.history.replaceState({}, document.title, '/dashboard/integracoes');
+    }
+  }, [toast, refetch]);
 
   const handleConnectGoogle = () => {
     connectGoogleAccount();
@@ -20,7 +63,6 @@ export default function IntegracoesPage() {
       disconnectGoogleAccount(credentialId);
     }
   };
-
   if (loading) {
     return (
       <DashboardLayout>

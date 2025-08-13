@@ -20,6 +20,7 @@ import IntegracoesPage from "./pages/Integracoes";
 import TermosServico from "./pages/TermosServico";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 import NotFound from "./pages/NotFound";
+import AuthGoogleCallback from "./pages/AuthGoogleCallback";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ function AppContent() {
           <Route path="/dashboard/conversas" element={<ProtectedRoute><ConversasPage /></ProtectedRoute>} />
           <Route path="/dashboard/whatsapp" element={<ProtectedRoute><WhatsAppPage /></ProtectedRoute>} />
           <Route path="/dashboard/integracoes" element={<ProtectedRoute><IntegracoesPage /></ProtectedRoute>} />
+          <Route path="/auth/google/callback" element={<AuthGoogleCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

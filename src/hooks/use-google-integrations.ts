@@ -56,40 +56,38 @@ export const useGoogleIntegrations = () => {
 
   const connectGoogleAccount = async () => {
     try {
-      // SECURITY WARNING: This is a mock implementation
-      // In production, implement proper OAuth 2.0 flow with secure token handling
-      const mockCredential = {
-        email: 'usuario@gmail.com',
-        name: 'Usuário Google',
-        expires_at: new Date(Date.now() + 3600000).toISOString(), // 1 hora
-      };
+      const { buildGoogleAuthUrl } = await import('@/config/google');
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData.user;
 
-      const { data, error } = await supabase
-        .from('google_credentials')
-        .insert([{
-          email: mockCredential.email,
-          name: mockCredential.name,
-          expires_at: mockCredential.expires_at,
-          user_id: (await supabase.auth.getUser()).data.user?.id
-        }])
-        .select('id, user_id, email, name, expires_at, created_at, updated_at')
-        .single();
+      if (!user) {
+        toast({
+          title: 'Sessão expirada',
+          description: 'Faça login novamente para conectar sua conta Google.',
+          variant: 'destructive',
+        });
+        return null;
+      }
 
-      if (error) throw error;
+      const authUrl = buildGoogleAuthUrl({ user_id: user.id });
 
-      setCredentials(prev => [data, ...prev]);
+      // Tenta abrir popup; se bloqueado, faz redirect completo
+      const popup = window.open(
+        authUrl,
+        'googleAuthPopup',
+        'width=600,height=700,noopener,noreferrer'
+      );
 
-      toast({
-        title: 'Conta conectada',
-        description: 'Conta Google conectada com sucesso.',
-      });
+      if (!popup) {
+        window.location.href = authUrl;
+      }
 
-      return data;
+      return true;
     } catch (error) {
-      console.error('Error connecting Google account:', error);
+      console.error('Error starting Google OAuth:', error);
       toast({
         title: 'Erro na conexão',
-        description: 'Não foi possível conectar a conta Google.',
+        description: 'Não foi possível iniciar a autenticação com o Google.',
         variant: 'destructive',
       });
       return null;
