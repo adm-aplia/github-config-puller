@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { buildGoogleAuthUrl, GOOGLE_OAUTH } from '@/config/google';
 
 export interface GoogleCredential {
   id: string;
@@ -58,7 +59,12 @@ export const useGoogleIntegrations = () => {
 
   const connectGoogleAccount = async () => {
     try {
-      const { buildGoogleAuthUrl, GOOGLE_OAUTH } = await import('@/config/google');
+      // Em desktop, abre um popup em branco SINCRONAMENTE para manter o gesto do usuário
+      const popupRef = isMobile
+        ? null
+        : window.open('', 'googleAuthPopup', 'width=600,height=700,noopener');
+
+      // Recupera usuário logado
       const { data: authData } = await supabase.auth.getUser();
       const user = authData.user;
 
@@ -68,6 +74,9 @@ export const useGoogleIntegrations = () => {
           description: 'Faça login novamente para conectar sua conta Google.',
           variant: 'destructive',
         });
+        if (popupRef) {
+          try { popupRef.close(); } catch {}
+        }
         return null;
       }
 
@@ -82,22 +91,21 @@ export const useGoogleIntegrations = () => {
         return true;
       }
 
-      // Em desktop, tenta abrir popup; se bloqueado, faz redirect completo
-      const popup = window.open(
-        authUrl,
-        'googleAuthPopup',
-        'width=600,height=700,noopener'
-      );
-
-      if (!popup || popup.closed) {
-        window.location.href = authUrl;
-        return true;
+      if (popupRef) {
+        try {
+          // Navega o popup para a URL de autenticação
+          popupRef.location.href = authUrl;
+          popupRef.focus();
+          return true;
+        } catch {
+          try { popupRef.close(); } catch {}
+          window.location.href = authUrl; // fallback
+          return true;
+        }
       }
 
-      try {
-        popup.focus();
-      } catch {}
-
+      // Se o popup foi bloqueado (null), faz fallback de redirect completo
+      window.location.href = authUrl;
       return true;
     } catch (error) {
       console.error('Error starting Google OAuth:', error);
