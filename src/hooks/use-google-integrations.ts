@@ -89,16 +89,15 @@ export const useGoogleIntegrations = () => {
         'width=600,height=700,noopener'
       );
 
-      // Verifica se o popup foi bloqueado após um pequeno delay
-      setTimeout(() => {
-        if (!popup || popup.closed) {
-          toast({
-            title: 'Popup bloqueado',
-            description: 'Permita popups para este site ou clique no botão novamente.',
-            variant: 'destructive',
-          });
-        }
-      }, 100);
+      // Verifica se o popup foi realmente bloqueado (null/undefined)
+      if (!popup) {
+        toast({
+          title: 'Popup bloqueado',
+          description: 'Permita popups para este site nas configurações do navegador.',
+          variant: 'destructive',
+        });
+        return false;
+      }
 
       try {
         popup.focus();
