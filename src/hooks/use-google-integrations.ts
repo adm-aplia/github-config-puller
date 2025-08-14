@@ -65,31 +65,29 @@ export const useGoogleIntegrations = () => {
       const top = window.screenY + (window.outerHeight - height) / 2;
       const features = `width=${width},height=${height},left=${left},top=${top},noopener`;
 
-      const popup = window.open("", "googleAuthPopup", features);
+      const popup = window.open('', 'googleAuthPopup', features);
 
       if (!popup || popup.closed) {
         toast({
-          title: "Popup bloqueado",
+          title: 'Popup bloqueado',
           description:
-            "Habilite pop-ups para este site e tente novamente. A janela principal não será redirecionada.",
-          variant: "destructive",
+            'Habilite pop-ups para este site e tente novamente. A janela principal não será redirecionada.',
+          variant: 'destructive',
         });
         return null;
       }
 
       // Carregar dependências e obter usuário
-      const { buildGoogleAuthUrl, GOOGLE_OAUTH } = await import("@/config/google");
+      const { buildGoogleAuthUrl, GOOGLE_OAUTH } = await import('@/config/google');
       const { data: authData } = await supabase.auth.getUser();
       const user = authData.user;
 
       if (!user) {
-        try {
-          popup.close();
-        } catch {}
+        try { popup.close(); } catch {}
         toast({
-          title: "Sessão expirada",
-          description: "Faça login novamente para conectar sua conta Google.",
-          variant: "destructive",
+          title: 'Sessão expirada',
+          description: 'Faça login novamente para conectar sua conta Google.',
+          variant: 'destructive',
         });
         return null;
       }
@@ -97,26 +95,24 @@ export const useGoogleIntegrations = () => {
       const authUrl = buildGoogleAuthUrl({ user_id: user.id });
 
       // Log para depuração do Client ID efetivamente usado
-      console.log("Google OAuth clientId:", GOOGLE_OAUTH.clientId);
+      console.log('Google OAuth clientId:', GOOGLE_OAUTH.clientId);
 
       // Direciona o popup para a URL de autenticação (sem afetar a janela principal)
       try {
         popup.location.href = authUrl;
         popup.focus();
       } catch (e) {
-        console.warn("Não foi possível focar/definir location do popup imediatamente:", e);
-        try {
-          popup.location.assign(authUrl);
-        } catch {}
+        console.warn('Não foi possível focar/definir location do popup imediatamente:', e);
+        try { popup.location.assign(authUrl); } catch {}
       }
 
       return true;
     } catch (error) {
-      console.error("Error starting Google OAuth:", error);
+      console.error('Error starting Google OAuth:', error);
       toast({
-        title: "Erro na conexão",
-        description: "Não foi possível iniciar a autenticação com o Google.",
-        variant: "destructive",
+        title: 'Erro na conexão',
+        description: 'Não foi possível iniciar a autenticação com o Google.',
+        variant: 'destructive',
       });
       return null;
     }

@@ -54,29 +54,6 @@ export default function IntegracoesPage() {
     }
   }, [toast, refetch]);
 
-  useEffect(() => {
-    const handler = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      const data = (event as MessageEvent<any>).data;
-      if (!data || data.source !== "aplia-google-auth") return;
-      if (data.type === "success") {
-        toast({
-          title: "Google Agenda conectado",
-          description: "Sua conta foi conectada com sucesso.",
-        });
-        refetch();
-      } else if (data.type === "error") {
-        toast({
-          variant: "destructive",
-          title: "Erro na autenticação",
-          description: data.detail ? String(data.detail) : "Falha ao conectar.",
-        });
-      }
-    };
-    window.addEventListener("message", handler);
-    return () => window.removeEventListener("message", handler);
-  }, [toast, refetch]);
-
   const handleConnectGoogle = () => {
     connectGoogleAccount();
   };
