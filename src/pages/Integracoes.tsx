@@ -28,7 +28,7 @@ export default function IntegracoesPage() {
     }
     linkEl.setAttribute('href', canonicalHref);
 
-    // Feedback de autenticação
+    // Feedback de autenticação (para casos onde não há popup)
     const urlParams = new URLSearchParams(window.location.search);
     const authError = urlParams.get('auth_error');
     const authSuccess = urlParams.get('auth_success');
@@ -52,6 +52,34 @@ export default function IntegracoesPage() {
     if (authError || authSuccess) {
       window.history.replaceState({}, document.title, '/dashboard/integracoes');
     }
+
+    // Listener para mensagens do popup
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      
+      if (event.data?.googleAuth) {
+        const { type, message } = event.data.googleAuth;
+        
+        if (type === 'success') {
+          toast({
+            title: 'Google Agenda conectado',
+            description: 'Sua conta foi conectada com sucesso.',
+          });
+          refetch();
+        } else if (type === 'error') {
+          toast({
+            variant: 'destructive',
+            title: 'Erro na autenticação',
+            description: message === 'no_code' ? 'Código de autorização não recebido' : 
+                        message === 'webhook_failed' ? 'Falha ao finalizar conexão com o Google' :
+                        decodeURIComponent(message || 'Erro desconhecido'),
+          });
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
   }, [toast, refetch]);
 
   const handleConnectGoogle = () => {
