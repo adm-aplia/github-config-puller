@@ -58,32 +58,11 @@ export const useGoogleIntegrations = () => {
 
   const connectGoogleAccount = async () => {
     try {
-      // Abrir popup imediatamente (sincrono) para evitar bloqueio por navegadores
-      const width = 600;
-      const height = 700;
-      const left = window.screenX + (window.outerWidth - width) / 2;
-      const top = window.screenY + (window.outerHeight - height) / 2;
-      const features = `width=${width},height=${height},left=${left},top=${top},noopener`;
-
-      const popup = window.open('', 'googleAuthPopup', features);
-
-      if (!popup || popup.closed) {
-        toast({
-          title: 'Popup bloqueado',
-          description:
-            'Habilite pop-ups para este site e tente novamente. A janela principal não será redirecionada.',
-          variant: 'destructive',
-        });
-        return null;
-      }
-
-      // Carregar dependências e obter usuário
       const { buildGoogleAuthUrl, GOOGLE_OAUTH } = await import('@/config/google');
       const { data: authData } = await supabase.auth.getUser();
       const user = authData.user;
 
       if (!user) {
-        try { popup.close(); } catch {}
         toast({
           title: 'Sessão expirada',
           description: 'Faça login novamente para conectar sua conta Google.',
@@ -97,14 +76,27 @@ export const useGoogleIntegrations = () => {
       // Log para depuração do Client ID efetivamente usado
       console.log('Google OAuth clientId:', GOOGLE_OAUTH.clientId);
 
-      // Direciona o popup para a URL de autenticação (sem afetar a janela principal)
-      try {
-        popup.location.href = authUrl;
-        popup.focus();
-      } catch (e) {
-        console.warn('Não foi possível focar/definir location do popup imediatamente:', e);
-        try { popup.location.assign(authUrl); } catch {}
+      if (isMobile) {
+        // Em dispositivos móveis, redireciona na mesma aba
+        window.location.href = authUrl;
+        return true;
       }
+
+      // Em desktop, tenta abrir popup; se bloqueado, faz redirect completo
+      const popup = window.open(
+        authUrl,
+        'googleAuthPopup',
+        'width=600,height=700,noopener'
+      );
+
+      if (!popup || popup.closed) {
+        window.location.href = authUrl;
+        return true;
+      }
+
+      try {
+        popup.focus();
+      } catch {}
 
       return true;
     } catch (error) {
