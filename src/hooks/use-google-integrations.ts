@@ -82,17 +82,23 @@ export const useGoogleIntegrations = () => {
         return true;
       }
 
-      // Em desktop, tenta abrir popup; se bloqueado, faz redirect completo
+      // Em desktop, tenta abrir popup
       const popup = window.open(
         authUrl,
         'googleAuthPopup',
         'width=600,height=700,noopener'
       );
 
-      if (!popup || popup.closed) {
-        window.location.href = authUrl;
-        return true;
-      }
+      // Verifica se o popup foi bloqueado após um pequeno delay
+      setTimeout(() => {
+        if (!popup || popup.closed) {
+          toast({
+            title: 'Popup bloqueado',
+            description: 'Permita popups para este site ou clique no botão novamente.',
+            variant: 'destructive',
+          });
+        }
+      }, 100);
 
       try {
         popup.focus();
