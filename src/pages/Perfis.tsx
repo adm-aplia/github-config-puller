@@ -4,17 +4,21 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { RefreshCw, Plus, User, SquarePen, Link, Trash2, AlertCircle } from "lucide-react"
+import { RefreshCw, Plus, User, SquarePen, MessageCircle, CalendarDays, Trash2, AlertCircle } from "lucide-react"
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
+import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
 import { ProfileWizardModal } from "@/components/profiles/profile-wizard-modal"
+import { CreateInstanceModal } from "@/components/whatsapp/CreateInstanceModal"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
 export default function PerfilsPage() {
   const { profiles, limits, loading, createProfile, updateProfile, deleteProfile, refetch } = useProfessionalProfiles()
+  const { connectGoogleAccount } = useGoogleIntegrations()
   const [showForm, setShowForm] = useState(false)
   const [editingProfile, setEditingProfile] = useState(null)
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
 
   const handleCreateProfile = async (data) => {
     const success = await createProfile(data)
@@ -51,6 +55,17 @@ export default function PerfilsPage() {
   const closeForm = () => {
     setEditingProfile(null)
     setShowForm(false)
+  }
+
+  const handleWhatsAppCreate = async (displayName: string) => {
+    // This would normally create a new WhatsApp instance
+    // For now, just close the modal
+    setShowWhatsAppModal(false)
+    // TODO: Implement WhatsApp instance creation logic
+  }
+
+  const handleGoogleConnect = async () => {
+    await connectGoogleAccount()
   }
 
   if (loading) {
@@ -183,15 +198,29 @@ export default function PerfilsPage() {
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                className="gap-1 hover:bg-muted"
+                                className="gap-1 hover:bg-accent hover:text-accent-foreground"
                                 onClick={() => openEditForm(profile)}
                               >
                                 <SquarePen className="h-4 w-4" />
                                 Editar
                               </Button>
-                              <Button variant="ghost" size="sm" className="gap-1 hover:bg-muted">
-                                <Link className="h-4 w-4" />
-                                Vincular
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="gap-1 hover:bg-accent hover:text-accent-foreground"
+                                onClick={() => setShowWhatsAppModal(true)}
+                              >
+                                <MessageCircle className="h-4 w-4" />
+                                WhatsApp
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="gap-1 hover:bg-accent hover:text-accent-foreground"
+                                onClick={handleGoogleConnect}
+                              >
+                                <CalendarDays className="h-4 w-4" />
+                                Google
                               </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
@@ -241,6 +270,12 @@ export default function PerfilsPage() {
         isOpen={showForm}
         onClose={closeForm}
         onSubmit={editingProfile ? handleUpdateProfile : handleCreateProfile}
+      />
+
+      <CreateInstanceModal
+        open={showWhatsAppModal}
+        onOpenChange={setShowWhatsAppModal}
+        onSubmit={handleWhatsAppCreate}
       />
     </DashboardLayout>
   )
