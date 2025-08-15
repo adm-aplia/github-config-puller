@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, User, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CreditCard, User, MapPin, TestTube } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,6 +17,7 @@ interface CheckoutModalProps {
 
 export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) {
   const [loading, setLoading] = useState(false);
+  const [isTestEnvironment, setIsTestEnvironment] = useState(false);
   const [formData, setFormData] = useState({
     // Dados pessoais
     nome: '',
@@ -37,6 +39,25 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
     cardCvv: ''
   });
   const { toast } = useToast();
+
+  // Check if we're in test environment
+  useEffect(() => {
+    const checkEnvironment = async () => {
+      try {
+        const { data } = await supabase.functions.invoke('create-subscription', {
+          body: { checkEnvironment: true }
+        });
+        setIsTestEnvironment(data?.environment === 'sandbox');
+      } catch (error) {
+        // Fallback - assume production if we can't check
+        setIsTestEnvironment(false);
+      }
+    };
+    
+    if (open) {
+      checkEnvironment();
+    }
+  }, [open]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -108,9 +129,22 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Finalizar Assinatura - {plan.nome}</DialogTitle>
+          <div className="flex items-center gap-2">
+            <DialogTitle>Finalizar Assinatura - {plan.nome}</DialogTitle>
+            {isTestEnvironment && (
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                <TestTube className="h-3 w-3 mr-1" />
+                Ambiente de Testes
+              </Badge>
+            )}
+          </div>
           <DialogDescription>
             Complete os dados para finalizar sua assinatura do plano {plan.nome} por R$ {plan.preco}/mês
+            {isTestEnvironment && (
+              <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                🧪 <strong>Modo de Teste:</strong> Use o cartão 4444 4444 4444 4444 para simular pagamentos
+              </div>
+            )}
           </DialogDescription>
         </DialogHeader>
 

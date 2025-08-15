@@ -34,6 +34,19 @@ serve(async (req) => {
   }
 
   try {
+    const requestBody = await req.json();
+
+    // Special endpoint to check environment
+    if (requestBody.checkEnvironment) {
+      const asaasEnv = Deno.env.get('ASAAS_ENV') || 'production';
+      return new Response(JSON.stringify({
+        environment: asaasEnv
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+
     // Get the authorization header from the request
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
@@ -54,7 +67,7 @@ serve(async (req) => {
       planId: string;
       customerData: CustomerData;
       cardData: CardData;
-    } = await req.json();
+    } = requestBody;
 
     // Create Supabase client with service role for database operations
     const supabaseAdmin = createClient(
@@ -100,11 +113,19 @@ serve(async (req) => {
       throw new Error('Erro ao criar cliente');
     }
 
+    // Determine environment and API configuration
+    const asaasEnv = Deno.env.get('ASAAS_ENV') || 'production';
+    const isProduction = asaasEnv === 'production';
+    const asaasBaseUrl = isProduction ? 'https://www.asaas.com/api/v3' : 'https://sandbox.asaas.com/api/v3';
+    const asaasApiKey = isProduction ? Deno.env.get('ASAAS_API_KEY') : Deno.env.get('ASAAS_SANDBOX_API_KEY');
+
+    console.log(`Using Asaas ${asaasEnv} environment`);
+
     // Create customer in Asaas
-    const asaasCustomerResponse = await fetch('https://www.asaas.com/api/v3/customers', {
+    const asaasCustomerResponse = await fetch(`${asaasBaseUrl}/customers`, {
       method: 'POST',
       headers: {
-        'access_token': Deno.env.get('ASAAS_API_KEY') ?? '',
+        'access_token': asaasApiKey ?? '',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -137,10 +158,10 @@ serve(async (req) => {
       .eq('id', cliente.id);
 
     // Create subscription in Asaas
-    const asaasSubscriptionResponse = await fetch('https://www.asaas.com/api/v3/subscriptions', {
+    const asaasSubscriptionResponse = await fetch(`${asaasBaseUrl}/subscriptions`, {
       method: 'POST',
       headers: {
-        'access_token': Deno.env.get('ASAAS_API_KEY') ?? '',
+        'access_token': asaasApiKey ?? '',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

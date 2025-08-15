@@ -67,6 +67,25 @@ export const useWhatsAppInstances = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
 
+      // Verificar limites do usuário
+      const { data: limitsData } = await supabase
+        .from('usuario_limites')
+        .select('max_instancias_whatsapp')
+        .eq('user_id', userData.user.id)
+        .maybeSingle();
+
+      const maxInstances = limitsData?.max_instancias_whatsapp || 1;
+      const currentInstancesCount = instances.length;
+
+      if (currentInstancesCount >= maxInstances) {
+        toast({
+          title: 'Limite atingido',
+          description: `Você atingiu o limite de ${maxInstances} instâncias do WhatsApp. Assine um plano para ter mais instâncias.`,
+          variant: 'destructive',
+        });
+        return null;
+      }
+
       const displayName = instanceData.display_name || instanceData.instance_name || 'Nova Instância';
 
       console.log('[useWhatsAppInstances] Creating Evolution instance via edge function...');
