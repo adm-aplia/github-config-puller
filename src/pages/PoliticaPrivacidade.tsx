@@ -21,7 +21,7 @@ export default function PoliticaPrivacidade() {
           <div className="flex justify-center mb-8">
             <img 
               alt="Aplia — Assistentes de IA para Profissionais da Saúde" 
-              className="h-16 w-auto" 
+              className="h-10 w-auto" 
               src="/aplia-logo-full.png"
             />
           </div>

@@ -97,7 +97,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    try {
+      // Tentar logout no servidor apenas se houver sessão
+      if (session) {
+        await supabase.auth.signOut()
+      }
+    } catch (error) {
+      console.error('Erro no logout:', error)
+    } finally {
+      // Sempre limpar estado local
+      setSession(null)
+      setUser(null)
+    }
   }
 
   // Legacy login function for backward compatibility
