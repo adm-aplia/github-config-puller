@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useState } from "react"
 import { QrCodeDialog } from "@/components/whatsapp/QrCodeDialog"
 import { CreateInstanceModal } from "@/components/whatsapp/CreateInstanceModal"
+import { AssignProfileModal } from "@/components/whatsapp/AssignProfileModal"
 
 const getStatusConfig = (status: string) => {
   const configs = {
@@ -37,6 +38,8 @@ export default function WhatsAppPage() {
   const [qrOpen, setQrOpen] = useState(false);
   const [qrData, setQrData] = useState<{ id?: string; slug?: string; displayName?: string; code?: string | null }>({});
   const [createOpen, setCreateOpen] = useState(false);
+  const [assignProfileOpen, setAssignProfileOpen] = useState(false);
+  const [selectedInstance, setSelectedInstance] = useState<any>(null);
 
   const handleCreateSubmit = async (displayName: string) => {
     const created = await createInstance({ display_name: displayName });
@@ -64,6 +67,25 @@ export default function WhatsAppPage() {
       code: instance.qr_code,
     });
     setQrOpen(true);
+  };
+
+  const handleAssignProfile = (instance: any) => {
+    setSelectedInstance(instance);
+    setAssignProfileOpen(true);
+  };
+
+  const handleAssignProfileSubmit = async (profileId: string) => {
+    if (!selectedInstance) return;
+    
+    const success = await updateInstance(selectedInstance.id, {
+      professional_profile_id: profileId
+    });
+    
+    if (success) {
+      setAssignProfileOpen(false);
+      setSelectedInstance(null);
+      refetch();
+    }
   };
 
   if (loading) {
@@ -184,27 +206,25 @@ export default function WhatsAppPage() {
                     {/* Ações */}
                     <div className="flex justify-end items-center gap-2">
                       <div className="flex gap-2">
-                        {instance.status === "connected" ? (
-                          <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <UserPlus className="h-3 w-3 mr-1" />
-                            Alterar Perfil
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8 text-xs"
+                          onClick={() => handleAssignProfile(instance)}
+                        >
+                          <UserPlus className="h-3 w-3 mr-1" />
+                          {instance.professional_profile_id ? "Alterar Perfil" : "Atribuir Perfil"}
+                        </Button>
+                        {instance.status !== "connected" && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-8 text-xs"
+                            onClick={() => handleShowQr(instance)}
+                          >
+                            <QrCode className="h-3 w-3 mr-1" />
+                            QR Code
                           </Button>
-                        ) : (
-                          <>
-                            <Button variant="outline" size="sm" className="h-8 text-xs">
-                              <UserPlus className="h-3 w-3 mr-1" />
-                              Atribuir Perfil
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-8 text-xs"
-                              onClick={() => handleShowQr(instance)}
-                            >
-                              <QrCode className="h-3 w-3 mr-1" />
-                              QR Code
-                            </Button>
-                          </>
                         )}
                       </div>
                       
@@ -259,6 +279,13 @@ export default function WhatsAppPage() {
         instanceId={qrData.id}
         instanceSlug={qrData.slug}
         onConnected={refetch}
+      />
+
+      <AssignProfileModal
+        open={assignProfileOpen}
+        onOpenChange={setAssignProfileOpen}
+        onSubmit={handleAssignProfileSubmit}
+        currentProfileId={selectedInstance?.professional_profile_id}
       />
     </DashboardLayout>
   )
