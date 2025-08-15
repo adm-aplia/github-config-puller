@@ -242,14 +242,8 @@ export default function PerfilsPage() {
                                <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20">
                                  Conectado
                                </Badge>
-                             ) : whatsappStatus ? (
-                               <Badge variant="secondary">
-                                 Desconectado
-                               </Badge>
                              ) : (
-                               <Badge variant="outline">
-                                 Não configurado
-                               </Badge>
+                               <span className="text-foreground">Não conectado</span>
                              )}
                            </TableCell>
                            <TableCell>
@@ -258,9 +252,7 @@ export default function PerfilsPage() {
                                  Conectado
                                </Badge>
                              ) : (
-                               <Badge variant="secondary">
-                                 Não conectado
-                               </Badge>
+                               <span className="text-foreground">Não conectado</span>
                              )}
                            </TableCell>
                            <TableCell>
