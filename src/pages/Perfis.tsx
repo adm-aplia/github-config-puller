@@ -243,14 +243,14 @@ export default function PerfilsPage() {
                                  {whatsappStatus === 'connected' ? (
                                    <>
                                      <CheckCircle className="h-4 w-4 text-green-600" />
-                                     <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
+                                     <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20 hover:bg-green-600/15">
                                        Conectado
                                      </Badge>
                                    </>
                                  ) : (
                                    <>
-                                     <XCircle className="h-4 w-4 text-amber-600" />
-                                     <Badge variant="outline" className="border-amber-300 text-amber-700">
+                                     <XCircle className="h-4 w-4 text-muted-foreground" />
+                                     <Badge variant="secondary" className="text-muted-foreground">
                                        Desconectado
                                      </Badge>
                                    </>
@@ -259,7 +259,9 @@ export default function PerfilsPage() {
                              ) : (
                                <div className="flex items-center gap-2">
                                  <XCircle className="h-4 w-4 text-muted-foreground" />
-                                 <span className="text-muted-foreground text-sm">Não configurado</span>
+                                 <Badge variant="outline" className="text-muted-foreground border-muted">
+                                   Não configurado
+                                 </Badge>
                                </div>
                              )}
                            </TableCell>
@@ -267,14 +269,16 @@ export default function PerfilsPage() {
                              {googleConnected ? (
                                <div className="flex items-center gap-2">
                                  <CheckCircle className="h-4 w-4 text-green-600" />
-                                 <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
+                                 <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20 hover:bg-green-600/15">
                                    Conectado
                                  </Badge>
                                </div>
                              ) : (
                                <div className="flex items-center gap-2">
                                  <XCircle className="h-4 w-4 text-muted-foreground" />
-                                 <span className="text-muted-foreground text-sm">Não conectado</span>
+                                 <Badge variant="secondary" className="text-muted-foreground">
+                                   Não conectado
+                                 </Badge>
                                </div>
                              )}
                            </TableCell>
