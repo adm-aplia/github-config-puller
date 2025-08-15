@@ -942,6 +942,10 @@ export type Database = {
         Args: { p_resource_type: string; p_user_id: string }
         Returns: undefined
       }
+      initialize_user_data: {
+        Args: { p_user_id?: string }
+        Returns: undefined
+      }
       update_user_limits_from_subscription: {
         Args: { p_user_id: string }
         Returns: undefined
