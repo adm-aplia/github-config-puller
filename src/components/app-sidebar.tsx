@@ -11,9 +11,13 @@ import {
   MessageSquare, 
   Phone, 
   CalendarDays,
-  Bot 
+  Bot,
+  ChevronDown,
+  Settings,
+  CreditCard,
+  LogOut
 } from "lucide-react"
-import { NavLink, useLocation } from "react-router-dom"
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
 
 import {
   Sidebar,
@@ -30,6 +34,15 @@ import {
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/hooks/use-toast"
 
 const items = [
   { title: "Painel", url: "/dashboard", icon: LayoutDashboard },
@@ -43,8 +56,10 @@ const items = [
 export function AppSidebar() {
   const { state } = useSidebar()
   const location = useLocation()
+  const navigate = useNavigate()
   const currentPath = location.pathname
   const [isDark, setIsDark] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     // Detectar tema atual
@@ -66,6 +81,23 @@ export function AppSidebar() {
 
   const isActive = (path: string) => currentPath === path
   const isExpanded = items.some((i) => isActive(i.url))
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut()
+      navigate('/')
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso.",
+      })
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao fazer logout.",
+        variant: "destructive"
+      })
+    }
+  }
 
   return (
     <Sidebar className={state === "collapsed" ? "w-14" : "w-64"} collapsible="icon">
@@ -122,25 +154,69 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-border/30 p-2">
         {state !== "collapsed" ? (
-          <div className="p-3">
-            <div className="flex flex-col items-start min-w-0 flex-1">
-              <span className="text-xs text-muted-foreground mb-1">
-                Plano Profissional
-              </span>
-              <span className="text-sm font-medium text-sidebar-foreground truncate w-full">
-                Nathan Almeida
-              </span>
-              <span className="text-xs text-muted-foreground truncate w-full">
-                nathancwb@gmail.com
-              </span>
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="w-full p-3 h-auto justify-start">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                    N
+                  </div>
+                  <div className="flex flex-col items-start min-w-0 flex-1">
+                    <span className="text-xs text-muted-foreground mb-1">
+                      Plano Profissional
+                    </span>
+                    <span className="text-sm font-medium text-sidebar-foreground truncate w-full">
+                      Nathan Almeida
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate w-full">
+                      nathancwb@gmail.com
+                    </span>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => navigate('/dashboard/configuracoes')}>
+                <Settings className="h-4 w-4 mr-2" />
+                Configurações
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/dashboard/planos')}>
+                <CreditCard className="h-4 w-4 mr-2" />
+                Planos & Pagamentos
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
-          <div className="flex justify-center p-2">
-            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-              N
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="w-8 h-8 rounded-full p-0">
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                  N
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => navigate('/dashboard/configuracoes')}>
+                <Settings className="h-4 w-4 mr-2" />
+                Configurações
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/dashboard/planos')}>
+                <CreditCard className="h-4 w-4 mr-2" />
+                Planos & Pagamentos
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </SidebarFooter>
     </Sidebar>
