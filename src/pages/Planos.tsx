@@ -11,7 +11,23 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { usePayments } from "@/hooks/use-payments";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarDays, CreditCard, Smartphone, Users, HeadphonesIcon, Database, Building } from "lucide-react";
+import { 
+  CalendarDays, 
+  CreditCard, 
+  Smartphone, 
+  Users, 
+  HeadphonesIcon, 
+  Database, 
+  Building, 
+  MessageCircle, 
+  Calendar,
+  Bot,
+  Mail,
+  ChartColumn,
+  Clock,
+  Building2,
+  Settings
+} from "lucide-react";
 
 export default function PlanosPage() {
   const navigate = useNavigate();
@@ -52,19 +68,91 @@ export default function PlanosPage() {
   };
 
   const getFeatureIcon = (feature: string) => {
-    if (feature.includes('whatsapp') || feature.includes('WhatsApp')) {
-      return <Smartphone className="h-4 w-4 text-green-600" />;
+    if (feature.includes('whatsapp') || feature.includes('WhatsApp') || feature.includes('Número')) {
+      return <MessageCircle className="h-4 w-4 text-red-500" />;
     }
     if (feature.includes('agendamento')) {
-      return <CalendarDays className="h-4 w-4 text-blue-600" />;
+      return <Calendar className="h-4 w-4 text-red-500" />;
     }
-    if (feature.includes('assistente')) {
-      return <Users className="h-4 w-4 text-purple-600" />;
+    if (feature.includes('assistente') || feature.includes('Assistente')) {
+      return <Bot className="h-4 w-4 text-red-500" />;
     }
     if (feature.includes('suporte') || feature.includes('Suporte')) {
-      return <HeadphonesIcon className="h-4 w-4 text-orange-600" />;
+      return <Users className="h-4 w-4 text-red-500" />;
     }
-    return <CreditCard className="h-4 w-4 text-gray-600" />;
+    if (feature.includes('e-mail') || feature.includes('email')) {
+      return <Mail className="h-4 w-4 text-red-500" />;
+    }
+    if (feature.includes('Relatório') || feature.includes('relatório')) {
+      return <ChartColumn className="h-4 w-4 text-red-500" />;
+    }
+    if (feature.includes('24/7') || feature.includes('dedicado')) {
+      return <Clock className="h-4 w-4 text-red-500" />;
+    }
+    if (feature.includes('sistema') || feature.includes('Integração')) {
+      return <Building2 className="h-4 w-4 text-red-500" />;
+    }
+    if (feature.includes('Personalização') || feature.includes('personalização')) {
+      return <Settings className="h-4 w-4 text-red-500" />;
+    }
+    return <CreditCard className="h-4 w-4 text-red-500" />;
+  };
+
+  const getPlanFeatures = (planName: string) => {
+    switch (planName.toLowerCase()) {
+      case 'básico':
+        return [
+          "1 Número de whatsapp",
+          "Até 300 agendamentos/mês", 
+          "1 Assistente personalizado",
+          "Suporte por e-mail"
+        ];
+      case 'profissional':
+        return [
+          "3 Números de whatsApp",
+          "Até 1.000 agendamentos/mês",
+          "3 assistentes personalizado", 
+          "Suporte prioritário",
+          "Relatórios Avançados"
+        ];
+      case 'empresarial':
+        return [
+          "+10 Números de whatsApp",
+          "Agendamentos ilimitados",
+          "Assistentes ilimitados",
+          "Suporte 24/7 dedicado",
+          "Integração com sistemas hospitalares",
+          "Personalização avançada"
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const getPlanButtonText = (planName: string) => {
+    switch (planName.toLowerCase()) {
+      case 'básico':
+        return "Começar agora";
+      case 'profissional':
+        return "Escolher plano";
+      case 'empresarial':
+        return "Contato comercial";
+      default:
+        return "Escolher plano";
+    }
+  };
+
+  const getPlanDescription = (planName: string) => {
+    switch (planName.toLowerCase()) {
+      case 'básico':
+        return "Para profissionais individuais que buscam eficiência e baixo custo.";
+      case 'profissional':
+        return "Recomendado para clínicas que desejam crescer.";
+      case 'empresarial':
+        return "Desenvolvido para clínicas e hospitais de grande porte.";
+      default:
+        return "";
+    }
   };
 
   return (
@@ -83,57 +171,88 @@ export default function PlanosPage() {
             <TabsTrigger value="pagamentos">Gestão de Pagamentos</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="planos" className="space-y-6">
+          <TabsContent value="planos" className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 space-y-8">
             {plansLoading ? (
               <div className="text-center py-8">Carregando planos...</div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {plans.map((plan, index) => (
-                  <Card 
-                    key={plan.id} 
-                    className={`relative ${index === 1 ? 'border-primary shadow-lg scale-105' : ''}`}
-                  >
-                    {index === 1 && (
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                        <Badge className="bg-primary text-primary-foreground">
-                          Mais Popular
-                        </Badge>
-                      </div>
-                    )}
+              <>
+                <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
+                  {plans.map((plan, index) => {
+                    const features = getPlanFeatures(plan.nome);
+                    const isEnterprise = plan.nome.toLowerCase() === 'empresarial';
+                    const isProfessional = plan.nome.toLowerCase() === 'profissional';
                     
-                    <CardHeader className="text-center pb-4">
-                      <div className="flex justify-center mb-2">
-                        {getPlanIcon(plan.nome)}
-                      </div>
-                      <CardTitle className="text-xl">{plan.nome}</CardTitle>
-                      <div className="text-3xl font-bold">
-                        R$ {plan.preco.toFixed(0)}
-                        <span className="text-sm font-normal text-muted-foreground">/mês</span>
-                      </div>
-                      <CardDescription>{plan.descricao}</CardDescription>
-                    </CardHeader>
-
-                    <CardContent className="space-y-4">
-                      <div className="space-y-3">
-                        {plan.recursos.features?.map((feature: string, idx: number) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            {getFeatureIcon(feature)}
-                            <span className="text-sm">{feature}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <Button 
-                        className="w-full mt-6" 
-                        variant={index === 1 ? "default" : "outline"}
-                        onClick={() => handleSelectPlan(plan)}
+                    return (
+                      <div 
+                        key={plan.id} 
+                        className={`text-card-foreground relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-colors duration-200 ${
+                          isEnterprise 
+                            ? 'bg-slate-900 border-slate-700 hover:bg-slate-800' 
+                            : 'bg-card border-border hover:bg-accent/50'
+                        }`}
                       >
-                        {index === 2 ? 'Contato Comercial' : 'Escolher Plano'}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                        {isProfessional && (
+                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                            <Badge className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
+                              Mais popular
+                            </Badge>
+                          </div>
+                        )}
+                        
+                        <div className="flex flex-col space-y-1.5 p-6 pb-4 pt-8 px-8">
+                          <div className={`tracking-tight text-2xl font-bold mb-2 ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                            {plan.nome}
+                          </div>
+                          <div className={`text-2xl font-bold mb-4 ${isEnterprise ? 'text-red-400' : 'text-foreground'}`}>
+                            R$ {plan.preco.toFixed(0)}/mês
+                          </div>
+                          <hr className={`border-t-2 mb-4 ${isEnterprise ? 'border-slate-600' : 'border-border'}`} />
+                          <div className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                            {getPlanDescription(plan.nome)}
+                          </div>
+                        </div>
+
+                        <div className="p-6 pt-0 px-8 pb-6 flex-grow">
+                          <ul className="space-y-3">
+                            {features.map((feature, idx) => (
+                              <li key={idx} className="flex items-center gap-3">
+                                {getFeatureIcon(feature)}
+                                <span className={`text-sm ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                                  {feature}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="mt-6">
+                            <p className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                              {isEnterprise ? 'Inicie agora e organize sua agenda com praticidade.' : 
+                               isProfessional ? 'Adquira já e otimize sua operação.' : 
+                               'Inicie agora e organize sua agenda com praticidade.'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center p-6 pt-0 px-8 pb-8 mt-auto">
+                          <Button 
+                            className="w-full bg-red-500 hover:bg-red-600 text-white py-3 text-base font-medium rounded-xl transition-colors duration-200 h-10 px-4"
+                            onClick={() => handleSelectPlan(plan)}
+                          >
+                            {getPlanButtonText(plan.nome)}
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div className="mt-16 text-center">
+                  <div className="flex justify-center items-center gap-8 opacity-60">
+                    <div className="text-xs text-muted-foreground">🔒 Pagamento Seguro</div>
+                    <div className="text-xs text-muted-foreground">✅ Cancele Quando Quiser</div>
+                    <div className="text-xs text-muted-foreground">📞 Suporte Especializado</div>
+                  </div>
+                </div>
+              </>
             )}
           </TabsContent>
 
