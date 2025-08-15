@@ -922,6 +922,10 @@ export type Database = {
         Args: { p_resource_type: string; p_user_id: string }
         Returns: boolean
       }
+      ensure_user_initialized: {
+        Args: { p_user_id?: string }
+        Returns: undefined
+      }
       get_dashboard_stats: {
         Args: { p_user_id: string }
         Returns: Json

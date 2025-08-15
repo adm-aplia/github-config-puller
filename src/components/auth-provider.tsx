@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 import { supabase } from "@/integrations/supabase/client"
 import { User, Session } from "@supabase/supabase-js"
@@ -26,12 +27,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
+  // Função para garantir que os dados do usuário estejam inicializados
+  const ensureUserInitialized = async (userId: string) => {
+    try {
+      await supabase.rpc('ensure_user_initialized', { p_user_id: userId })
+    } catch (error) {
+      console.error('Erro ao inicializar dados do usuário:', error)
+    }
+  }
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
+        
+        // Inicializar dados do usuário quando logar
+        if (session?.user && event === 'SIGNED_IN') {
+          await ensureUserInitialized(session.user.id)
+        }
+        
         if (!isInitialized) {
           setIsInitialized(true)
         }
@@ -39,9 +55,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     )
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
+      
+      // Inicializar dados do usuário se já estiver logado
+      if (session?.user) {
+        await ensureUserInitialized(session.user.id)
+      }
+      
       if (!isInitialized) {
         setIsInitialized(true)
       }
