@@ -47,14 +47,18 @@ export function AssignProfileModal({ open, onOpenChange, onSubmit, currentProfil
         
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Perfil Profissional</label>
+            <label className="text-sm font-medium text-foreground">Perfil Profissional</label>
             <Select value={selectedProfileId} onValueChange={setSelectedProfileId} disabled={loading}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-background border-border">
                 <SelectValue placeholder={loading ? "Carregando..." : "Selecione um perfil"} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-popover border-border z-50">
                 {profiles.map((profile) => (
-                  <SelectItem key={profile.id} value={profile.id}>
+                  <SelectItem 
+                    key={profile.id} 
+                    value={profile.id}
+                    className="hover:bg-muted focus:bg-muted data-[state=checked]:bg-muted"
+                  >
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
                       <div>
@@ -76,6 +80,7 @@ export function AssignProfileModal({ open, onOpenChange, onSubmit, currentProfil
           <Button 
             onClick={handleSubmit} 
             disabled={!selectedProfileId || submitting}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {submitting ? "Atribuindo..." : "Atribuir"}
           </Button>
