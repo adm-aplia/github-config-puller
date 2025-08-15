@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { RefreshCw, Plus, User, SquarePen, MessageCircle, CalendarDays, Trash2, AlertCircle } from "lucide-react"
+import { RefreshCw, Plus, User, SquarePen, MessageCircle, CalendarDays, Trash2, AlertCircle, CheckCircle, XCircle } from "lucide-react"
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
 import { useWhatsAppInstances } from "@/hooks/use-whatsapp-instances"
@@ -17,8 +17,8 @@ import { ptBR } from "date-fns/locale"
 
 export default function PerfilsPage() {
   const { profiles, limits, loading, createProfile, updateProfile, deleteProfile, refetch } = useProfessionalProfiles()
-  const { connectGoogleAccount } = useGoogleIntegrations()
-  const { createInstance, refetch: refetchInstances } = useWhatsAppInstances()
+  const { credentials, profileLinks, connectGoogleAccount, linkProfileToGoogle } = useGoogleIntegrations()
+  const { instances, createInstance, refetch: refetchInstances } = useWhatsAppInstances()
   const [showForm, setShowForm] = useState(false)
   const [editingProfile, setEditingProfile] = useState(null)
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
@@ -94,8 +94,27 @@ export default function PerfilsPage() {
     refetch()
   }
 
-  const handleGoogleConnect = async () => {
-    await connectGoogleAccount()
+  const handleGoogleConnect = async (profileId: string) => {
+    const success = await connectGoogleAccount()
+    if (success && credentials.length > 0) {
+      // Auto-link to the first available credential or newly created one
+      const availableCredential = credentials[0]
+      if (availableCredential) {
+        await linkProfileToGoogle(availableCredential.id, profileId)
+        refetch()
+      }
+    }
+  }
+
+  // Helper functions to check connection status
+  const getWhatsAppStatus = (profileId: string) => {
+    const instance = instances.find(inst => inst.professional_profile_id === profileId)
+    return instance ? instance.status : null
+  }
+
+  const getGoogleStatus = (profileId: string) => {
+    const link = profileLinks.find(link => link.professional_profile_id === profileId)
+    return link ? true : false
   }
 
   if (loading) {
@@ -203,55 +222,98 @@ export default function PerfilsPage() {
                       <TableRow>
                         <TableHead>Nome</TableHead>
                         <TableHead>Especialidade</TableHead>
-                        <TableHead>CRM/ID</TableHead>
+                        <TableHead>WhatsApp Conectado</TableHead>
+                        <TableHead>Google Conectado</TableHead>
                         <TableHead>Data de Criação</TableHead>
                         <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {profiles.map((profile) => (
-                        <TableRow key={profile.id}>
-                          <TableCell className="font-medium">{profile.fullname}</TableCell>
-                          <TableCell>{profile.specialty}</TableCell>
-                          <TableCell>
-                            {profile.professionalid ? (
-                              <Badge variant="outline">{profile.professionalid}</Badge>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(profile.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="gap-1 hover:bg-accent hover:text-accent-foreground"
-                                onClick={() => openEditForm(profile)}
-                              >
-                                <SquarePen className="h-4 w-4" />
-                                Editar
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="gap-1 hover:bg-accent hover:text-accent-foreground"
-                                onClick={() => handleWhatsAppClick(profile.id)}
-                              >
-                                <MessageCircle className="h-4 w-4" />
-                                WhatsApp
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="gap-1 hover:bg-accent hover:text-accent-foreground"
-                                onClick={handleGoogleConnect}
-                              >
-                                <CalendarDays className="h-4 w-4" />
-                                Google
-                              </Button>
+                       {profiles.map((profile) => {
+                         const whatsappStatus = getWhatsAppStatus(profile.id)
+                         const googleConnected = getGoogleStatus(profile.id)
+                         
+                         return (
+                         <TableRow key={profile.id}>
+                           <TableCell className="font-medium">{profile.fullname}</TableCell>
+                           <TableCell>{profile.specialty}</TableCell>
+                           <TableCell>
+                             {whatsappStatus ? (
+                               <div className="flex items-center gap-2">
+                                 {whatsappStatus === 'connected' ? (
+                                   <>
+                                     <CheckCircle className="h-4 w-4 text-green-600" />
+                                     <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
+                                       Conectado
+                                     </Badge>
+                                   </>
+                                 ) : (
+                                   <>
+                                     <XCircle className="h-4 w-4 text-amber-600" />
+                                     <Badge variant="outline" className="border-amber-300 text-amber-700">
+                                       Desconectado
+                                     </Badge>
+                                   </>
+                                 )}
+                               </div>
+                             ) : (
+                               <div className="flex items-center gap-2">
+                                 <XCircle className="h-4 w-4 text-muted-foreground" />
+                                 <span className="text-muted-foreground text-sm">Não configurado</span>
+                               </div>
+                             )}
+                           </TableCell>
+                           <TableCell>
+                             {googleConnected ? (
+                               <div className="flex items-center gap-2">
+                                 <CheckCircle className="h-4 w-4 text-green-600" />
+                                 <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
+                                   Conectado
+                                 </Badge>
+                               </div>
+                             ) : (
+                               <div className="flex items-center gap-2">
+                                 <XCircle className="h-4 w-4 text-muted-foreground" />
+                                 <span className="text-muted-foreground text-sm">Não conectado</span>
+                               </div>
+                             )}
+                           </TableCell>
+                           <TableCell>
+                             {format(new Date(profile.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                           </TableCell>
+                           <TableCell className="text-right">
+                             <div className="flex justify-end gap-2">
+                               <Button 
+                                 variant="ghost" 
+                                 size="sm" 
+                                 className="gap-1 hover:bg-muted hover:text-foreground"
+                                 onClick={() => openEditForm(profile)}
+                               >
+                                 <SquarePen className="h-4 w-4" />
+                                 Editar
+                               </Button>
+                               <Button 
+                                 variant="ghost" 
+                                 size="sm" 
+                                 className={`gap-1 hover:bg-muted hover:text-foreground ${
+                                   whatsappStatus === 'connected' ? 'text-green-600' : ''
+                                 }`}
+                                 onClick={() => handleWhatsAppClick(profile.id)}
+                               >
+                                 <MessageCircle className="h-4 w-4" />
+                                 {whatsappStatus === 'connected' ? 'WhatsApp' : 'Conectar WhatsApp'}
+                               </Button>
+                               <Button 
+                                 variant="ghost" 
+                                 size="sm" 
+                                 className={`gap-1 hover:bg-muted hover:text-foreground ${
+                                   googleConnected ? 'text-green-600' : ''
+                                 }`}
+                                 onClick={() => handleGoogleConnect(profile.id)}
+                               >
+                                 <CalendarDays className="h-4 w-4" />
+                                 {googleConnected ? 'Google' : 'Conectar Google'}
+                               </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button 
@@ -282,10 +344,11 @@ export default function PerfilsPage() {
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                             </div>
+                           </TableCell>
+                         </TableRow>
+                         )
+                       })}
                     </TableBody>
                   </Table>
                 </div>
