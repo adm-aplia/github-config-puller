@@ -238,48 +238,29 @@ export default function PerfilsPage() {
                            <TableCell className="font-medium">{profile.fullname}</TableCell>
                            <TableCell>{profile.specialty}</TableCell>
                            <TableCell>
-                             {whatsappStatus ? (
-                               <div className="flex items-center gap-2">
-                                 {whatsappStatus === 'connected' ? (
-                                   <>
-                                     <CheckCircle className="h-4 w-4 text-green-600" />
-                                     <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20 hover:bg-green-600/15">
-                                       Conectado
-                                     </Badge>
-                                   </>
-                                 ) : (
-                                   <>
-                                     <XCircle className="h-4 w-4 text-muted-foreground" />
-                                     <Badge variant="secondary" className="text-muted-foreground">
-                                       Desconectado
-                                     </Badge>
-                                   </>
-                                 )}
-                               </div>
+                             {whatsappStatus === 'connected' ? (
+                               <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20">
+                                 Conectado
+                               </Badge>
+                             ) : whatsappStatus ? (
+                               <Badge variant="secondary">
+                                 Desconectado
+                               </Badge>
                              ) : (
-                               <div className="flex items-center gap-2">
-                                 <XCircle className="h-4 w-4 text-muted-foreground" />
-                                 <Badge variant="outline" className="text-muted-foreground border-muted">
-                                   Não configurado
-                                 </Badge>
-                               </div>
+                               <Badge variant="outline">
+                                 Não configurado
+                               </Badge>
                              )}
                            </TableCell>
                            <TableCell>
                              {googleConnected ? (
-                               <div className="flex items-center gap-2">
-                                 <CheckCircle className="h-4 w-4 text-green-600" />
-                                 <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20 hover:bg-green-600/15">
-                                   Conectado
-                                 </Badge>
-                               </div>
+                               <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20">
+                                 Conectado
+                               </Badge>
                              ) : (
-                               <div className="flex items-center gap-2">
-                                 <XCircle className="h-4 w-4 text-muted-foreground" />
-                                 <Badge variant="secondary" className="text-muted-foreground">
-                                   Não conectado
-                                 </Badge>
-                               </div>
+                               <Badge variant="secondary">
+                                 Não conectado
+                               </Badge>
                              )}
                            </TableCell>
                            <TableCell>
