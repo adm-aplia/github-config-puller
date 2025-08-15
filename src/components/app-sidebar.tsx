@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react"
-const apliaLogoFull = "/lovable-uploads/f0489ea5-a594-4010-9c2d-6392b26f606f.png"
-const apliaLogoIcon = "/lovable-uploads/f0489ea5-a594-4010-9c2d-6392b26f606f.png"
-// Logo para modo escuro
+const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
+const apliaLogoIcon = "/lovable-uploads/940f8f03-f853-4fdf-ab6f-2a3b5c24ae05.png"
+// Logo para modo escuro (assumindo que é a mesma imagem mas com tratamento CSS)
 const apliaLogoFullDark = "/lovable-uploads/e9a17318-593a-428d-b166-e4f8be819529.png"
-const apliaLogoIconDark = "/lovable-uploads/e9a17318-593a-428d-b166-e4f8be819529.png"
+const apliaLogoIconDark = "/lovable-uploads/940f8f03-f853-4fdf-ab6f-2a3b5c24ae05.png"
 import { 
   LayoutDashboard, 
   Users, 
