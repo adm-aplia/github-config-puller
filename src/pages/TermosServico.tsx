@@ -1,8 +1,14 @@
+import { useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useNavigate } from "react-router-dom"
+import { useTheme } from "@/hooks/use-theme"
+
+// Logos da Aplia
+const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
+const apliaLogoFullDark = "/lovable-uploads/e9a17318-593a-428d-b166-e4f8be819529.png"
 
 export default function TermosServico() {
+  const { theme } = useTheme()
   const navigate = useNavigate()
 
   return (
@@ -22,7 +28,7 @@ export default function TermosServico() {
             <img 
               alt="Aplia — Assistentes de IA para Profissionais da Saúde" 
               className="h-10 w-auto" 
-              src="/aplia-logo-full.png"
+              src={theme === 'dark' ? apliaLogoFullDark : apliaLogoFull}
             />
           </div>
         </div>
