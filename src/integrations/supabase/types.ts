@@ -926,6 +926,14 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Json
       }
+      get_real_user_usage_summary: {
+        Args: { p_user_id?: string }
+        Returns: Json
+      }
+      get_user_subscription_info: {
+        Args: { p_user_id?: string }
+        Returns: Json
+      }
       get_user_usage_summary: {
         Args: { p_user_id: string }
         Returns: Json

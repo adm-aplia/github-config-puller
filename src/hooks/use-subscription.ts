@@ -25,20 +25,12 @@ export function useSubscription() {
   const fetchSubscription = async () => {
     try {
       setLoading(true);
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
-
-      const { data, error } = await supabase
-        .from('assinaturas')
-        .select(`
-          *,
-          plano:planos(nome, preco, recursos)
-        `)
-        .eq('status', 'active')
-        .maybeSingle();
-
+      setError(null);
+      
+      const { data, error } = await supabase.rpc('get_user_subscription_info');
+      
       if (error) throw error;
-      setSubscription(data);
+      setSubscription(data as unknown as Subscription);
     } catch (err) {
       console.error('Error fetching subscription:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar assinatura');

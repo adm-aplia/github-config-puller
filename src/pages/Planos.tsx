@@ -9,6 +9,7 @@ import { CheckoutModal } from "@/components/checkout/checkout-modal";
 import { usePlans } from "@/hooks/use-plans";
 import { useSubscription } from "@/hooks/use-subscription";
 import { usePayments } from "@/hooks/use-payments";
+import { useUserUsage } from "@/hooks/use-user-usage";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -34,6 +35,7 @@ export default function PlanosPage() {
   const { plans, loading: plansLoading } = usePlans();
   const { subscription, loading: subscriptionLoading } = useSubscription();
   const { payments, loading: paymentsLoading } = usePayments();
+  const { usage, loading: usageLoading } = useUserUsage();
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
@@ -307,26 +309,34 @@ export default function PlanosPage() {
                 <CardHeader>
                   <CardTitle>Resumo de Uso</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Assistentes:</span>
-                      <span>1/3</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">WhatsApp:</span>
-                      <span>1/3</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Conversas este mês:</span>
-                      <span>45/1000</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Agendamentos:</span>
-                      <span>12/1000</span>
-                    </div>
-                  </div>
-                </CardContent>
+                 <CardContent>
+                   {usageLoading ? (
+                     <div>Carregando...</div>
+                   ) : usage ? (
+                     <div className="space-y-3">
+                       <div className="flex justify-between">
+                         <span className="text-muted-foreground">Assistentes:</span>
+                         <span>{usage.assistentes.usado}/{usage.assistentes.limite}</span>
+                       </div>
+                       <div className="flex justify-between">
+                         <span className="text-muted-foreground">WhatsApp:</span>
+                         <span>{usage.instancias.usado}/{usage.instancias.limite}</span>
+                       </div>
+                       <div className="flex justify-between">
+                         <span className="text-muted-foreground">Conversas este mês:</span>
+                         <span>{usage.conversas_mes.usado}/{usage.conversas_mes.limite}</span>
+                       </div>
+                       <div className="flex justify-between">
+                         <span className="text-muted-foreground">Agendamentos:</span>
+                         <span>{usage.agendamentos_mes.usado}/{usage.agendamentos_mes.limite}</span>
+                       </div>
+                     </div>
+                   ) : (
+                     <div className="text-center text-muted-foreground">
+                       Erro ao carregar dados de uso
+                     </div>
+                   )}
+                 </CardContent>
               </Card>
             </div>
 
