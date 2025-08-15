@@ -59,9 +59,9 @@ export const useProfessionalProfiles = () => {
       const { data: limitsData, error: limitsError } = await supabase
         .from('usuario_limites')
         .select('max_assistentes, uso_assistentes')
-        .single();
+        .maybeSingle();
 
-      if (limitsError && limitsError.code !== 'PGRST116') throw limitsError;
+      if (limitsError) throw limitsError;
 
       setProfiles(profilesData || []);
       setLimits(limitsData || { max_assistentes: 1, uso_assistentes: 0 });

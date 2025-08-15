@@ -7,8 +7,10 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { RefreshCw, Plus, User, SquarePen, MessageCircle, CalendarDays, Trash2, AlertCircle } from "lucide-react"
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
+import { useWhatsAppInstances } from "@/hooks/use-whatsapp-instances"
 import { ProfileWizardModal } from "@/components/profiles/profile-wizard-modal"
 import { CreateInstanceModal } from "@/components/whatsapp/CreateInstanceModal"
+import { QrCodeDialog } from "@/components/whatsapp/QrCodeDialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -16,9 +18,13 @@ import { ptBR } from "date-fns/locale"
 export default function PerfilsPage() {
   const { profiles, limits, loading, createProfile, updateProfile, deleteProfile, refetch } = useProfessionalProfiles()
   const { connectGoogleAccount } = useGoogleIntegrations()
+  const { createInstance, refetch: refetchInstances } = useWhatsAppInstances()
   const [showForm, setShowForm] = useState(false)
   const [editingProfile, setEditingProfile] = useState(null)
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null)
+  const [showQrDialog, setShowQrDialog] = useState(false)
+  const [createdInstance, setCreatedInstance] = useState<any>(null)
 
   const handleCreateProfile = async (data) => {
     const success = await createProfile(data)
@@ -58,10 +64,34 @@ export default function PerfilsPage() {
   }
 
   const handleWhatsAppCreate = async (displayName: string) => {
-    // This would normally create a new WhatsApp instance
-    // For now, just close the modal
-    setShowWhatsAppModal(false)
-    // TODO: Implement WhatsApp instance creation logic
+    if (!selectedProfileId) {
+      console.error('No profile selected for WhatsApp instance creation')
+      return
+    }
+
+    const instance = await createInstance({
+      display_name: displayName,
+      professional_profile_id: selectedProfileId,
+    })
+
+    if (instance) {
+      setCreatedInstance(instance)
+      setShowWhatsAppModal(false)
+      setShowQrDialog(true)
+    }
+  }
+
+  const handleWhatsAppClick = (profileId: string) => {
+    setSelectedProfileId(profileId)
+    setShowWhatsAppModal(true)
+  }
+
+  const handleQrConnected = () => {
+    setShowQrDialog(false)
+    setCreatedInstance(null)
+    setSelectedProfileId(null)
+    refetchInstances()
+    refetch()
   }
 
   const handleGoogleConnect = async () => {
@@ -208,7 +238,7 @@ export default function PerfilsPage() {
                                 variant="ghost" 
                                 size="sm" 
                                 className="gap-1 hover:bg-accent hover:text-accent-foreground"
-                                onClick={() => setShowWhatsAppModal(true)}
+                                onClick={() => handleWhatsAppClick(profile.id)}
                               >
                                 <MessageCircle className="h-4 w-4" />
                                 WhatsApp
@@ -276,6 +306,16 @@ export default function PerfilsPage() {
         open={showWhatsAppModal}
         onOpenChange={setShowWhatsAppModal}
         onSubmit={handleWhatsAppCreate}
+      />
+
+      <QrCodeDialog
+        open={showQrDialog}
+        onOpenChange={setShowQrDialog}
+        instanceName={createdInstance?.display_name}
+        qrCode={createdInstance?.qr_code}
+        instanceId={createdInstance?.id}
+        instanceSlug={createdInstance?.instance_name}
+        onConnected={handleQrConnected}
       />
     </DashboardLayout>
   )
