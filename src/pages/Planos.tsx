@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,7 @@ import { ptBR } from "date-fns/locale";
 import { CalendarDays, CreditCard, Smartphone, Users, HeadphonesIcon, Database, Building } from "lucide-react";
 
 export default function PlanosPage() {
+  const navigate = useNavigate();
   const { plans, loading: plansLoading } = usePlans();
   const { subscription, loading: subscriptionLoading } = useSubscription();
   const { payments, loading: paymentsLoading } = usePayments();
@@ -20,8 +22,7 @@ export default function PlanosPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const handleSelectPlan = (plan: any) => {
-    setSelectedPlan(plan);
-    setCheckoutOpen(true);
+    navigate(`/dashboard/checkout/${plan.id}`);
   };
 
   const getStatusColor = (status: string) => {

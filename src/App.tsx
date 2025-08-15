@@ -18,6 +18,7 @@ import ConversasPage from "./pages/Conversas";
 import WhatsAppPage from "./pages/WhatsApp";
 import IntegracoesPage from "./pages/Integracoes";
 import PlanosPage from "./pages/Planos";
+import CheckoutPage from "./pages/Checkout";
 import ConfiguracoesPage from "./pages/Configuracoes";
 import TermosServico from "./pages/TermosServico";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
@@ -51,6 +52,7 @@ function AppContent() {
           <Route path="/dashboard/whatsapp" element={<ProtectedRoute><WhatsAppPage /></ProtectedRoute>} />
           <Route path="/dashboard/integracoes" element={<ProtectedRoute><IntegracoesPage /></ProtectedRoute>} />
           <Route path="/dashboard/planos" element={<ProtectedRoute><PlanosPage /></ProtectedRoute>} />
+          <Route path="/dashboard/checkout/:planId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
           <Route path="/dashboard/configuracoes" element={<ProtectedRoute><ConfiguracoesPage /></ProtectedRoute>} />
           <Route path="/auth/google/callback" element={<AuthGoogleCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

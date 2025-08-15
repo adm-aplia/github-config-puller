@@ -12,9 +12,9 @@ import {
   Phone, 
   CalendarDays,
   Bot,
-  ChevronDown,
-  Settings,
-  CreditCard,
+  ChevronUp,
+  User,
+  Crown,
   LogOut
 } from "lucide-react"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
@@ -156,40 +156,53 @@ export function AppSidebar() {
         {state !== "collapsed" ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full p-3 h-auto justify-start">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-                    N
-                  </div>
-                  <div className="flex flex-col items-start min-w-0 flex-1">
-                    <span className="text-xs text-muted-foreground mb-1">
-                      Plano Profissional
-                    </span>
-                    <span className="text-sm font-medium text-sidebar-foreground truncate w-full">
-                      Nathan Almeida
-                    </span>
-                    <span className="text-xs text-muted-foreground truncate w-full">
-                      nathancwb@gmail.com
-                    </span>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <Button 
+                variant="ghost" 
+                className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:text-accent-foreground w-full justify-between px-3 py-2 h-auto text-left hover:bg-muted"
+              >
+                <div className="flex flex-col items-start min-w-0 flex-1">
+                  <span className="text-xs text-muted-foreground truncate w-full mb-1">
+                    Plano Profissional
+                  </span>
+                  <span className="text-sm font-medium text-foreground truncate w-full">
+                    Nathan Almeida
+                  </span>
+                  <span className="text-xs text-muted-foreground truncate w-full">
+                    nathancwb@gmail.com
+                  </span>
                 </div>
+                <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2 transition-transform rotate-180" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => navigate('/dashboard/configuracoes')}>
-                <Settings className="h-4 w-4 mr-2" />
-                Configurações
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/dashboard/planos')}>
-                <CreditCard className="h-4 w-4 mr-2" />
-                Planos & Pagamentos
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sair
-              </DropdownMenuItem>
+            <DropdownMenuContent 
+              side="top"
+              align="start" 
+              className="absolute bottom-full left-2 right-2 mb-2 bg-background border rounded-md shadow-lg z-50 w-56"
+            >
+              <div className="py-1">
+                <DropdownMenuItem 
+                  onClick={() => navigate('/dashboard/configuracoes')}
+                  className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
+                >
+                  <User className="h-4 w-4" />
+                  Configurações
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => navigate('/dashboard/planos')}
+                  className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted transition-colors"
+                >
+                  <Crown className="h-4 w-4" />
+                  Planos & Pagamentos
+                </DropdownMenuItem>
+                <div className="border-t my-1"></div>
+                <DropdownMenuItem 
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sair
+                </DropdownMenuItem>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
@@ -201,13 +214,17 @@ export function AppSidebar() {
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent 
+              side="top"
+              align="start" 
+              className="w-56"
+            >
               <DropdownMenuItem onClick={() => navigate('/dashboard/configuracoes')}>
-                <Settings className="h-4 w-4 mr-2" />
+                <User className="h-4 w-4 mr-2" />
                 Configurações
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/dashboard/planos')}>
-                <CreditCard className="h-4 w-4 mr-2" />
+                <Crown className="h-4 w-4 mr-2" />
                 Planos & Pagamentos
               </DropdownMenuItem>
               <DropdownMenuSeparator />
