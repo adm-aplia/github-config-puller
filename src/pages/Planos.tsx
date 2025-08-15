@@ -187,10 +187,10 @@ export default function PlanosPage() {
                     return (
                       <div 
                         key={plan.id} 
-                        className={`text-card-foreground relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-colors duration-200 ${
+                        className={`text-card-foreground relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${
                           isEnterprise 
-                            ? 'bg-slate-900 border-slate-700 hover:bg-slate-800' 
-                            : 'bg-card border-border hover:bg-accent/50'
+                            ? 'bg-slate-900 border-slate-700 hover:bg-slate-800/80 hover:border-slate-600' 
+                            : 'bg-card border-border hover:bg-white/80 hover:border-gray-200'
                         }`}
                       >
                         {isProfessional && (
