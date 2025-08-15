@@ -1,5 +1,4 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Filter, MessageSquare, Clock, Bot } from "lucide-react"
@@ -8,8 +7,9 @@ import { useConversations } from "@/hooks/use-conversations"
 import { useConversationSummaries, ConversationSummary } from "@/hooks/use-conversation-summaries"
 import { SummaryModal } from "@/components/conversation/summary-modal"
 import { ChatModal } from "@/components/conversation/chat-modal"
+import { ConversationFiltersModal, ConversationFilters } from "@/components/conversations/conversation-filters-modal"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 
 
 export default function ConversasPage() {
@@ -22,6 +22,17 @@ export default function ConversasPage() {
   // Chat modal states
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
+  
+  // Search and filters states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filtersModalOpen, setFiltersModalOpen] = useState(false);
+  const [filters, setFilters] = useState<ConversationFilters>({
+    professionalIds: [],
+    dateFrom: undefined,
+    dateTo: undefined,
+    status: [],
+    messageCountRange: [0, 100]
+  });
 
   const handleSummaryClick = async (conversationId: string, contactName: string) => {
     setSelectedContactName(contactName);
@@ -44,6 +55,62 @@ export default function ConversasPage() {
     if (hours < 1) return "Agora mesmo";
     if (hours < 24) return `${hours}h atrás`;
     return date.toLocaleDateString('pt-BR');
+  };
+
+  // Filter and search conversations
+  const filteredConversations = useMemo(() => {
+    let filtered = [...conversations];
+
+    // Apply search
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(conv => 
+        (conv.contact_name?.toLowerCase().includes(search)) ||
+        (conv.contact_phone?.includes(search)) ||
+        (conv.last_message?.toLowerCase().includes(search)) ||
+        (conv.profile_name?.toLowerCase().includes(search))
+      );
+    }
+
+    // Apply filters
+    if (filters.professionalIds.length > 0) {
+      filtered = filtered.filter(conv => 
+        conv.agent_id && filters.professionalIds.includes(conv.agent_id)
+      );
+    }
+
+    if (filters.dateFrom) {
+      filtered = filtered.filter(conv => 
+        conv.last_message_at && new Date(conv.last_message_at) >= filters.dateFrom!
+      );
+    }
+
+    if (filters.dateTo) {
+      filtered = filtered.filter(conv => 
+        conv.last_message_at && new Date(conv.last_message_at) <= filters.dateTo!
+      );
+    }
+
+    if (filters.status.length > 0) {
+      filtered = filtered.filter(conv => 
+        conv.status && filters.status.includes(conv.status)
+      );
+    }
+
+    // Apply message count range
+    if (filters.messageCountRange[0] > 0 || filters.messageCountRange[1] < 100) {
+      filtered = filtered.filter(conv => {
+        const messageCount = conv.message_count || 0;
+        return messageCount >= filters.messageCountRange[0] && 
+               (filters.messageCountRange[1] >= 100 ? true : messageCount <= filters.messageCountRange[1]);
+      });
+    }
+
+    return filtered;
+  }, [conversations, searchTerm, filters]);
+
+  const applyFilters = () => {
+    // Filters are applied automatically via useMemo
   };
 
   if (loading) {
@@ -78,22 +145,36 @@ export default function ConversasPage() {
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input placeholder="Buscar conversas..." className="pl-10 w-64" />
+                <Input 
+                  placeholder="Buscar conversas..." 
+                  className="pl-10 w-64"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setFiltersModalOpen(true)}
+              >
                 <Filter className="h-4 w-4 mr-2" />
                 Filtros
               </Button>
             </div>
           </div>
 
-          {conversations.length === 0 ? (
+          {filteredConversations.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">Nenhuma conversa encontrada</p>
+              <p className="text-muted-foreground">
+                {searchTerm.trim() || filters.professionalIds.length > 0 || filters.status.length > 0 
+                  ? "Nenhuma conversa encontrada com os filtros aplicados" 
+                  : "Nenhuma conversa encontrada"
+                }
+              </p>
             </div>
           ) : (
             <div className="grid gap-4">
-              {conversations.map((conversation) => (
+              {filteredConversations.map((conversation) => (
                 <Card 
                   key={conversation.id} 
                   className="hover:shadow-md transition-shadow cursor-pointer"
@@ -174,6 +255,14 @@ export default function ConversasPage() {
           conversationId={selectedConversation?.id || ""}
           contactName={selectedConversation?.contact_name || selectedConversation?.contact_phone || ""}
           contactPhone={selectedConversation?.contact_phone || ""}
+        />
+
+        <ConversationFiltersModal
+          open={filtersModalOpen}
+          onOpenChange={setFiltersModalOpen}
+          filters={filters}
+          onFiltersChange={setFilters}
+          onApplyFilters={applyFilters}
         />
       </div>
     </DashboardLayout>

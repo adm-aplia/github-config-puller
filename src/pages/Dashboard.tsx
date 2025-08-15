@@ -7,11 +7,13 @@ import { DashboardMetrics } from "@/components/dashboard/dashboard-metrics"
 import { ConversationChart } from "@/components/dashboard/conversation-chart"
 import { RecentConversations } from "@/components/dashboard/recent-conversations"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { DashboardCustomizationModal } from "@/components/dashboard/dashboard-customization-modal"
 import { useDashboardStats } from "@/hooks/use-dashboard-stats"
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [customizationOpen, setCustomizationOpen] = useState(false)
   const { user } = useAuth()
   const navigate = useNavigate()
   const { stats, chartData, loading: statsLoading, refetch } = useDashboardStats()
@@ -69,7 +71,12 @@ export default function DashboardPage() {
               <span className="sr-only md:not-sr-only">Atualizar</span>
             </Button>
             
-            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 bg-transparent"
+              onClick={() => setCustomizationOpen(true)}
+            >
               <Settings2 className="h-4 w-4" />
               Personalizar Dashboard
             </Button>
@@ -86,6 +93,11 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <DashboardCustomizationModal
+        open={customizationOpen}
+        onOpenChange={setCustomizationOpen}
+      />
     </DashboardLayout>
   )
 }

@@ -11,6 +11,9 @@ import { useState } from "react"
 import { QrCodeDialog } from "@/components/whatsapp/QrCodeDialog"
 import { CreateInstanceModal } from "@/components/whatsapp/CreateInstanceModal"
 import { AssignProfileModal } from "@/components/whatsapp/AssignProfileModal"
+import { EditInstanceNameModal } from "@/components/whatsapp/edit-instance-name-modal"
+import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 
 const getStatusConfig = (status: string) => {
   const configs = {
@@ -39,7 +42,9 @@ export default function WhatsAppPage() {
   const [qrData, setQrData] = useState<{ id?: string; slug?: string; displayName?: string; code?: string | null }>({});
   const [createOpen, setCreateOpen] = useState(false);
   const [assignProfileOpen, setAssignProfileOpen] = useState(false);
+  const [editNameOpen, setEditNameOpen] = useState(false);
   const [selectedInstance, setSelectedInstance] = useState<any>(null);
+  const { toast } = useToast();
 
   const handleCreateSubmit = async (displayName: string) => {
     const created = await createInstance({ display_name: displayName });
@@ -85,6 +90,62 @@ export default function WhatsAppPage() {
       setAssignProfileOpen(false);
       setSelectedInstance(null);
       refetch();
+    }
+  };
+
+  const handleEditName = (instance: any) => {
+    setSelectedInstance(instance);
+    setEditNameOpen(true);
+  };
+
+  const handleEditNameSubmit = async (newName: string) => {
+    if (!selectedInstance) return;
+    
+    const success = await updateInstance(selectedInstance.id, {
+      display_name: newName
+    });
+    
+    if (success) {
+      refetch();
+    }
+  };
+
+  const handleDisconnect = async (instance: any) => {
+    if (!confirm('Tem certeza que deseja desconectar esta instância?')) {
+      return;
+    }
+
+    try {
+      // Call Evolution API to disconnect
+      const response = await supabase.functions.invoke('evolution-manager', {
+        body: {
+          action: 'disconnect_instance',
+          instanceName: instance.instance_name,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Falha ao desconectar instância');
+      }
+
+      // Update local database status
+      await updateInstance(instance.id, {
+        status: 'disconnected',
+      });
+
+      toast({
+        title: 'Instância desconectada',
+        description: 'A instância foi desconectada com sucesso.',
+      });
+
+      refetch();
+    } catch (error) {
+      console.error('Error disconnecting instance:', error);
+      toast({
+        title: 'Erro ao desconectar',
+        description: 'Não foi possível desconectar a instância.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -172,6 +233,7 @@ export default function WhatsAppPage() {
                             variant="ghost" 
                             size="sm" 
                             className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:opacity-100"
+                            onClick={() => handleEditName(instance)}
                           >
                             <Pen className="h-3 w-3 text-gray-500" />
                           </Button>
@@ -239,11 +301,10 @@ export default function WhatsAppPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
-                          <DropdownMenuItem className="flex items-center gap-2 text-black">
-                            <Settings className="h-4 w-4" />
-                            Configurações
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="flex items-center gap-2 text-black">
+                          <DropdownMenuItem 
+                            className="flex items-center gap-2 text-black"
+                            onClick={() => handleDisconnect(instance)}
+                          >
                             <UserX className="h-4 w-4" />
                             Desconectar
                           </DropdownMenuItem>
@@ -286,6 +347,13 @@ export default function WhatsAppPage() {
         onOpenChange={setAssignProfileOpen}
         onSubmit={handleAssignProfileSubmit}
         currentProfileId={selectedInstance?.professional_profile_id}
+      />
+
+      <EditInstanceNameModal
+        open={editNameOpen}
+        onOpenChange={setEditNameOpen}
+        currentName={selectedInstance?.display_name || selectedInstance?.instance_name || ""}
+        onSave={handleEditNameSubmit}
       />
     </DashboardLayout>
   )

@@ -36,13 +36,14 @@ import {
   Download,
   HelpCircle
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Appointment } from "@/hooks/use-appointments"
 import { AppointmentViewModal } from "@/components/appointments/appointment-view-modal"
 import { AppointmentEditModal } from "@/components/appointments/appointment-edit-modal"
 import { AppointmentRescheduleModal } from "@/components/appointments/appointment-reschedule-modal"
+import { AppointmentFiltersModal, AppointmentFilters } from "@/components/appointments/appointment-filters-modal"
 import { cn } from "@/lib/utils"
 
 const getStatusBadge = (status: string) => {
@@ -96,7 +97,58 @@ export default function AgendamentosPage() {
   const [viewModalOpen, setViewModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false)
+  const [filtersModalOpen, setFiltersModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  
+  // Filters state
+  const [filters, setFilters] = useState<AppointmentFilters>({
+    status: [],
+    professionalIds: [],
+    dateFrom: undefined,
+    dateTo: undefined,
+    appointmentType: "all"
+  })
+  const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>([])
+
+  // Apply filters to appointments
+  const applyFilters = () => {
+    let filtered = [...appointments]
+
+    if (filters.status.length > 0) {
+      filtered = filtered.filter(apt => filters.status.includes(apt.status))
+    }
+
+    if (filters.professionalIds.length > 0) {
+      filtered = filtered.filter(apt => 
+        apt.agent_id && filters.professionalIds.includes(apt.agent_id)
+      )
+    }
+
+    if (filters.dateFrom) {
+      filtered = filtered.filter(apt => 
+        new Date(apt.appointment_date) >= filters.dateFrom!
+      )
+    }
+
+    if (filters.dateTo) {
+      filtered = filtered.filter(apt => 
+        new Date(apt.appointment_date) <= filters.dateTo!
+      )
+    }
+
+    if (filters.appointmentType !== "all") {
+      filtered = filtered.filter(apt => 
+        apt.appointment_type === filters.appointmentType
+      )
+    }
+
+    setFilteredAppointments(filtered)
+  }
+
+  // Apply filters when appointments or filters change
+  useEffect(() => {
+    applyFilters()
+  }, [appointments, filters])
 
   // Get appointments for a specific date
   const getAppointmentsForDate = (date: Date) => {
@@ -324,7 +376,12 @@ export default function AgendamentosPage() {
                 <RefreshCw className="h-4 w-4" />
                 Atualizar
               </Button>
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-2"
+                onClick={() => setFiltersModalOpen(true)}
+              >
                 <Filter className="h-4 w-4" />
                 Filtrar
               </Button>
@@ -724,6 +781,14 @@ export default function AgendamentosPage() {
         open={rescheduleModalOpen}
         onOpenChange={setRescheduleModalOpen}
         onReschedule={handleReschedule}
+      />
+
+      <AppointmentFiltersModal
+        open={filtersModalOpen}
+        onOpenChange={setFiltersModalOpen}
+        filters={filters}
+        onFiltersChange={setFilters}
+        onApplyFilters={applyFilters}
       />
     </DashboardLayout>
   )
