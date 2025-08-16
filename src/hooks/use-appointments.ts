@@ -25,19 +25,30 @@ type GCalEvent = {
   summary?: string;
   description?: string;
   status?: string;
-  start?: string;
-  end?: string;
+  start?: string | { dateTime?: string; date?: string };
+  end?: string | { dateTime?: string; date?: string };
   location?: string;
   attendees?: Array<{ email?: string; responseStatus?: string }>;
   organizer?: string;
   htmlLink?: string;
 };
 
-function parseGoogleDate(dateString?: string): string | null {
-  if (!dateString) return null;
+function parseGoogleDate(dateInput?: string | { dateTime?: string; date?: string }): string | null {
+  if (!dateInput) return null;
   
   try {
-    // Tentar parsear a data diretamente como ISO string
+    let dateString: string;
+    
+    // Handle Google Calendar's date format (object with dateTime or date)
+    if (typeof dateInput === 'object') {
+      dateString = dateInput.dateTime || dateInput.date || '';
+    } else {
+      dateString = dateInput;
+    }
+    
+    if (!dateString) return null;
+    
+    // Parse the date
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
       console.warn('[parseGoogleDate] Invalid date string:', dateString);
@@ -45,7 +56,7 @@ function parseGoogleDate(dateString?: string): string | null {
     }
     return date.toISOString();
   } catch (error) {
-    console.error('[parseGoogleDate] Error parsing date:', dateString, error);
+    console.error('[parseGoogleDate] Error parsing date:', dateInput, error);
     return null;
   }
 }

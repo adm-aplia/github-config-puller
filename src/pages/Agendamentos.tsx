@@ -284,6 +284,7 @@ export default function AgendamentosPage() {
 
     const query = {
       my_email: user.email,
+      user_id: user.id,
       calendarId: "primary",
       timeMin: startDate.toISOString(),
       timeMax: endDate.toISOString(),
@@ -329,8 +330,9 @@ export default function AgendamentosPage() {
           });
         }
       } else {
-        console.log('Webhook response not ok:', await response.text());
-        throw new Error(`HTTP ${response.status}`);
+        const errorText = await response.text();
+        console.log('Webhook response not ok:', errorText);
+        throw new Error(`Erro do servidor: ${errorText || response.status}`);
       }
     } catch (error) {
       console.error('Erro ao enviar eventos:', error)
@@ -374,7 +376,18 @@ export default function AgendamentosPage() {
               <p className="text-sm text-muted-foreground">Estatísticas e calendário de agendamentos da sua clínica</p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-2"
+                onClick={async () => {
+                  await fetchAppointments()
+                  toast({
+                    title: "Atualizado",
+                    description: "Lista de agendamentos atualizada com sucesso."
+                  })
+                }}
+              >
                 <RefreshCw className="h-4 w-4" />
                 Atualizar
               </Button>

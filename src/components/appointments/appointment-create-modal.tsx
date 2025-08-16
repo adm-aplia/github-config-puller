@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { CalendarIcon } from "lucide-react"
-import { format } from "date-fns"
+import { format, startOfDay } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
@@ -33,7 +33,6 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
     appointment_type: "",
     duration: 60,
     status: "agendado",
-    summary: "",
     notes: ""
   })
 
@@ -75,9 +74,8 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
           patient_email: formData.patient_email,
           appointment_date: utcDate,
           appointment_type: formData.appointment_type || "consulta",
-          duration: formData.duration,
+          duration_minutes: formData.duration,
           status: formData.status,
-          summary: formData.summary,
           notes: formData.notes
         })
       }
@@ -105,7 +103,6 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
           appointment_type: "",
           duration: 60,
           status: "agendado",
-          summary: "",
           notes: ""
         })
         setSelectedDate(undefined)
@@ -237,7 +234,7 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => date < startOfDay(new Date())}
                     initialFocus
                   />
                 </PopoverContent>
@@ -271,17 +268,6 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
                   <SelectItem value="pendente">Pendente</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Summary */}
-            <div className="md:col-span-2">
-              <Label htmlFor="summary">Resumo</Label>
-              <Input
-                id="summary"
-                value={formData.summary}
-                onChange={(e) => setFormData(prev => ({ ...prev, summary: e.target.value }))}
-                placeholder="Resumo da consulta"
-              />
             </div>
 
             {/* Notes */}
