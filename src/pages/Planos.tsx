@@ -3,11 +3,23 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckoutModal } from '@/components/checkout/checkout-modal';
 import { PlanChangeModal } from '@/components/plans/plan-change-modal';
 import { usePlans } from '@/hooks/use-plans';
 import { useSubscription } from '@/hooks/use-subscription';
-import { Check, Crown, Zap, CreditCard } from 'lucide-react';
+import { 
+  MessageCircle, 
+  Calendar, 
+  Bot, 
+  Users, 
+  ChartColumn, 
+  Building2, 
+  Settings, 
+  CreditCard,
+  Crown,
+  Check
+} from 'lucide-react';
 
 export default function Planos() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -45,183 +57,205 @@ export default function Planos() {
   const isCurrentPlan = (planId: string) => subscription?.plano_id === planId;
   const hasActiveSubscription = subscription?.status === 'active';
 
+  const getPlanFeatures = (plan: any, isEnterprise: boolean) => {
+    if (isEnterprise) {
+      return [
+        { icon: MessageCircle, text: "+10 Números de whatsApp" },
+        { icon: CreditCard, text: "Agendamentos ilimitados" },
+        { icon: Bot, text: "Assistentes ilimitados" },
+        { icon: Users, text: "Suporte 24/7 dedicado" },
+        { icon: Building2, text: "Integração com sistemas hospitalares" },
+        { icon: Settings, text: "Personalização avançada" }
+      ];
+    } else if (plan.nome.toLowerCase().includes('profissional')) {
+      return [
+        { icon: MessageCircle, text: `${plan.max_instancias_whatsapp} Números de whatsApp` },
+        { icon: Calendar, text: `Até ${plan.max_agendamentos_mes.toLocaleString()} agendamentos/mês` },
+        { icon: Bot, text: `${plan.max_assistentes} assistentes personalizado${plan.max_assistentes > 1 ? 's' : ''}` },
+        { icon: Users, text: "Suporte prioritário" },
+        { icon: ChartColumn, text: "Relatórios Avançados" }
+      ];
+    } else {
+      // Básico
+      return [
+        { icon: MessageCircle, text: `${plan.max_instancias_whatsapp} Número de whatsapp` },
+        { icon: Calendar, text: `Até ${plan.max_agendamentos_mes} agendamentos/mês` },
+        { icon: Bot, text: `${plan.max_assistentes} Assistente personalizado` },
+        { icon: Users, text: "Suporte por e-mail" }
+      ];
+    }
+  };
+
+  const getPlanDescription = (plan: any, isEnterprise: boolean) => {
+    if (isEnterprise) {
+      return "Desenvolvido para clínicas e hospitais de grande porte.";
+    } else if (plan.nome.toLowerCase().includes('profissional')) {
+      return "Recomendado para clínicas que desejam crescer.";
+    } else {
+      return "Para profissionais individuais que buscam eficiência e baixo custo.";
+    }
+  };
+
+  const getPlanButtonText = (plan: any, isEnterprise: boolean, isCurrent: boolean) => {
+    if (isCurrent) return "Plano Atual";
+    if (isEnterprise) return "Contato comercial";
+    if (plan.nome.toLowerCase().includes('profissional')) return "Escolher plano";
+    return "Começar agora";
+  };
+
+  const getPlanFooterText = (plan: any, isEnterprise: boolean) => {
+    if (isEnterprise) {
+      return "Inicie agora e organize sua agenda com praticidade.";
+    } else if (plan.nome.toLowerCase().includes('profissional')) {
+      return "Adquira já e otimize sua operação.";
+    } else {
+      return "Inicie agora e organize sua agenda com praticidade.";
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-12 max-w-7xl">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Escolha seu Plano</h1>
+        <h1 className="text-4xl font-bold mb-4">Planos & Pagamentos</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Selecione o plano ideal para suas necessidades e comece a transformar seu atendimento
+          Gerencie sua assinatura e histórico de pagamentos
         </p>
       </div>
 
-      {hasActiveSubscription && (
-        <Card className="mb-8 border-primary/20 bg-primary/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Crown className="h-5 w-5 text-primary" />
-              Plano Atual
-            </CardTitle>
-            <CardDescription>
-              Você está no plano <strong>{subscription.plano.nome}</strong> por R$ {subscription.plano.preco}/mês
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                Próxima cobrança: {subscription.proxima_cobranca 
-                  ? new Date(subscription.proxima_cobranca).toLocaleDateString('pt-BR')
-                  : 'N/A'
-                }
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={() => setChangeModalOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <CreditCard className="h-4 w-4" />
-                Alterar Plano
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Tabs defaultValue="planos" className="w-full">
+        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+          <TabsTrigger value="planos">Planos Disponíveis</TabsTrigger>
+          <TabsTrigger value="gestao">Gestão de Pagamentos</TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {plans.map((plan, index) => {
-          const isCurrent = isCurrentPlan(plan.id);
-          const isPopular = index === 1; // Middle card is popular
-          const isEnterprise = plan.nome.toLowerCase().includes('empresarial') || plan.nome.toLowerCase().includes('enterprise');
-          
-          return (
-            <Card 
-              key={plan.id} 
-              className={`relative ${
-                isEnterprise 
-                  ? 'bg-slate-900 text-white border-slate-700' 
-                  : isPopular 
-                    ? 'border-primary ring-2 ring-primary/20 scale-105' 
-                    : 'border-border'
-              } transition-all duration-200 hover:shadow-lg`}
-            >
-              {isPopular && !isCurrent && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground px-4 py-1">
-                    Mais popular
-                  </Badge>
-                </div>
-              )}
+        <TabsContent value="planos" className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 space-y-8">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
+            {plans.map((plan, index) => {
+              const isCurrent = isCurrentPlan(plan.id);
+              const isPopular = index === 1; // Middle card is popular
+              const isEnterprise = plan.nome.toLowerCase().includes('empresarial') || plan.nome.toLowerCase().includes('enterprise');
+              const features = getPlanFeatures(plan, isEnterprise);
               
-              {isCurrent && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-green-600 text-white px-4 py-1">
-                    Plano Atual
-                  </Badge>
+              return (
+                <div 
+                  key={plan.id} 
+                  className={`relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${
+                    isEnterprise 
+                      ? 'bg-slate-900 border-slate-700 hover:bg-slate-800/80 hover:border-slate-600' 
+                      : 'bg-card border-border hover:bg-white/80 hover:border-gray-200'
+                  } text-card-foreground`}
+                >
+                  {isPopular && !isCurrent && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <Badge className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
+                        Mais popular
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  {isCurrent && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <Badge className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
+                        Plano Atual
+                      </Badge>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col space-y-1.5 p-6 pb-4 pt-8 px-8">
+                    <div className={`tracking-tight text-2xl font-bold mb-2 ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                      {plan.nome}
+                    </div>
+                    <div className={`text-2xl font-bold mb-4 ${isEnterprise ? 'text-red-400' : 'text-foreground'}`}>
+                      R$ {plan.preco}/{plan.periodo === 'monthly' ? 'mês' : 'ano'}
+                    </div>
+                    <hr className={`border-t-2 mb-4 ${isEnterprise ? 'border-slate-600' : 'border-border'}`} />
+                    <div className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                      {getPlanDescription(plan, isEnterprise)}
+                    </div>
+                  </div>
+
+                  <div className="p-6 pt-0 px-8 pb-6 flex-grow">
+                    <ul className="space-y-3">
+                      {features.map((feature, idx) => (
+                        <li key={idx} className="flex items-center gap-3">
+                          <feature.icon className="h-4 w-4 text-red-500" />
+                          <span className={`text-sm ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                            {feature.text}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-6">
+                      <p className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                        {getPlanFooterText(plan, isEnterprise)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center p-6 pt-0 px-8 pb-8 mt-auto">
+                    <Button 
+                      className="w-full bg-red-500 hover:bg-red-600 text-white py-3 text-base font-medium rounded-xl transition-colors duration-200 h-10 px-4"
+                      disabled={isCurrent}
+                      onClick={() => handleSelectPlan(plan)}
+                    >
+                      {getPlanButtonText(plan, isEnterprise, isCurrent)}
+                    </Button>
+                  </div>
                 </div>
-              )}
-              
-              <CardHeader className="text-center pb-8">
-                <CardTitle className={`text-2xl font-bold ${isEnterprise ? 'text-white' : ''}`}>
-                  {plan.nome}
+              );
+            })}
+          </div>
+
+          <div className="mt-16 text-center">
+            <div className="flex justify-center items-center gap-8 opacity-60">
+              <div className="text-xs text-muted-foreground">🔒 Pagamento Seguro</div>
+              <div className="text-xs text-muted-foreground">✅ Cancele Quando Quiser</div>
+              <div className="text-xs text-muted-foreground">📞 Suporte Especializado</div>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="gestao" className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          {hasActiveSubscription ? (
+            <Card className="mb-8 border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-primary" />
+                  Plano Atual
                 </CardTitle>
-                <div className="mt-4">
-                  <span className={`text-5xl font-bold ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
-                    R${plan.preco}
-                  </span>
-                  <span className={`text-lg ${isEnterprise ? 'text-slate-300' : 'text-muted-foreground'}`}>
-                    /{plan.periodo === 'monthly' ? 'mês' : 'ano'}
-                  </span>
-                </div>
+                <CardDescription>
+                  Você está no plano <strong>{subscription.plano.nome}</strong> por R$ {subscription.plano.preco}/mês
+                </CardDescription>
               </CardHeader>
-              
-              <CardContent className="space-y-4 pb-8">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Check className={`h-5 w-5 ${isEnterprise ? 'text-green-400' : 'text-green-500'}`} />
-                    <span className={`${isEnterprise ? 'text-slate-200' : 'text-foreground'}`}>
-                      {plan.max_assistentes} assistente{plan.max_assistentes > 1 ? 's' : ''}
-                    </span>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Próxima cobrança: {subscription.proxima_cobranca 
+                      ? new Date(subscription.proxima_cobranca).toLocaleDateString('pt-BR')
+                      : 'N/A'
+                    }
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Check className={`h-5 w-5 ${isEnterprise ? 'text-green-400' : 'text-green-500'}`} />
-                    <span className={`${isEnterprise ? 'text-slate-200' : 'text-foreground'}`}>
-                      {plan.max_instancias_whatsapp} número{plan.max_instancias_whatsapp > 1 ? 's' : ''} WhatsApp
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className={`h-5 w-5 ${isEnterprise ? 'text-green-400' : 'text-green-500'}`} />
-                    <span className={`${isEnterprise ? 'text-slate-200' : 'text-foreground'}`}>
-                      {plan.max_conversas_mes.toLocaleString()} conversas por mês
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className={`h-5 w-5 ${isEnterprise ? 'text-green-400' : 'text-green-500'}`} />
-                    <span className={`${isEnterprise ? 'text-slate-200' : 'text-foreground'}`}>
-                      {plan.max_agendamentos_mes} agendamentos por mês
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className={`h-5 w-5 ${isEnterprise ? 'text-green-400' : 'text-green-500'}`} />
-                    <span className={`${isEnterprise ? 'text-slate-200' : 'text-foreground'}`}>
-                      Suporte técnico
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Check className={`h-5 w-5 ${isEnterprise ? 'text-green-400' : 'text-green-500'}`} />
-                    <span className={`${isEnterprise ? 'text-slate-200' : 'text-foreground'}`}>
-                      Integrações avançadas
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="pt-6">
                   <Button 
-                    className={`w-full py-3 text-base font-semibold ${
-                      isEnterprise 
-                        ? 'bg-white text-slate-900 hover:bg-slate-100' 
-                        : isCurrent 
-                          ? 'bg-green-600 text-white hover:bg-green-700' 
-                          : isPopular 
-                            ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                            : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                    }`}
-                    disabled={isCurrent}
-                    onClick={() => handleSelectPlan(plan)}
+                    variant="outline" 
+                    onClick={() => setChangeModalOpen(true)}
+                    className="flex items-center gap-2"
                   >
-                    {isCurrent ? (
-                      'Plano Atual'
-                    ) : isEnterprise ? (
-                      'Contato comercial'
-                    ) : plan.nome.toLowerCase().includes('gratuito') ? (
-                      'Começar agora'
-                    ) : (
-                      'Escolher plano'
-                    )}
+                    <CreditCard className="h-4 w-4" />
+                    Alterar Plano
                   </Button>
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
-
-      {/* Nota sobre ambiente Sandbox */}
-      <Card className="border-yellow-200 bg-yellow-50">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center mt-0.5">
-              <span className="text-white text-xs font-bold">!</span>
-            </div>
-            <div className="text-sm">
-              <p className="font-medium text-yellow-800 mb-1">Ambiente de Testes (Sandbox)</p>
-              <p className="text-yellow-700">
-                Estamos em ambiente de testes. Ao assinar um plano, você será cobrado imediatamente. 
-                Para simular o pagamento no Asaas Sandbox, acesse o painel do Asaas e aprove manualmente 
-                a cobrança criada. O status pode aparecer como "Aguardando pagamento" até a simulação.
+          ) : (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-semibold mb-2">Nenhuma assinatura ativa</h3>
+              <p className="text-muted-foreground mb-4">
+                Escolha um plano na aba "Planos Disponíveis" para começar
               </p>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          )}
+        </TabsContent>
+      </Tabs>
 
       <CheckoutModal
         open={checkoutOpen}
