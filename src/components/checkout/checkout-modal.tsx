@@ -15,9 +15,10 @@ interface CheckoutModalProps {
   plan: any;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) {
+export function CheckoutModal({ plan, open, onOpenChange, onSuccess }: CheckoutModalProps) {
   const [loading, setLoading] = useState(false);
   const [isTestEnvironment, setIsTestEnvironment] = useState(false);
   const [formData, setFormData] = useState({
@@ -165,6 +166,7 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
         description: "Você será redirecionado para finalizar o pagamento.",
       });
 
+      onSuccess?.();
       onOpenChange(false);
     } catch (error) {
       console.error('Erro ao criar assinatura:', error);
