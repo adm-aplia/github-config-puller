@@ -220,11 +220,34 @@ export default function CheckoutPage() {
       });
 
       navigate('/dashboard/planos');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating subscription:', error);
+      
+      // Try to extract detailed error message from Asaas
+      let errorMessage = 'Não foi possível processar o pagamento. Tente novamente.';
+      
+      if (error?.message) {
+        // Check if the error message contains details from Asaas
+        if (error.message.includes('details')) {
+          try {
+            // Try to parse the error message to extract Asaas details
+            const errorStr = error.message;
+            const detailsMatch = errorStr.match(/"details":\s*(\[.*?\])/);
+            if (detailsMatch) {
+              const details = JSON.parse(detailsMatch[1]);
+              if (details && details.length > 0 && details[0].description) {
+                errorMessage = details[0].description;
+              }
+            }
+          } catch (parseError) {
+            console.log('Could not parse error details:', parseError);
+          }
+        }
+      }
+      
       toast({
         title: "Erro no pagamento",
-        description: "Não foi possível processar o pagamento. Tente novamente.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

@@ -74,12 +74,19 @@ serve(async (req) => {
       )
     }
 
-    const asaasApiKey = Deno.env.get('ASAAS_ENV') === 'production' 
+    const asaasEnv = Deno.env.get('ASAAS_ENV') || 'sandbox'
+    const asaasApiKey = asaasEnv === 'production' 
       ? Deno.env.get('ASAAS_API_KEY')
       : Deno.env.get('ASAAS_SANDBOX_API_KEY')
+    
+    const asaasBaseUrl = asaasEnv === 'production' 
+      ? 'https://www.asaas.com/api/v3'
+      : 'https://sandbox.asaas.com/api/v3'
+
+    console.log('[create-subscription] Usando ambiente Asaas:', asaasEnv)
 
     if (!asaasApiKey) {
-      console.error('[create-subscription] API key do Asaas não configurada')
+      console.error('[create-subscription] API key do Asaas não configurada para ambiente:', asaasEnv)
       return new Response(
         JSON.stringify({ error: 'Configuração de pagamento não encontrada' }),
         { 
@@ -93,7 +100,7 @@ serve(async (req) => {
     let asaasCustomerId = cliente.asaas_customer_id
     if (!asaasCustomerId) {
       console.log('[create-subscription] Criando cliente no Asaas...')
-      const customerResponse = await fetch('https://sandbox.asaas.com/api/v3/customers', {
+      const customerResponse = await fetch(`${asaasBaseUrl}/customers`, {
         method: 'POST',
         headers: {
           'access_token': asaasApiKey,
@@ -110,13 +117,27 @@ serve(async (req) => {
       if (!customerResponse.ok) {
         const errorText = await customerResponse.text()
         console.error('[create-subscription] Erro ao criar cliente no Asaas:', errorText)
-        return new Response(
-          JSON.stringify({ error: 'Erro ao criar cliente no sistema de pagamento' }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        )
+        try {
+          const errorData = JSON.parse(errorText)
+          return new Response(
+            JSON.stringify({ 
+              error: 'Erro ao criar cliente no sistema de pagamento',
+              details: errorData.errors || errorData
+            }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        } catch {
+          return new Response(
+            JSON.stringify({ error: 'Erro ao criar cliente no sistema de pagamento' }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
       }
 
       const customerData = await customerResponse.json()
@@ -136,7 +157,13 @@ serve(async (req) => {
     nextDueDate.setDate(today.getDate() + 30)
 
     console.log('[create-subscription] Criando cobrança imediata no Asaas...')
-    const paymentResponse = await fetch('https://sandbox.asaas.com/api/v3/payments', {
+    console.log('[create-subscription] Dados do cartão:', JSON.stringify({
+      ...creditCard,
+      number: creditCard.number ? '****' + creditCard.number.slice(-4) : 'não informado',
+      ccv: creditCard.ccv ? '***' : 'não informado'
+    }))
+    
+    const paymentResponse = await fetch(`${asaasBaseUrl}/payments`, {
       method: 'POST',
       headers: {
         'access_token': asaasApiKey,
@@ -148,7 +175,10 @@ serve(async (req) => {
         dueDate: today.toISOString().split('T')[0],
         value: plan.preco,
         description: `Ativação do plano ${plan.nome}`,
-        creditCard: creditCard,
+        creditCard: {
+          ...creditCard,
+          holderName: creditCard.holderInfo?.name || creditCard.holderName
+        },
         creditCardHolderInfo: creditCard.holderInfo,
       }),
     })
@@ -156,13 +186,27 @@ serve(async (req) => {
     if (!paymentResponse.ok) {
       const errorText = await paymentResponse.text()
       console.error('[create-subscription] Erro ao criar cobrança no Asaas:', errorText)
-      return new Response(
-        JSON.stringify({ error: 'Erro ao processar pagamento' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
+      try {
+        const errorData = JSON.parse(errorText)
+        return new Response(
+          JSON.stringify({ 
+            error: 'Erro ao processar pagamento',
+            details: errorData.errors || errorData
+          }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      } catch {
+        return new Response(
+          JSON.stringify({ error: 'Erro ao processar pagamento' }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
     }
 
     const paymentData = await paymentResponse.json()
