@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckoutModal } from '@/components/checkout/checkout-modal';
 import { PlanChangeModal } from '@/components/plans/plan-change-modal';
+import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { usePlans } from '@/hooks/use-plans';
 import { useSubscription } from '@/hooks/use-subscription';
 import { 
@@ -45,12 +46,14 @@ export default function Planos() {
 
   if (plansLoading || subscriptionLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground mt-2">Carregando planos...</p>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground mt-2">Carregando planos...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -114,163 +117,165 @@ export default function Planos() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-7xl">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Planos & Pagamentos</h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Gerencie sua assinatura e histórico de pagamentos
-        </p>
-      </div>
+    <DashboardLayout>
+      <div className="container mx-auto px-6 py-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">Planos & Pagamentos</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Gerencie sua assinatura e histórico de pagamentos
+          </p>
+        </div>
 
-      <Tabs defaultValue="planos" className="w-full">
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
-          <TabsTrigger value="planos">Planos Disponíveis</TabsTrigger>
-          <TabsTrigger value="gestao">Gestão de Pagamentos</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="planos" className="w-full">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+            <TabsTrigger value="planos">Planos Disponíveis</TabsTrigger>
+            <TabsTrigger value="gestao">Gestão de Pagamentos</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="planos" className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 space-y-8">
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
-            {plans.map((plan, index) => {
-              const isCurrent = isCurrentPlan(plan.id);
-              const isPopular = index === 1; // Middle card is popular
-              const isEnterprise = plan.nome.toLowerCase().includes('empresarial') || plan.nome.toLowerCase().includes('enterprise');
-              const features = getPlanFeatures(plan, isEnterprise);
-              
-              return (
-                <div 
-                  key={plan.id} 
-                  className={`relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${
-                    isEnterprise 
-                      ? 'bg-slate-900 border-slate-700 hover:bg-slate-800/80 hover:border-slate-600' 
-                      : 'bg-card border-border hover:bg-white/80 hover:border-gray-200'
-                  } text-card-foreground`}
-                >
-                  {isPopular && !isCurrent && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <Badge className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
-                        Mais popular
-                      </Badge>
-                    </div>
-                  )}
-                  
-                  {isCurrent && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <Badge className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
-                        Plano Atual
-                      </Badge>
-                    </div>
-                  )}
+          <TabsContent value="planos" className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 space-y-8">
+            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
+              {plans.map((plan, index) => {
+                const isCurrent = isCurrentPlan(plan.id);
+                const isPopular = index === 1; // Middle card is popular
+                const isEnterprise = plan.nome.toLowerCase().includes('empresarial') || plan.nome.toLowerCase().includes('enterprise');
+                const features = getPlanFeatures(plan, isEnterprise);
+                
+                return (
+                  <div 
+                    key={plan.id} 
+                    className={`relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${
+                      isEnterprise 
+                        ? 'bg-slate-900 border-slate-700 hover:bg-slate-800/80 hover:border-slate-600' 
+                        : 'bg-card border-border hover:bg-white/80 hover:border-gray-200'
+                    } text-card-foreground`}
+                  >
+                    {isPopular && !isCurrent && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <Badge className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
+                          Mais popular
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    {isCurrent && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <Badge className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
+                          Plano Atual
+                        </Badge>
+                      </div>
+                    )}
 
-                  <div className="flex flex-col space-y-1.5 p-6 pb-4 pt-8 px-8">
-                    <div className={`tracking-tight text-2xl font-bold mb-2 ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
-                      {plan.nome}
+                    <div className="flex flex-col space-y-1.5 p-6 pb-4 pt-8 px-8">
+                      <div className={`tracking-tight text-2xl font-bold mb-2 ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                        {plan.nome}
+                      </div>
+                      <div className={`text-2xl font-bold mb-4 ${isEnterprise ? 'text-red-400' : 'text-foreground'}`}>
+                        R$ {plan.preco}/{plan.periodo === 'monthly' ? 'mês' : 'ano'}
+                      </div>
+                      <hr className={`border-t-2 mb-4 ${isEnterprise ? 'border-slate-600' : 'border-border'}`} />
+                      <div className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                        {getPlanDescription(plan, isEnterprise)}
+                      </div>
                     </div>
-                    <div className={`text-2xl font-bold mb-4 ${isEnterprise ? 'text-red-400' : 'text-foreground'}`}>
-                      R$ {plan.preco}/{plan.periodo === 'monthly' ? 'mês' : 'ano'}
+
+                    <div className="p-6 pt-0 px-8 pb-6 flex-grow">
+                      <ul className="space-y-3">
+                        {features.map((feature, idx) => (
+                          <li key={idx} className="flex items-center gap-3">
+                            <feature.icon className="h-4 w-4 text-red-500" />
+                            <span className={`text-sm ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                              {feature.text}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-6">
+                        <p className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                          {getPlanFooterText(plan, isEnterprise)}
+                        </p>
+                      </div>
                     </div>
-                    <hr className={`border-t-2 mb-4 ${isEnterprise ? 'border-slate-600' : 'border-border'}`} />
-                    <div className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
-                      {getPlanDescription(plan, isEnterprise)}
+
+                    <div className="flex items-center p-6 pt-0 px-8 pb-8 mt-auto">
+                      <Button 
+                        className="w-full bg-red-500 hover:bg-red-600 text-white py-3 text-base font-medium rounded-xl transition-colors duration-200 h-10 px-4"
+                        disabled={isCurrent}
+                        onClick={() => handleSelectPlan(plan)}
+                      >
+                        {getPlanButtonText(plan, isEnterprise, isCurrent)}
+                      </Button>
                     </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  <div className="p-6 pt-0 px-8 pb-6 flex-grow">
-                    <ul className="space-y-3">
-                      {features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center gap-3">
-                          <feature.icon className="h-4 w-4 text-red-500" />
-                          <span className={`text-sm ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
-                            {feature.text}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="mt-6">
-                      <p className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
-                        {getPlanFooterText(plan, isEnterprise)}
-                      </p>
+            <div className="mt-16 text-center">
+              <div className="flex justify-center items-center gap-8 opacity-60">
+                <div className="text-xs text-muted-foreground">🔒 Pagamento Seguro</div>
+                <div className="text-xs text-muted-foreground">✅ Cancele Quando Quiser</div>
+                <div className="text-xs text-muted-foreground">📞 Suporte Especializado</div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="gestao" className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            {hasActiveSubscription ? (
+              <Card className="mb-8 border-primary/20 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Crown className="h-5 w-5 text-primary" />
+                    Plano Atual
+                  </CardTitle>
+                  <CardDescription>
+                    Você está no plano <strong>{subscription.plano.nome}</strong> por R$ {subscription.plano.preco}/mês
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Próxima cobrança: {subscription.proxima_cobranca 
+                        ? new Date(subscription.proxima_cobranca).toLocaleDateString('pt-BR')
+                        : 'N/A'
+                      }
                     </div>
-                  </div>
-
-                  <div className="flex items-center p-6 pt-0 px-8 pb-8 mt-auto">
                     <Button 
-                      className="w-full bg-red-500 hover:bg-red-600 text-white py-3 text-base font-medium rounded-xl transition-colors duration-200 h-10 px-4"
-                      disabled={isCurrent}
-                      onClick={() => handleSelectPlan(plan)}
+                      variant="outline" 
+                      onClick={() => setChangeModalOpen(true)}
+                      className="flex items-center gap-2"
                     >
-                      {getPlanButtonText(plan, isEnterprise, isCurrent)}
+                      <CreditCard className="h-4 w-4" />
+                      Alterar Plano
                     </Button>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="text-center py-12">
+                <h3 className="text-lg font-semibold mb-2">Nenhuma assinatura ativa</h3>
+                <p className="text-muted-foreground mb-4">
+                  Escolha um plano na aba "Planos Disponíveis" para começar
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
 
-          <div className="mt-16 text-center">
-            <div className="flex justify-center items-center gap-8 opacity-60">
-              <div className="text-xs text-muted-foreground">🔒 Pagamento Seguro</div>
-              <div className="text-xs text-muted-foreground">✅ Cancele Quando Quiser</div>
-              <div className="text-xs text-muted-foreground">📞 Suporte Especializado</div>
-            </div>
-          </div>
-        </TabsContent>
+        <CheckoutModal
+          open={checkoutOpen}
+          onOpenChange={setCheckoutOpen}
+          plan={selectedPlan}
+          onSuccess={handleCheckoutSuccess}
+        />
 
-        <TabsContent value="gestao" className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-          {hasActiveSubscription ? (
-            <Card className="mb-8 border-primary/20 bg-primary/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-primary" />
-                  Plano Atual
-                </CardTitle>
-                <CardDescription>
-                  Você está no plano <strong>{subscription.plano.nome}</strong> por R$ {subscription.plano.preco}/mês
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    Próxima cobrança: {subscription.proxima_cobranca 
-                      ? new Date(subscription.proxima_cobranca).toLocaleDateString('pt-BR')
-                      : 'N/A'
-                    }
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setChangeModalOpen(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <CreditCard className="h-4 w-4" />
-                    Alterar Plano
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="text-center py-12">
-              <h3 className="text-lg font-semibold mb-2">Nenhuma assinatura ativa</h3>
-              <p className="text-muted-foreground mb-4">
-                Escolha um plano na aba "Planos Disponíveis" para começar
-              </p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-
-      <CheckoutModal
-        open={checkoutOpen}
-        onOpenChange={setCheckoutOpen}
-        plan={selectedPlan}
-        onSuccess={handleCheckoutSuccess}
-      />
-
-      <PlanChangeModal
-        open={changeModalOpen}
-        onOpenChange={setChangeModalOpen}
-        plans={plans}
-        currentSubscription={subscription}
-        onSuccess={handleChangePlanSuccess}
-      />
-    </div>
+        <PlanChangeModal
+          open={changeModalOpen}
+          onOpenChange={setChangeModalOpen}
+          plans={plans}
+          currentSubscription={subscription}
+          onSuccess={handleChangePlanSuccess}
+        />
+      </div>
+    </DashboardLayout>
   );
 }
