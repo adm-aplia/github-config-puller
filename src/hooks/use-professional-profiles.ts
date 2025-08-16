@@ -79,15 +79,6 @@ export const useProfessionalProfiles = () => {
 
   const createProfile = async (profileData: Partial<ProfessionalProfile>) => {
     try {
-      if (limits && profiles.length >= limits.max_assistentes) {
-        toast({
-          title: 'Limite atingido',
-          description: `Você atingiu o limite de ${limits.max_assistentes} perfis profissionais.`,
-          variant: 'destructive',
-        });
-        return false;
-      }
-
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
 
@@ -102,7 +93,18 @@ export const useProfessionalProfiles = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Verificar se é erro de limite
+        if (error.message?.includes('limite de Assistentes')) {
+          toast({
+            title: 'Limite atingido',
+            description: error.message,
+            variant: 'destructive',
+          });
+          return false;
+        }
+        throw error;
+      }
 
       setProfiles(prev => [data, ...prev]);
       
@@ -112,11 +114,11 @@ export const useProfessionalProfiles = () => {
       });
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating profile:', error);
       toast({
         title: 'Erro ao criar perfil',
-        description: 'Não foi possível criar o perfil profissional.',
+        description: error.message || 'Não foi possível criar o perfil profissional.',
         variant: 'destructive',
       });
       return false;

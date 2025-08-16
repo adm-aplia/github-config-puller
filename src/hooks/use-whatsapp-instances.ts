@@ -67,25 +67,6 @@ export const useWhatsAppInstances = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
 
-      // Verificar limites do usuário
-      const { data: limitsData } = await supabase
-        .from('usuario_limites')
-        .select('max_instancias_whatsapp')
-        .eq('user_id', userData.user.id)
-        .maybeSingle();
-
-      const maxInstances = limitsData?.max_instancias_whatsapp || 1;
-      const currentInstancesCount = instances.length;
-
-      if (currentInstancesCount >= maxInstances) {
-        toast({
-          title: 'Limite atingido',
-          description: `Você atingiu o limite de ${maxInstances} instâncias do WhatsApp. Assine um plano para ter mais instâncias.`,
-          variant: 'destructive',
-        });
-        return null;
-      }
-
       const displayName = instanceData.display_name || instanceData.instance_name || 'Nova Instância';
 
       console.log('[useWhatsAppInstances] Creating Evolution instance via edge function...');
@@ -132,7 +113,18 @@ export const useWhatsAppInstances = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Verificar se é erro de limite
+        if (error.message?.includes('limite de Números de WhatsApp')) {
+          toast({
+            title: 'Limite atingido',
+            description: error.message,
+            variant: 'destructive',
+          });
+          return null;
+        }
+        throw error;
+      }
 
       const created = { ...data, status: data.status as 'connected' | 'qr_pending' | 'disconnected' } as WhatsAppInstance;
 
@@ -147,11 +139,11 @@ export const useWhatsAppInstances = () => {
       });
 
       return created;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating instance:', error);
       toast({
         title: 'Erro ao criar instância',
-        description: 'Não foi possível criar a instância do WhatsApp.',
+        description: error.message || 'Não foi possível criar a instância do WhatsApp.',
         variant: 'destructive',
       });
       return null;

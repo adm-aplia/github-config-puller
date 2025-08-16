@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
 const apliaLogoIcon = "/lovable-uploads/940f8f03-f853-4fdf-ab6f-2a3b5c24ae05.png"
@@ -43,6 +44,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { useSubscription } from "@/hooks/use-subscription"
 
 const items = [
   { title: "Painel", url: "/dashboard", icon: LayoutDashboard },
@@ -59,7 +61,10 @@ export function AppSidebar() {
   const navigate = useNavigate()
   const currentPath = location.pathname
   const [isDark, setIsDark] = useState(false)
+  const [userEmail, setUserEmail] = useState<string>('')
+  const [userName, setUserName] = useState<string>('')
   const { toast } = useToast()
+  const { subscription } = useSubscription()
 
   useEffect(() => {
     // Detectar tema atual
@@ -77,6 +82,19 @@ export function AppSidebar() {
     })
     
     return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    // Buscar dados do usuário
+    const getUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUserEmail(user.email || '')
+        setUserName(user.email?.split('@')[0] || 'Usuário')
+      }
+    }
+    
+    getUserData()
   }, [])
 
   const isActive = (path: string) => currentPath === path
@@ -98,6 +116,8 @@ export function AppSidebar() {
       })
     }
   }
+
+  const planName = subscription?.plano?.nome || 'Gratuito'
 
   return (
     <Sidebar className={state === "collapsed" ? "w-14" : "w-64"} collapsible="icon">
@@ -162,13 +182,13 @@ export function AppSidebar() {
               >
                 <div className="flex flex-col items-start min-w-0 flex-1">
                   <span className="text-xs text-muted-foreground truncate w-full mb-1">
-                    Plano Profissional
+                    Plano {planName}
                   </span>
                   <span className="text-sm font-medium text-foreground truncate w-full">
-                    Nathan Almeida
+                    {userName}
                   </span>
                   <span className="text-xs text-muted-foreground truncate w-full">
-                    nathancwb@gmail.com
+                    {userEmail}
                   </span>
                 </div>
                 <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2 transition-transform rotate-180" />
@@ -210,7 +230,7 @@ export function AppSidebar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="w-8 h-8 rounded-full p-0">
                 <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-                  N
+                  {userName.charAt(0).toUpperCase()}
                 </div>
               </Button>
             </DropdownMenuTrigger>

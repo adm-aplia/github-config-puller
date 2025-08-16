@@ -161,6 +161,7 @@ export type Database = {
       }
       clientes: {
         Row: {
+          asaas_card_token: string | null
           asaas_customer_id: string | null
           bairro: string | null
           cep: string | null
@@ -179,6 +180,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          asaas_card_token?: string | null
           asaas_customer_id?: string | null
           bairro?: string | null
           cep?: string | null
@@ -197,6 +199,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          asaas_card_token?: string | null
           asaas_customer_id?: string | null
           bairro?: string | null
           cep?: string | null
