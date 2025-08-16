@@ -70,6 +70,7 @@ export default {
 					coral: "hsl(var(--aplia-coral))",
 					"light-gray": "hsl(var(--aplia-light-gray))",
 					white: "hsl(var(--aplia-white))",
+					blue: "hsl(var(--aplia-blue))",
 				},
 			},
 			backgroundImage: {

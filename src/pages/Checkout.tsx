@@ -252,8 +252,8 @@ export default function CheckoutPage() {
         <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {/* Formulário - Col 1 */}
           <div className="order-2 lg:order-1">
-            <Card className="shadow-lg">
-              <CardHeader className="bg-secondary text-secondary-foreground rounded-t-lg">
+            <Card className="shadow-lg border border-gray-200 dark:border-gray-700">
+              <CardHeader className="bg-red-500 text-white rounded-t-lg">
                 <CardTitle className="text-xl font-bold flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
                   Dados para Pagamento
@@ -262,10 +262,10 @@ export default function CheckoutPage() {
               <CardContent className="p-6">
                 <form className="space-y-6">
                   {/* Dados Pessoais */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-lg">Dados Pessoais</h3>
-                    <div>
-                      <Label htmlFor="nome" className="text-gray-700 dark:text-gray-300">Nome Completo *</Label>
+                   <div className="space-y-4">
+                     <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Dados Pessoais</h3>
+                     <div>
+                       <Label htmlFor="nome" className="text-gray-700 dark:text-gray-300">Nome Completo *</Label>
                       <Input
                         id="nome"
                         value={customerData.nome}
@@ -314,8 +314,8 @@ export default function CheckoutPage() {
                   </div>
 
                   {/* Endereço */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-lg">Endereço</h3>
+                   <div className="space-y-4">
+                     <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Endereço</h3>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <Label htmlFor="cep" className="text-gray-700 dark:text-gray-300">CEP</Label>
@@ -352,11 +352,11 @@ export default function CheckoutPage() {
                   </div>
 
                   {/* Dados do Cartão */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-lg flex items-center gap-2">
-                      <CreditCard className="h-5 w-5 text-secondary" />
-                      Dados do Cartão de Crédito
-                    </h3>
+                   <div className="space-y-4">
+                     <h3 className="font-semibold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                       <CreditCard className="h-5 w-5 text-red-500" />
+                       Dados do Cartão de Crédito
+                     </h3>
                     <div>
                       <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">Nome no Cartão *</Label>
                       <Input
@@ -380,39 +380,59 @@ export default function CheckoutPage() {
                         className="mt-1"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="expiry" className="text-gray-700 dark:text-gray-300">Validade *</Label>
-                        <Input
-                          id="expiry"
-                          value={cardData.expiry}
-                          onChange={(e) => handleCardDataChange('expiry', e.target.value)}
-                          placeholder="MM/AA"
-                          maxLength={5}
-                          required
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="cvv" className="text-gray-700 dark:text-gray-300">CVV *</Label>
-                        <Input
-                          id="cvv"
-                          value={cardData.cvv}
-                          onChange={(e) => handleCardDataChange('cvv', e.target.value)}
-                          placeholder="123"
-                          maxLength={4}
-                          required
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
+                     <div className="grid grid-cols-3 gap-4">
+                       <div>
+                         <Label htmlFor="mesExpiracao" className="text-gray-700 dark:text-gray-300">Mês *</Label>
+                         <Input
+                           id="mesExpiracao"
+                           value={cardData.expiry.split('/')[0] || ''}
+                           onChange={(e) => {
+                             const month = e.target.value.replace(/\D/g, '').slice(0, 2);
+                             const year = cardData.expiry.split('/')[1] || '';
+                             handleCardDataChange('expiry', year ? `${month}/${year}` : month);
+                           }}
+                           placeholder="MM"
+                           maxLength={2}
+                           required
+                           className="mt-1"
+                         />
+                       </div>
+                       <div>
+                         <Label htmlFor="anoExpiracao" className="text-gray-700 dark:text-gray-300">Ano *</Label>
+                         <Input
+                           id="anoExpiracao"
+                           value={cardData.expiry.split('/')[1] || ''}
+                           onChange={(e) => {
+                             const year = e.target.value.replace(/\D/g, '').slice(0, 4);
+                             const month = cardData.expiry.split('/')[0] || '';
+                             handleCardDataChange('expiry', month ? `${month}/${year}` : year);
+                           }}
+                           placeholder="AAAA"
+                           maxLength={4}
+                           required
+                           className="mt-1"
+                         />
+                       </div>
+                       <div>
+                         <Label htmlFor="cvv" className="text-gray-700 dark:text-gray-300">CVV *</Label>
+                         <Input
+                           id="cvv"
+                           value={cardData.cvv}
+                           onChange={(e) => handleCardDataChange('cvv', e.target.value)}
+                           placeholder="123"
+                           maxLength={4}
+                           required
+                           className="mt-1"
+                         />
+                       </div>
+                     </div>
                   </div>
 
                   <Button 
                     type="button"
                     onClick={handleSubmit}
                     disabled={loading}
-                    className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground py-4 text-lg font-semibold h-14"
+                    className="w-full bg-red-500 hover:bg-red-600 text-white py-4 text-lg font-semibold h-14"
                   >
                     {loading ? 'Processando...' : 'Confirmar e Ativar Plano'}
                   </Button>
@@ -439,42 +459,42 @@ export default function CheckoutPage() {
 
           {/* Resumo do Pedido - Col 2 */}
           <div className="order-1 lg:order-2">
-            <Card className="shadow-lg sticky top-8">
-              <CardHeader className="bg-aplia-dark text-white rounded-t-lg">
+            <Card className="shadow-lg border border-gray-200 dark:border-gray-700 sticky top-8">
+              <CardHeader className="bg-aplia-blue text-white rounded-t-lg">
                 <CardTitle className="font-semibold tracking-tight text-xl">Resumo do Pedido</CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
                 <div>
-                  <h3 className="text-2xl font-bold">{selectedPlan.nome}</h3>
-                  <div className="text-4xl font-bold text-secondary mt-2">
-                    R$ {selectedPlan.preco.toFixed(0)}/mês
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedPlan.nome}</h3>
+                  <div className="text-4xl font-bold text-red-500 mt-2">
+                    R$ {selectedPlan.preco}/mês
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    Cobrança mensal recorrente. <strong>Cancele quando quiser.</strong>
+                    Cobrança mensal recorrente. <strong className="text-gray-900 dark:text-white">Cancele quando quiser.</strong>
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="font-semibold mb-3">Benefícios inclusos:</h4>
+                  <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Benefícios inclusos:</h4>
                   <ul className="space-y-3">
                     <li className="flex items-center gap-3 text-sm">
-                      <MessageSquare className="h-4 w-4 text-secondary flex-shrink-0" />
+                      <MessageSquare className="h-4 w-4 text-red-500 flex-shrink-0" />
                       <span className="text-gray-700 dark:text-gray-300">{selectedPlan.max_instancias_whatsapp} Números de WhatsApp</span>
                     </li>
                     <li className="flex items-center gap-3 text-sm">
-                      <Calendar className="h-4 w-4 text-secondary flex-shrink-0" />
+                      <Calendar className="h-4 w-4 text-red-500 flex-shrink-0" />
                       <span className="text-gray-700 dark:text-gray-300">Até {selectedPlan.max_agendamentos_mes.toLocaleString()} agendamentos/mês</span>
                     </li>
                     <li className="flex items-center gap-3 text-sm">
-                      <Users className="h-4 w-4 text-secondary flex-shrink-0" />
+                      <Users className="h-4 w-4 text-red-500 flex-shrink-0" />
                       <span className="text-gray-700 dark:text-gray-300">{selectedPlan.max_assistentes} Assistentes personalizados</span>
                     </li>
                     <li className="flex items-center gap-3 text-sm">
-                      <Mail className="h-4 w-4 text-secondary flex-shrink-0" />
+                      <Mail className="h-4 w-4 text-red-500 flex-shrink-0" />
                       <span className="text-gray-700 dark:text-gray-300">Suporte prioritário</span>
                     </li>
                     <li className="flex items-center gap-3 text-sm">
-                      <ChartColumn className="h-4 w-4 text-secondary flex-shrink-0" />
+                      <ChartColumn className="h-4 w-4 text-red-500 flex-shrink-0" />
                       <span className="text-gray-700 dark:text-gray-300">Relatórios Avançados</span>
                     </li>
                   </ul>

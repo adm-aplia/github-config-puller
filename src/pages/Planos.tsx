@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckoutModal } from '@/components/checkout/checkout-modal';
 import { PlanChangeModal } from '@/components/plans/plan-change-modal';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { usePlans } from '@/hooks/use-plans';
@@ -23,20 +23,13 @@ import {
 } from 'lucide-react';
 
 export default function Planos() {
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const navigate = useNavigate();
   const [changeModalOpen, setChangeModalOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const { plans, loading: plansLoading } = usePlans();
   const { subscription, loading: subscriptionLoading, refetch } = useSubscription();
 
   const handleSelectPlan = (plan: any) => {
-    setSelectedPlan(plan);
-    setCheckoutOpen(true);
-  };
-
-  const handleCheckoutSuccess = () => {
-    refetch();
-    setCheckoutOpen(false);
+    navigate(`/dashboard/checkout/${plan.id}`);
   };
 
   const handleChangePlanSuccess = () => {
@@ -260,13 +253,6 @@ export default function Planos() {
             )}
           </TabsContent>
         </Tabs>
-
-        <CheckoutModal
-          open={checkoutOpen}
-          onOpenChange={setCheckoutOpen}
-          plan={selectedPlan}
-          onSuccess={handleCheckoutSuccess}
-        />
 
         <PlanChangeModal
           open={changeModalOpen}

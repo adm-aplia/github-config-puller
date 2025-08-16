@@ -41,6 +41,7 @@ html {
     --aplia-coral: 356 75% 62%;
     --aplia-light-gray: 0 0% 90%;
     --aplia-white: 0 0% 100%;
+    --aplia-blue: 217 91% 60%;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(var(--aplia-dark)), hsl(var(--aplia-coral)));
@@ -85,6 +86,7 @@ html {
     --aplia-coral: 356 75% 62%;
     --aplia-light-gray: 222 25% 20%;
     --aplia-white: 222 30% 12%;
+    --aplia-blue: 217 91% 60%;
   }
 }
 
