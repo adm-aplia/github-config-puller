@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +28,8 @@ import {
   ChartColumn,
   Clock,
   Building2,
-  Settings
+  Settings,
+  AlertCircle
 } from "lucide-react";
 
 export default function PlanosPage() {
@@ -38,6 +40,23 @@ export default function PlanosPage() {
   const { usage, loading: usageLoading } = useUserUsage();
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [isSandbox, setIsSandbox] = useState(false);
+
+  useEffect(() => {
+    const checkEnvironment = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('create-subscription', {
+          body: { checkEnvironment: true }
+        });
+        if (!error && data) {
+          setIsSandbox(data.environment !== 'production');
+        }
+      } catch (error) {
+        console.error('Error checking environment:', error);
+      }
+    };
+    checkEnvironment();
+  }, []);
 
   const handleSelectPlan = (plan: any) => {
     navigate(`/dashboard/checkout/${plan.id}`);
@@ -174,6 +193,23 @@ export default function PlanosPage() {
           </TabsList>
 
           <TabsContent value="planos" className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 space-y-8">
+            {isSandbox && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-yellow-800 mb-1">Modo Sandbox - Ambiente de Testes</h3>
+                    <p className="text-sm text-yellow-700 mb-2">
+                      Você está no ambiente de testes. A cobrança será processada imediatamente, mas você pode simular o pagamento no painel do Asaas.
+                    </p>
+                    <p className="text-xs text-yellow-600">
+                      💡 Para simular o pagamento: acesse o Asaas Sandbox → Cobranças → Forçar vencimento → Confirmar pagamento
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {plansLoading ? (
               <div className="text-center py-8">Carregando planos...</div>
             ) : (

@@ -145,7 +145,12 @@ serve(async (req) => {
 
     if (!asaasCustomerResponse.ok) {
       const errorData = await asaasCustomerResponse.text();
-      console.error('Asaas customer creation error:', errorData);
+      console.error('Asaas customer creation error:', {
+        status: asaasCustomerResponse.status,
+        statusText: asaasCustomerResponse.statusText,
+        body: errorData,
+        environment: isProduction ? 'production' : 'sandbox'
+      });
       throw new Error('Erro ao criar cliente no Asaas');
     }
 
@@ -168,7 +173,7 @@ serve(async (req) => {
         customer: asaasCustomer.id,
         billingType: 'CREDIT_CARD',
         value: plan.preco,
-        nextDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+        nextDueDate: new Date().toISOString().split('T')[0], // Charge immediately
         cycle: 'MONTHLY',
         description: `Assinatura ${plan.nome}`,
         creditCard: {
@@ -191,7 +196,18 @@ serve(async (req) => {
 
     if (!asaasSubscriptionResponse.ok) {
       const errorData = await asaasSubscriptionResponse.text();
-      console.error('Asaas subscription creation error:', errorData);
+      console.error('Asaas subscription creation error:', {
+        status: asaasSubscriptionResponse.status,
+        statusText: asaasSubscriptionResponse.statusText,
+        body: errorData,
+        environment: isProduction ? 'production' : 'sandbox',
+        requestPayload: {
+          customer: asaasCustomer.id,
+          billingType: 'CREDIT_CARD',
+          value: plan.preco,
+          cycle: 'MONTHLY'
+        }
+      });
       throw new Error('Erro ao criar assinatura no Asaas');
     }
 
@@ -205,7 +221,7 @@ serve(async (req) => {
         plano_id: plan.id,
         status: 'active',
         data_inicio: new Date().toISOString().split('T')[0],
-        proxima_cobranca: asaasSubscription.nextDueDate,
+        proxima_cobranca: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Next billing in 30 days
         asaas_subscription_id: asaasSubscription.id
       })
       .select()
