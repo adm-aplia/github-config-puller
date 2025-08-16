@@ -188,11 +188,27 @@ export default function CheckoutPage() {
     setLoading(true);
     
     try {
+      const creditCard = {
+        holderInfo: {
+          name: cardData.name,
+          email: customerData.email,
+          cpfCnpj: customerData.cpf_cnpj.replace(/\D/g, ''),
+          postalCode: customerData.cep.replace(/\D/g, ''),
+          addressNumber: customerData.numero,
+          addressComplement: customerData.complemento || '',
+          phone: customerData.telefone.replace(/\D/g, ''),
+          mobilePhone: customerData.telefone.replace(/\D/g, '')
+        },
+        number: cardData.number.replace(/\s/g, ''),
+        expiryMonth: cardData.expiry.split('/')[0] || '',
+        expiryYear: cardData.expiry.split('/')[1] || '',
+        ccv: cardData.cvv
+      };
+
       const { data, error } = await supabase.functions.invoke('create-subscription', {
         body: {
           planId: selectedPlan.id,
-          customerData,
-          cardData
+          creditCard
         }
       });
 
