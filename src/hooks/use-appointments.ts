@@ -110,8 +110,19 @@ export const useAppointments = () => {
         throw new Error('No events provided');
       }
 
+      // Get existing Google event IDs to check for duplicates
+      const eventIds = events.filter(event => event?.id).map(event => event.id);
+      const { data: existingAppointments } = await supabase
+        .from('appointments')
+        .select('google_event_id')
+        .in('google_event_id', eventIds)
+        .eq('user_id', userData.user.id);
+
+      const existingEventIds = new Set(existingAppointments?.map(apt => apt.google_event_id) || []);
+
       const appointmentsToInsert = events
         .filter(event => event?.id) // Only process events with valid IDs
+        .filter(event => !existingEventIds.has(event.id)) // Skip existing events
         .map(event => {
           console.debug('[mapping-event] Processing event:', event);
           
@@ -155,18 +166,22 @@ export const useAppointments = () => {
         })
         .filter(Boolean); // Remove eventos com erro de parsing
 
+      const totalEvents = events.length;
+      const skippedEvents = totalEvents - appointmentsToInsert.length;
+
       if (appointmentsToInsert.length === 0) {
-        throw new Error('No valid events after mapping');
+        toast({
+          title: 'Nenhum evento novo',
+          description: `${skippedEvents} evento(s) já existem no sistema.`,
+        });
+        return 0;
       }
 
-      console.log('Appointments to upsert:', appointmentsToInsert);
+      console.log('Appointments to insert:', appointmentsToInsert);
 
       const { data, error } = await supabase
         .from('appointments')
-        .upsert(appointmentsToInsert, { 
-          onConflict: 'google_event_id',
-          ignoreDuplicates: false 
-        })
+        .insert(appointmentsToInsert) 
         .select();
 
       if (error) {
@@ -174,9 +189,24 @@ export const useAppointments = () => {
         throw error;
       }
 
-      console.log('Successfully upserted appointments:', data);
+      console.log('Successfully inserted appointments:', data);
       await fetchAppointments(); // Refresh the list
-      return data.length;
+      
+      // Show success message with details
+      const newEventsCount = data?.length || 0;
+      if (skippedEvents > 0) {
+        toast({
+          title: 'Eventos importados',
+          description: `${newEventsCount} novos eventos importados. ${skippedEvents} evento(s) já existiam.`,
+        });
+      } else {
+        toast({
+          title: 'Eventos importados',
+          description: `${newEventsCount} evento(s) importados com sucesso.`,
+        });
+      }
+      
+      return newEventsCount;
     } catch (error) {
       console.error('Error creating appointments from Google events:', error);
       toast({

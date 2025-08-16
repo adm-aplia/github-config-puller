@@ -64,8 +64,6 @@ export default function AgendamentosPage() {
   const [viewPeriod, setViewPeriod] = useState("today")
   const [selectedProfessional, setSelectedProfessional] = useState("all")
   const [isGoogleEventsDialogOpen, setIsGoogleEventsDialogOpen] = useState(false)
-  const [startDate, setStartDate] = useState<Date | undefined>()
-  const [endDate, setEndDate] = useState<Date | undefined>()
   const [selectedProfessionalForImport, setSelectedProfessionalForImport] = useState<string>("")
   const [isImporting, setIsImporting] = useState(false)
   
@@ -258,13 +256,13 @@ export default function AgendamentosPage() {
 
   // Function to pull Google Calendar events
   const handleGoogleEventsSync = async () => {
-    console.log('handleGoogleEventsSync called', { startDate, endDate, selectedProfessionalForImport, userEmail: user?.email });
+    console.log('handleGoogleEventsSync called', { selectedProfessionalForImport, userEmail: user?.email });
     
-    if (!startDate || !endDate || !user?.email) {
-      console.log('Missing required data:', { startDate, endDate, userEmail: user?.email });
+    if (!user?.email) {
+      console.log('Missing user email');
       toast({
         title: 'Erro',
-        description: 'Dados necessários estão faltando: datas ou email do usuário.',
+        description: 'Email do usuário não encontrado.',
         variant: 'destructive',
       });
       return;
@@ -282,12 +280,17 @@ export default function AgendamentosPage() {
 
     setIsImporting(true)
 
+    // Set 1 year range automatically: 6 months before and 6 months after current date
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+    const sixMonthsLater = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
+
     const query = {
       my_email: user.email,
       user_id: user.id,
       calendarId: "primary",
-      timeMin: startDate.toISOString(),
-      timeMax: endDate.toISOString(),
+      timeMin: sixMonthsAgo.toISOString(),
+      timeMax: sixMonthsLater.toISOString(),
       professionalProfileId: selectedProfessionalForImport
     }
 
@@ -312,21 +315,14 @@ export default function AgendamentosPage() {
         if (data && data[0]) {
           console.log('Processing webhook data:', data[0]);
           
-          const eventsCount = await createAppointmentsFromGoogleEvents(data[0], selectedProfessionalForImport)
-          
-          toast({
-            title: 'Sucesso',
-            description: `Foram importados ${eventsCount} eventos`,
-          });
+          await createAppointmentsFromGoogleEvents(data[0], selectedProfessionalForImport)
           setIsGoogleEventsDialogOpen(false)
-          setStartDate(undefined)
-          setEndDate(undefined)
           setSelectedProfessionalForImport("")
         } else {
           console.log('No events in response');
           toast({
             title: 'Aviso',
-            description: 'Nenhum evento encontrado no período selecionado.',
+            description: 'Nenhum evento encontrado no período de 1 ano.',
           });
         }
       } else {
@@ -491,67 +487,19 @@ export default function AgendamentosPage() {
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm" className="flex items-center gap-2">
                             <Download className="h-4 w-4" />
-                            Eventos Google Agenda
+                            Vincular eventos
                           </Button>
                         </DialogTrigger>
                             <DialogContent className="sm:max-w-md">
                               <DialogHeader>
-                                <DialogTitle>Importar Eventos do Google Agenda</DialogTitle>
+                                <DialogTitle>Vincular eventos do Google Agenda</DialogTitle>
                               </DialogHeader>
                               <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">Data Inicial</label>
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button
-                                        variant="outline"
-                                        className={cn(
-                                          "w-full justify-start text-left font-normal",
-                                          !startDate && "text-muted-foreground"
-                                        )}
-                                      >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {startDate ? format(startDate, "dd/MM/yyyy") : <span>Selecione a data inicial</span>}
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                      <Calendar
-                                        mode="single"
-                                        selected={startDate}
-                                        onSelect={setStartDate}
-                                        initialFocus
-                                        className="pointer-events-auto"
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
+                                <div className="bg-muted/50 p-4 rounded-lg">
+                                  <p className="text-sm text-muted-foreground">
+                                    Os eventos serão importados automaticamente do período de 1 ano (6 meses antes e 6 meses depois da data atual).
+                                  </p>
                                 </div>
-                                
-                                 <div className="space-y-2">
-                                   <label className="text-sm font-medium">Data Final</label>
-                                   <Popover>
-                                     <PopoverTrigger asChild>
-                                       <Button
-                                         variant="outline"
-                                         className={cn(
-                                           "w-full justify-start text-left font-normal",
-                                           !endDate && "text-muted-foreground"
-                                         )}
-                                       >
-                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                         {endDate ? format(endDate, "dd/MM/yyyy") : <span>Selecione a data final</span>}
-                                       </Button>
-                                     </PopoverTrigger>
-                                     <PopoverContent className="w-auto p-0">
-                                       <Calendar
-                                         mode="single"
-                                         selected={endDate}
-                                         onSelect={setEndDate}
-                                         initialFocus
-                                         className="pointer-events-auto"
-                                       />
-                                     </PopoverContent>
-                                   </Popover>
-                                 </div>
                                  
                                  <div className="space-y-2">
                                    <label className="text-sm font-medium">Perfil Profissional</label>
@@ -572,10 +520,10 @@ export default function AgendamentosPage() {
                                 <div className="flex gap-2 pt-4">
                                    <Button 
                                      onClick={handleGoogleEventsSync}
-                                     disabled={!startDate || !endDate || !selectedProfessionalForImport || isImporting}
+                                     disabled={!selectedProfessionalForImport || isImporting}
                                      className="flex-1"
                                    >
-                                    {isImporting ? "Importando..." : "Importar Eventos"}
+                                    {isImporting ? "Vinculando..." : "Vincular eventos"}
                                   </Button>
                                   <Button 
                                     variant="outline" 
@@ -594,13 +542,23 @@ export default function AgendamentosPage() {
                             <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Use esse botão para puxar os eventos do seu google agenda</p>
+                            <p>Use esse botão para vincular os eventos do seu Google Agenda</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
                     
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={async () => {
+                        await fetchAppointments()
+                        toast({
+                          title: "Atualizado",
+                          description: "Calendário atualizado com sucesso."
+                        })
+                      }}
+                    >
                       <RefreshCw className="h-4 w-4" />
                     </Button>
                   </div>
