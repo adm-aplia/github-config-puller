@@ -119,7 +119,7 @@ serve(async (req) => {
     const asaasBaseUrl = isProduction ? 'https://www.asaas.com/api/v3' : 'https://sandbox.asaas.com/api/v3';
     const asaasApiKey = isProduction ? Deno.env.get('ASAAS_API_KEY') : Deno.env.get('ASAAS_SANDBOX_API_KEY');
 
-    console.log(`Using Asaas ${asaasEnv} environment`);
+    console.log(`Using Asaas ${isProduction ? 'production' : 'sandbox'} environment`);
 
     // Create customer in Asaas
     const asaasCustomerResponse = await fetch(`${asaasBaseUrl}/customers`, {
@@ -174,8 +174,8 @@ serve(async (req) => {
         creditCard: {
           holderName: cardData.name,
           number: cardData.number.replace(/\s/g, ''),
-          expiryMonth: cardData.expiry.split('/')[0],
-          expiryYear: '20' + cardData.expiry.split('/')[1],
+          expiryMonth: cardData.expiry ? cardData.expiry.split('/')[0] : '',
+          expiryYear: cardData.expiry ? '20' + cardData.expiry.split('/')[1] : '',
           ccv: cardData.cvv
         },
         creditCardHolderInfo: {

@@ -30,11 +30,10 @@ interface CustomerData {
 }
 
 interface CardData {
-  holderName: string;
+  name: string;
   number: string;
-  expiryMonth: string;
-  expiryYear: string;
-  ccv: string;
+  expiry: string;
+  cvv: string;
 }
 
 export default function CheckoutPage() {
@@ -62,11 +61,10 @@ export default function CheckoutPage() {
   });
 
   const [cardData, setCardData] = useState<CardData>({
-    holderName: "",
+    name: "",
     number: "",
-    expiryMonth: "",
-    expiryYear: "",
-    ccv: ""
+    expiry: "",
+    cvv: ""
   });
 
   useEffect(() => {
@@ -144,17 +142,10 @@ export default function CheckoutPage() {
       case 'number':
         maskedValue = applyMask.cardNumber(value);
         break;
-      case 'expiryMonth':
-      case 'expiryYear':
-        if (field === 'expiryMonth' && value) {
-          const monthValue = value.replace(/\D/g, '');
-          maskedValue = monthValue.slice(0, 2);
-        } else if (field === 'expiryYear' && value) {
-          const yearValue = value.replace(/\D/g, '');
-          maskedValue = yearValue.slice(0, 4);
-        }
+      case 'expiry':
+        maskedValue = applyMask.cardExpiry(value);
         break;
-      case 'ccv':
+      case 'cvv':
         maskedValue = value.replace(/\D/g, '').slice(0, 4);
         break;
     }
@@ -168,7 +159,7 @@ export default function CheckoutPage() {
   };
 
   const validateStep2 = () => {
-    const required = ['holderName', 'number', 'expiryMonth', 'expiryYear', 'ccv'];
+    const required = ['name', 'number', 'expiry', 'cvv'];
     return required.every(field => cardData[field as keyof CardData].trim() !== '');
   };
 
@@ -367,20 +358,20 @@ export default function CheckoutPage() {
                       Dados do Cartão de Crédito
                     </h3>
                     <div>
-                      <Label htmlFor="holderName" className="text-gray-700 dark:text-gray-300">Nome no Cartão *</Label>
+                      <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">Nome no Cartão *</Label>
                       <Input
-                        id="holderName"
-                        value={cardData.holderName}
-                        onChange={(e) => handleCardDataChange('holderName', e.target.value)}
+                        id="name"
+                        value={cardData.name}
+                        onChange={(e) => handleCardDataChange('name', e.target.value)}
                         placeholder="Nome como está no cartão"
                         required
                         className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="cardNumber" className="text-gray-700 dark:text-gray-300">Número do Cartão *</Label>
+                      <Label htmlFor="number" className="text-gray-700 dark:text-gray-300">Número do Cartão *</Label>
                       <Input
-                        id="cardNumber"
+                        id="number"
                         value={cardData.number}
                         onChange={(e) => handleCardDataChange('number', e.target.value)}
                         placeholder="0000 0000 0000 0000"
@@ -389,37 +380,25 @@ export default function CheckoutPage() {
                         className="mt-1"
                       />
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="expiryMonth" className="text-gray-700 dark:text-gray-300">Mês *</Label>
+                        <Label htmlFor="expiry" className="text-gray-700 dark:text-gray-300">Validade *</Label>
                         <Input
-                          id="expiryMonth"
-                          value={cardData.expiryMonth}
-                          onChange={(e) => handleCardDataChange('expiryMonth', e.target.value)}
-                          placeholder="MM"
-                          maxLength={2}
+                          id="expiry"
+                          value={cardData.expiry}
+                          onChange={(e) => handleCardDataChange('expiry', e.target.value)}
+                          placeholder="MM/AA"
+                          maxLength={5}
                           required
                           className="mt-1"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="expiryYear" className="text-gray-700 dark:text-gray-300">Ano *</Label>
+                        <Label htmlFor="cvv" className="text-gray-700 dark:text-gray-300">CVV *</Label>
                         <Input
-                          id="expiryYear"
-                          value={cardData.expiryYear}
-                          onChange={(e) => handleCardDataChange('expiryYear', e.target.value)}
-                          placeholder="AAAA"
-                          maxLength={4}
-                          required
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="ccv" className="text-gray-700 dark:text-gray-300">CVV *</Label>
-                        <Input
-                          id="ccv"
-                          value={cardData.ccv}
-                          onChange={(e) => handleCardDataChange('ccv', e.target.value)}
+                          id="cvv"
+                          value={cardData.cvv}
+                          onChange={(e) => handleCardDataChange('cvv', e.target.value)}
                           placeholder="123"
                           maxLength={4}
                           required

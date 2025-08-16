@@ -41,7 +41,6 @@ function AppContent() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LoginPage />} />
-          <Route path="/home" element={<Index />} />
           <Route path="/cadastro" element={<CadastroPage />} />
           <Route path="/termos" element={<TermosServico />} />
           <Route path="/privacidade" element={<PoliticaPrivacidade />} />
