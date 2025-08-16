@@ -39,38 +39,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
         
-        // Inicializar dados do usuário quando logar
+        // Defer async calls to prevent deadlocks
         if (session?.user && event === 'SIGNED_IN') {
-          await ensureUserInitialized(session.user.id)
+          setTimeout(() => {
+            ensureUserInitialized(session.user.id)
+          }, 0)
         }
         
-        if (!isInitialized) {
-          setIsInitialized(true)
-        }
+        setIsInitialized(true)
       }
     )
 
     // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
       
-      // Inicializar dados do usuário se já estiver logado
+      // Defer async calls to prevent deadlocks
       if (session?.user) {
-        await ensureUserInitialized(session.user.id)
+        setTimeout(() => {
+          ensureUserInitialized(session.user.id)
+        }, 0)
       }
       
-      if (!isInitialized) {
-        setIsInitialized(true)
-      }
+      setIsInitialized(true)
     })
 
     return () => subscription.unsubscribe()
-  }, [isInitialized])
+  }, [])
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     setIsLoading(true)
