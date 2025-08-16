@@ -1,18 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { usePlans } from "@/hooks/use-plans";
 import { supabase } from "@/integrations/supabase/client";
-import { Crown, CreditCard, Shield, ArrowLeft, Check } from "lucide-react";
+import { CreditCard, Shield, ArrowLeft, MessageSquare, Calendar, Users, Mail, ChartColumn, CircleCheckBig, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { applyMask } from "@/lib/masks";
+import { fetchAddressFromCep, debounce } from "@/lib/cep";
 
 interface CustomerData {
   nome: string;
@@ -84,12 +85,81 @@ export default function CheckoutPage() {
     }
   }, [plans, planId, navigate, toast]);
 
+  // Load and auto-fill user email
+  useEffect(() => {
+    const loadUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setCustomerData(prev => ({ ...prev, email: user.email }));
+      }
+    };
+    loadUserEmail();
+  }, []);
+
+  // Debounced CEP lookup
+  const debouncedCepLookup = useCallback(
+    debounce(async (cep: string) => {
+      const addressData = await fetchAddressFromCep(cep);
+      if (addressData) {
+        setCustomerData(prev => ({
+          ...prev,
+          endereco: addressData.logradouro,
+          bairro: addressData.bairro,
+          cidade: addressData.localidade,
+          estado: addressData.uf
+        }));
+      }
+    }, 500),
+    []
+  );
+
   const handleCustomerDataChange = (field: keyof CustomerData, value: string) => {
-    setCustomerData(prev => ({ ...prev, [field]: value }));
+    let maskedValue = value;
+    
+    // Apply masks based on field
+    switch (field) {
+      case 'cpf_cnpj':
+        maskedValue = applyMask.cpfCnpj(value);
+        break;
+      case 'telefone':
+        maskedValue = applyMask.phone(value);
+        break;
+      case 'cep':
+        maskedValue = applyMask.cep(value);
+        // Trigger CEP lookup when complete
+        if (maskedValue.replace(/\D/g, '').length === 8) {
+          debouncedCepLookup(maskedValue);
+        }
+        break;
+    }
+    
+    setCustomerData(prev => ({ ...prev, [field]: maskedValue }));
   };
 
   const handleCardDataChange = (field: keyof CardData, value: string) => {
-    setCardData(prev => ({ ...prev, [field]: value }));
+    let maskedValue = value;
+    
+    // Apply masks for card fields
+    switch (field) {
+      case 'number':
+        maskedValue = applyMask.cardNumber(value);
+        break;
+      case 'expiryMonth':
+      case 'expiryYear':
+        if (field === 'expiryMonth' && value) {
+          const monthValue = value.replace(/\D/g, '');
+          maskedValue = monthValue.slice(0, 2);
+        } else if (field === 'expiryYear' && value) {
+          const yearValue = value.replace(/\D/g, '');
+          maskedValue = yearValue.slice(0, 4);
+        }
+        break;
+      case 'ccv':
+        maskedValue = value.replace(/\D/g, '').slice(0, 4);
+        break;
+    }
+    
+    setCardData(prev => ({ ...prev, [field]: maskedValue }));
   };
 
   const validateStep1 = () => {
@@ -188,335 +258,248 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Resumo do Plano */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-primary" />
-                  Resumo do Pedido
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{selectedPlan.nome}</span>
-                    <Badge variant="secondary">{selectedPlan.periodo}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedPlan.descricao}
-                  </p>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <h4 className="font-medium">Recursos inclusos:</h4>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <Check className="h-3 w-3 text-green-500" />
-                      {selectedPlan.max_assistentes} assistente(s)
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-3 w-3 text-green-500" />
-                      {selectedPlan.max_instancias_whatsapp} instância(s) WhatsApp
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-3 w-3 text-green-500" />
-                      {selectedPlan.max_conversas_mes} conversas/mês
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-3 w-3 text-green-500" />
-                      {selectedPlan.max_agendamentos_mes} agendamentos/mês
-                    </li>
-                  </ul>
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between text-lg font-semibold">
-                  <span>Total</span>
-                  <span>R$ {selectedPlan.preco.toFixed(2)}</span>
-                </div>
-
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Shield className="h-3 w-3" />
-                  Pagamento seguro com criptografia SSL
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Formulário */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+        <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          {/* Formulário - Col 1 */}
+          <div className="order-2 lg:order-1">
+            <Card className="shadow-lg">
+              <CardHeader className="bg-secondary text-secondary-foreground rounded-t-lg">
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
-                  {step === 1 ? "Dados Pessoais" : "Dados do Cartão"}
+                  Dados para Pagamento
                 </CardTitle>
-                <CardDescription>
-                  {step === 1 
-                    ? "Preencha seus dados pessoais para faturamento"
-                    : "Insira os dados do cartão de crédito"
-                  }
-                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {step === 1 ? (
-                  /* Dados Pessoais */
+              <CardContent className="p-6">
+                <form className="space-y-6">
+                  {/* Dados Pessoais */}
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h3 className="font-semibold text-lg">Dados Pessoais</h3>
+                    <div>
+                      <Label htmlFor="nome" className="text-gray-700 dark:text-gray-300">Nome Completo *</Label>
+                      <Input
+                        id="nome"
+                        value={customerData.nome}
+                        onChange={(e) => handleCustomerDataChange('nome', e.target.value)}
+                        placeholder="Seu nome completo"
+                        required
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="nome">Nome Completo *</Label>
-                        <Input
-                          id="nome"
-                          value={customerData.nome}
-                          onChange={(e) => handleCustomerDataChange('nome', e.target.value)}
-                          placeholder="Seu nome completo"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="email">E-mail *</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={customerData.email}
-                          onChange={(e) => handleCustomerDataChange('email', e.target.value)}
-                          placeholder="seu@email.com"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="telefone">Telefone *</Label>
-                        <Input
-                          id="telefone"
-                          value={customerData.telefone}
-                          onChange={(e) => handleCustomerDataChange('telefone', e.target.value)}
-                          placeholder="(11) 99999-9999"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="cpf_cnpj">CPF/CNPJ *</Label>
+                        <Label htmlFor="cpf_cnpj" className="text-gray-700 dark:text-gray-300">CPF *</Label>
                         <Input
                           id="cpf_cnpj"
                           value={customerData.cpf_cnpj}
                           onChange={(e) => handleCustomerDataChange('cpf_cnpj', e.target.value)}
                           placeholder="000.000.000-00"
+                          maxLength={14}
+                          required
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="telefone" className="text-gray-700 dark:text-gray-300">Telefone *</Label>
+                        <Input
+                          id="telefone"
+                          value={customerData.telefone}
+                          onChange={(e) => handleCustomerDataChange('telefone', e.target.value)}
+                          placeholder="(11) 99999-9999"
+                          maxLength={15}
+                          required
+                          className="mt-1"
                         />
                       </div>
                     </div>
-
-                    <Separator />
-
-                    <div className="space-y-4">
-                      <h4 className="font-medium">Endereço de Cobrança</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="md:col-span-2">
-                          <Label htmlFor="endereco">Endereço *</Label>
-                          <Input
-                            id="endereco"
-                            value={customerData.endereco}
-                            onChange={(e) => handleCustomerDataChange('endereco', e.target.value)}
-                            placeholder="Rua, Avenida, etc."
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="numero">Número *</Label>
-                          <Input
-                            id="numero"
-                            value={customerData.numero}
-                            onChange={(e) => handleCustomerDataChange('numero', e.target.value)}
-                            placeholder="123"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="complemento">Complemento</Label>
-                          <Input
-                            id="complemento"
-                            value={customerData.complemento}
-                            onChange={(e) => handleCustomerDataChange('complemento', e.target.value)}
-                            placeholder="Apto, Sala, etc."
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="bairro">Bairro *</Label>
-                          <Input
-                            id="bairro"
-                            value={customerData.bairro}
-                            onChange={(e) => handleCustomerDataChange('bairro', e.target.value)}
-                            placeholder="Nome do bairro"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="cep">CEP *</Label>
-                          <Input
-                            id="cep"
-                            value={customerData.cep}
-                            onChange={(e) => handleCustomerDataChange('cep', e.target.value)}
-                            placeholder="00000-000"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="cidade">Cidade *</Label>
-                          <Input
-                            id="cidade"
-                            value={customerData.cidade}
-                            onChange={(e) => handleCustomerDataChange('cidade', e.target.value)}
-                            placeholder="Nome da cidade"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="estado">Estado *</Label>
-                          <Select
-                            value={customerData.estado}
-                            onValueChange={(value) => handleCustomerDataChange('estado', value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="SP">São Paulo</SelectItem>
-                              <SelectItem value="RJ">Rio de Janeiro</SelectItem>
-                              <SelectItem value="MG">Minas Gerais</SelectItem>
-                              <SelectItem value="PR">Paraná</SelectItem>
-                              <SelectItem value="RS">Rio Grande do Sul</SelectItem>
-                              <SelectItem value="SC">Santa Catarina</SelectItem>
-                              <SelectItem value="BA">Bahia</SelectItem>
-                              <SelectItem value="DF">Distrito Federal</SelectItem>
-                              <SelectItem value="GO">Goiás</SelectItem>
-                              <SelectItem value="PE">Pernambuco</SelectItem>
-                              <SelectItem value="CE">Ceará</SelectItem>
-                              <SelectItem value="PA">Pará</SelectItem>
-                              <SelectItem value="MA">Maranhão</SelectItem>
-                              <SelectItem value="PB">Paraíba</SelectItem>
-                              <SelectItem value="ES">Espírito Santo</SelectItem>
-                              <SelectItem value="AL">Alagoas</SelectItem>
-                              <SelectItem value="MT">Mato Grosso</SelectItem>
-                              <SelectItem value="MS">Mato Grosso do Sul</SelectItem>
-                              <SelectItem value="RO">Rondônia</SelectItem>
-                              <SelectItem value="AC">Acre</SelectItem>
-                              <SelectItem value="AM">Amazonas</SelectItem>
-                              <SelectItem value="RR">Roraima</SelectItem>
-                              <SelectItem value="AP">Amapá</SelectItem>
-                              <SelectItem value="TO">Tocantins</SelectItem>
-                              <SelectItem value="RN">Rio Grande do Norte</SelectItem>
-                              <SelectItem value="SE">Sergipe</SelectItem>
-                              <SelectItem value="PI">Piauí</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end">
-                      <Button onClick={handleNextStep}>
-                        Continuar
-                      </Button>
+                    <div>
+                      <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">E-mail</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={customerData.email}
+                        disabled
+                        className="mt-1 bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
+                      />
                     </div>
                   </div>
-                ) : (
-                  /* Dados do Cartão */
+
+                  {/* Endereço */}
                   <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Endereço</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="cep" className="text-gray-700 dark:text-gray-300">CEP</Label>
+                        <Input
+                          id="cep"
+                          value={customerData.cep}
+                          onChange={(e) => handleCustomerDataChange('cep', e.target.value)}
+                          placeholder="00000-000"
+                          maxLength={9}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="endereco" className="text-gray-700 dark:text-gray-300">Rua</Label>
+                        <Input
+                          id="endereco"
+                          value={customerData.endereco}
+                          onChange={(e) => handleCustomerDataChange('endereco', e.target.value)}
+                          placeholder="Nome da rua"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="numero" className="text-gray-700 dark:text-gray-300">Número</Label>
+                        <Input
+                          id="numero"
+                          value={customerData.numero}
+                          onChange={(e) => handleCustomerDataChange('numero', e.target.value)}
+                          placeholder="123"
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dados do Cartão */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      <CreditCard className="h-5 w-5 text-secondary" />
+                      Dados do Cartão de Crédito
+                    </h3>
                     <div>
-                      <Label htmlFor="holderName">Nome do Titular *</Label>
+                      <Label htmlFor="holderName" className="text-gray-700 dark:text-gray-300">Nome no Cartão *</Label>
                       <Input
                         id="holderName"
                         value={cardData.holderName}
                         onChange={(e) => handleCardDataChange('holderName', e.target.value)}
                         placeholder="Nome como está no cartão"
+                        required
+                        className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="cardNumber">Número do Cartão *</Label>
+                      <Label htmlFor="cardNumber" className="text-gray-700 dark:text-gray-300">Número do Cartão *</Label>
                       <Input
                         id="cardNumber"
                         value={cardData.number}
                         onChange={(e) => handleCardDataChange('number', e.target.value)}
                         placeholder="0000 0000 0000 0000"
                         maxLength={19}
+                        required
+                        className="mt-1"
                       />
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="expiryMonth">Mês *</Label>
-                        <Select
+                        <Label htmlFor="expiryMonth" className="text-gray-700 dark:text-gray-300">Mês *</Label>
+                        <Input
+                          id="expiryMonth"
                           value={cardData.expiryMonth}
-                          onValueChange={(value) => handleCardDataChange('expiryMonth', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="MM" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 12 }, (_, i) => {
-                              const month = (i + 1).toString().padStart(2, '0');
-                              return (
-                                <SelectItem key={month} value={month}>
-                                  {month}
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
+                          onChange={(e) => handleCardDataChange('expiryMonth', e.target.value)}
+                          placeholder="MM"
+                          maxLength={2}
+                          required
+                          className="mt-1"
+                        />
                       </div>
                       <div>
-                        <Label htmlFor="expiryYear">Ano *</Label>
-                        <Select
+                        <Label htmlFor="expiryYear" className="text-gray-700 dark:text-gray-300">Ano *</Label>
+                        <Input
+                          id="expiryYear"
                           value={cardData.expiryYear}
-                          onValueChange={(value) => handleCardDataChange('expiryYear', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="AAAA" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 10 }, (_, i) => {
-                              const year = (new Date().getFullYear() + i).toString();
-                              return (
-                                <SelectItem key={year} value={year}>
-                                  {year}
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
+                          onChange={(e) => handleCardDataChange('expiryYear', e.target.value)}
+                          placeholder="AAAA"
+                          maxLength={4}
+                          required
+                          className="mt-1"
+                        />
                       </div>
                       <div>
-                        <Label htmlFor="ccv">CCV *</Label>
+                        <Label htmlFor="ccv" className="text-gray-700 dark:text-gray-300">CVV *</Label>
                         <Input
                           id="ccv"
                           value={cardData.ccv}
                           onChange={(e) => handleCardDataChange('ccv', e.target.value)}
                           placeholder="123"
                           maxLength={4}
+                          required
+                          className="mt-1"
                         />
                       </div>
                     </div>
+                  </div>
 
-                    <div className="flex gap-3 pt-4">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setStep(1)}
-                        disabled={loading}
-                      >
-                        Voltar
-                      </Button>
-                      <Button 
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="flex-1"
-                      >
-                        {loading ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Processando...
-                          </>
-                        ) : (
-                          `Finalizar Pagamento - R$ ${selectedPlan.preco.toFixed(2)}`
-                        )}
-                      </Button>
+                  <Button 
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground py-4 text-lg font-semibold h-14"
+                  >
+                    {loading ? 'Processando...' : 'Confirmar e Ativar Plano'}
+                  </Button>
+
+                  {/* Security Footer */}
+                  <div className="flex justify-center items-center gap-6 pt-4 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <Shield className="h-3 w-3 text-green-500" />
+                      <span>Checkout Seguro</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Lock className="h-3 w-3 text-green-500" />
+                      <span>SSL Ativado</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <CircleCheckBig className="h-3 w-3 text-green-500" />
+                      <span>Transação Protegida</span>
                     </div>
                   </div>
-                )}
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Resumo do Pedido - Col 2 */}
+          <div className="order-1 lg:order-2">
+            <Card className="shadow-lg sticky top-8">
+              <CardHeader className="bg-aplia-dark text-white rounded-t-lg">
+                <CardTitle className="font-semibold tracking-tight text-xl">Resumo do Pedido</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                <div>
+                  <h3 className="text-2xl font-bold">{selectedPlan.nome}</h3>
+                  <div className="text-4xl font-bold text-secondary mt-2">
+                    R$ {selectedPlan.preco.toFixed(0)}/mês
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    Cobrança mensal recorrente. <strong>Cancele quando quiser.</strong>
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-3">Benefícios inclusos:</h4>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3 text-sm">
+                      <MessageSquare className="h-4 w-4 text-secondary flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">{selectedPlan.max_instancias_whatsapp} Números de WhatsApp</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-sm">
+                      <Calendar className="h-4 w-4 text-secondary flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">Até {selectedPlan.max_agendamentos_mes.toLocaleString()} agendamentos/mês</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-sm">
+                      <Users className="h-4 w-4 text-secondary flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">{selectedPlan.max_assistentes} Assistentes personalizados</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-sm">
+                      <Mail className="h-4 w-4 text-secondary flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">Suporte prioritário</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-sm">
+                      <ChartColumn className="h-4 w-4 text-secondary flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">Relatórios Avançados</span>
+                    </li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { CreditCard, User, MapPin, TestTube } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { applyMask } from "@/lib/masks";
+import { fetchAddressFromCep, debounce } from "@/lib/cep";
 
 interface CheckoutModalProps {
   plan: any;
@@ -40,7 +42,7 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
   });
   const { toast } = useToast();
 
-  // Check if we're in test environment
+  // Check if we're in test environment and load user email
   useEffect(() => {
     const checkEnvironment = async () => {
       try {
@@ -53,16 +55,69 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
         setIsTestEnvironment(false);
       }
     };
+
+    const loadUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setFormData(prev => ({ ...prev, email: user.email }));
+      }
+    };
     
     if (open) {
       checkEnvironment();
+      loadUserEmail();
     }
   }, [open]);
 
+  // Debounced CEP lookup
+  const debouncedCepLookup = useCallback(
+    debounce(async (cep: string) => {
+      const addressData = await fetchAddressFromCep(cep);
+      if (addressData) {
+        setFormData(prev => ({
+          ...prev,
+          endereco: addressData.logradouro,
+          bairro: addressData.bairro,
+          cidade: addressData.localidade,
+          estado: addressData.uf
+        }));
+      }
+    }, 500),
+    []
+  );
+
   const handleInputChange = (field: string, value: string) => {
+    let maskedValue = value;
+    
+    // Apply masks based on field
+    switch (field) {
+      case 'cpf_cnpj':
+        maskedValue = applyMask.cpfCnpj(value);
+        break;
+      case 'telefone':
+        maskedValue = applyMask.phone(value);
+        break;
+      case 'cep':
+        maskedValue = applyMask.cep(value);
+        // Trigger CEP lookup when complete
+        if (maskedValue.replace(/\D/g, '').length === 8) {
+          debouncedCepLookup(maskedValue);
+        }
+        break;
+      case 'cardNumber':
+        maskedValue = applyMask.cardNumber(value);
+        break;
+      case 'cardExpiry':
+        maskedValue = applyMask.cardExpiry(value);
+        break;
+      case 'cardCvv':
+        maskedValue = value.replace(/\D/g, '').slice(0, 4);
+        break;
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: maskedValue
     }));
   };
 
@@ -167,13 +222,13 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
                 />
               </div>
               <div>
-                <Label htmlFor="email">E-mail *</Label>
+                <Label htmlFor="email">E-mail</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  required
+                  disabled
+                  className="bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
                 />
               </div>
               <div>
@@ -183,6 +238,7 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
                   value={formData.telefone}
                   onChange={(e) => handleInputChange('telefone', e.target.value)}
                   placeholder="(11) 99999-9999"
+                  maxLength={15}
                   required
                 />
               </div>
@@ -192,6 +248,7 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
                   id="cpf_cnpj"
                   value={formData.cpf_cnpj}
                   onChange={(e) => handleInputChange('cpf_cnpj', e.target.value)}
+                  maxLength={18}
                   required
                 />
               </div>
@@ -208,6 +265,17 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="cep">CEP *</Label>
+                <Input
+                  id="cep"
+                  value={formData.cep}
+                  onChange={(e) => handleInputChange('cep', e.target.value)}
+                  placeholder="00000-000"
+                  maxLength={9}
+                  required
+                />
+              </div>
               <div className="md:col-span-2">
                 <Label htmlFor="endereco">Endereço *</Label>
                 <Input
@@ -259,16 +327,7 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
                   value={formData.estado}
                   onChange={(e) => handleInputChange('estado', e.target.value)}
                   placeholder="SP"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="cep">CEP *</Label>
-                <Input
-                  id="cep"
-                  value={formData.cep}
-                  onChange={(e) => handleInputChange('cep', e.target.value)}
-                  placeholder="00000-000"
+                  maxLength={2}
                   required
                 />
               </div>
@@ -292,6 +351,7 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
                   value={formData.cardNumber}
                   onChange={(e) => handleInputChange('cardNumber', e.target.value)}
                   placeholder="1234 5678 9012 3456"
+                  maxLength={19}
                   required
                 />
               </div>
@@ -311,6 +371,7 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
                   value={formData.cardExpiry}
                   onChange={(e) => handleInputChange('cardExpiry', e.target.value)}
                   placeholder="MM/AA"
+                  maxLength={5}
                   required
                 />
               </div>
@@ -321,6 +382,7 @@ export function CheckoutModal({ plan, open, onOpenChange }: CheckoutModalProps) 
                   value={formData.cardCvv}
                   onChange={(e) => handleInputChange('cardCvv', e.target.value)}
                   placeholder="123"
+                  maxLength={4}
                   required
                 />
               </div>
