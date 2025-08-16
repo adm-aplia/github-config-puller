@@ -21,6 +21,7 @@ import {
   Crown,
   Check
 } from 'lucide-react';
+import { PaymentHistory } from '@/components/payments/payment-history';
 
 export default function Planos() {
   const navigate = useNavigate();
@@ -212,9 +213,9 @@ export default function Planos() {
             </div>
           </TabsContent>
 
-          <TabsContent value="gestao" className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          <TabsContent value="gestao" className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 space-y-8">
             {hasActiveSubscription ? (
-              <Card className="mb-8 border-primary/20 bg-primary/5">
+              <Card className="border-primary/20 bg-primary/5">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Crown className="h-5 w-5 text-primary" />
@@ -251,6 +252,8 @@ export default function Planos() {
                 </p>
               </div>
             )}
+
+            <PaymentHistory />
           </TabsContent>
         </Tabs>
 
