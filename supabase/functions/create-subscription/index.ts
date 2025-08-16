@@ -23,6 +23,12 @@ serve(async (req) => {
       }
     )
 
+    // Service role client for database operations that bypass RLS
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
     const { data: { user } } = await supabaseClient.auth.getUser()
     
     if (!user) {
@@ -210,7 +216,7 @@ serve(async (req) => {
     }
 
     const paymentData = await paymentResponse.json()
-    console.log('[create-subscription] Cobrança criada no Asaas:', paymentData.id)
+    console.log('[create-subscription] Cobrança criada no Asaas:', paymentData.id, 'Status:', paymentData.status)
 
     // Salvar token do cartão se fornecido
     if (paymentData.creditCard?.creditCardToken) {
@@ -221,15 +227,30 @@ serve(async (req) => {
       console.log('[create-subscription] Token do cartão salvo')
     }
 
+    // Mapear status do Asaas para determinar se está pago
+    const paidStatuses = ['CONFIRMED', 'RECEIVED', 'RECEIVED_IN_CASH', 'RECEIVED_IN_CHECK']
+    const isPaid = paidStatuses.includes(paymentData.status)
+    const subscriptionStatus = isPaid ? 'active' : 'pending'
+    
+    console.log('[create-subscription] Status do pagamento mapeado:', paymentData.status, '-> isPaid:', isPaid, '-> subscriptionStatus:', subscriptionStatus)
+
+    // Calcular próxima cobrança baseada no período do plano
+    const proximaCobranca = new Date(today)
+    if (plan.periodo === 'yearly') {
+      proximaCobranca.setFullYear(today.getFullYear() + 1)
+    } else {
+      proximaCobranca.setMonth(today.getMonth() + 1)
+    }
+
     // Criar assinatura no banco
-    const { data: subscription, error: subscriptionError } = await supabaseClient
+    const { data: subscription, error: subscriptionError } = await supabaseAdmin
       .from('assinaturas')
       .insert({
         cliente_id: cliente.id,
         plano_id: planId,
-        status: paymentData.status === 'CONFIRMED' ? 'active' : 'pending',
+        status: subscriptionStatus,
         data_inicio: today.toISOString().split('T')[0],
-        proxima_cobranca: nextDueDate.toISOString().split('T')[0],
+        proxima_cobranca: proximaCobranca.toISOString().split('T')[0],
         asaas_subscription_id: null, // Não criamos assinatura recorrente ainda
       })
       .select()
@@ -246,17 +267,54 @@ serve(async (req) => {
       )
     }
 
-    // Atualizar limites do usuário baseado no plano
-    await supabaseClient
-      .from('usuario_limites')
-      .upsert({
-        user_id: user.id,
+    console.log('[create-subscription] Assinatura criada:', subscription.id, 'Status:', subscription.status)
+
+    // Criar registro na tabela de cobranças
+    const { data: cobranca, error: cobrancaError } = await supabaseAdmin
+      .from('cobrancas')
+      .insert({
+        cliente_id: cliente.id,
         assinatura_id: subscription.id,
-        max_assistentes: plan.max_assistentes,
-        max_instancias_whatsapp: plan.max_instancias_whatsapp,
-        max_conversas_mes: plan.max_conversas_mes,
-        max_agendamentos_mes: plan.max_agendamentos_mes,
+        valor: plan.preco,
+        status: isPaid ? 'paid' : 'pending',
+        descricao: `Ativação do plano ${plan.nome}`,
+        data_vencimento: paymentData.dueDate || today.toISOString().split('T')[0],
+        data_pagamento: isPaid ? (paymentData.paymentDate || paymentData.clientPaymentDate || today.toISOString().split('T')[0]) : null,
+        forma_pagamento: 'CREDIT_CARD',
+        link_pagamento: paymentData.invoiceUrl,
+        asaas_payment_id: paymentData.id
       })
+      .select()
+      .single()
+
+    if (cobrancaError) {
+      console.error('[create-subscription] Erro ao criar cobrança:', cobrancaError)
+      // Não retornamos erro aqui pois a assinatura já foi criada
+    } else {
+      console.log('[create-subscription] Cobrança criada:', cobranca.id, 'Status:', cobranca.status)
+    }
+
+    // Atualizar limites do usuário APENAS se o pagamento foi confirmado
+    if (isPaid && subscriptionStatus === 'active') {
+      const { error: limitesError } = await supabaseAdmin
+        .from('usuario_limites')
+        .upsert({
+          user_id: user.id,
+          assinatura_id: subscription.id,
+          max_assistentes: plan.max_assistentes,
+          max_instancias_whatsapp: plan.max_instancias_whatsapp,
+          max_conversas_mes: plan.max_conversas_mes,
+          max_agendamentos_mes: plan.max_agendamentos_mes,
+        }, { onConflict: 'user_id' })
+
+      if (limitesError) {
+        console.error('[create-subscription] Erro ao atualizar limites:', limitesError)
+      } else {
+        console.log('[create-subscription] Limites atualizados para o plano:', plan.nome)
+      }
+    } else {
+      console.log('[create-subscription] Limites não atualizados - pagamento ainda pendente')
+    }
 
     console.log('[create-subscription] Assinatura criada com sucesso:', subscription.id)
 
@@ -268,7 +326,12 @@ serve(async (req) => {
           id: paymentData.id,
           status: paymentData.status,
           invoiceUrl: paymentData.invoiceUrl
-        }
+        },
+        cobranca: cobranca ? {
+          id: cobranca.id,
+          status: cobranca.status,
+          valor: cobranca.valor
+        } : null
       }),
       { 
         status: 200, 
