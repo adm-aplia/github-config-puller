@@ -44,6 +44,7 @@ import { AppointmentViewModal } from "@/components/appointments/appointment-view
 import { AppointmentEditModal } from "@/components/appointments/appointment-edit-modal"
 import { AppointmentRescheduleModal } from "@/components/appointments/appointment-reschedule-modal"
 import { AppointmentFiltersModal, AppointmentFilters } from "@/components/appointments/appointment-filters-modal"
+import { AppointmentCreateModal } from "@/components/appointments/appointment-create-modal"
 import { cn } from "@/lib/utils"
 
 const getStatusBadge = (status: string) => {
@@ -98,6 +99,7 @@ export default function AgendamentosPage() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false)
   const [filtersModalOpen, setFiltersModalOpen] = useState(false)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   
   // Filters state
@@ -385,7 +387,11 @@ export default function AgendamentosPage() {
                 <Filter className="h-4 w-4" />
                 Filtrar
               </Button>
-              <Button size="sm" className="flex items-center gap-2 bg-secondary hover:bg-secondary/90">
+              <Button 
+                size="sm" 
+                className="flex items-center gap-2 bg-secondary hover:bg-secondary/90"
+                onClick={() => setCreateModalOpen(true)}
+              >
                 <Plus className="h-4 w-4" />
                 Novo Agendamento
               </Button>
@@ -789,6 +795,12 @@ export default function AgendamentosPage() {
         filters={filters}
         onFiltersChange={setFilters}
         onApplyFilters={applyFilters}
+      />
+
+      <AppointmentCreateModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        onSuccess={fetchAppointments}
       />
     </DashboardLayout>
   )
