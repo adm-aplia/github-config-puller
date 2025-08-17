@@ -108,6 +108,17 @@ export const useProfessionalProfiles = () => {
 
       setProfiles(prev => [data, ...prev]);
       
+      // Send profile data to n8n webhook
+      try {
+        await supabase.functions.invoke('profile-webhook', {
+          body: { profileData: data }
+        });
+        console.log('Profile data sent to webhook successfully');
+      } catch (webhookError) {
+        console.error('Failed to send profile data to webhook:', webhookError);
+        // Don't fail the profile creation if webhook fails
+      }
+      
       toast({
         title: 'Perfil criado',
         description: 'Perfil profissional criado com sucesso.',
