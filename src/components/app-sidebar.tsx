@@ -95,7 +95,7 @@ export function AppSidebar() {
         const { data: profiles } = await supabase
           .from('profiles')
           .select('name')
-          .eq('id', user.id)
+          .eq('user_id', user.id)
           .limit(1)
         
         if (profiles && profiles.length > 0 && profiles[0].name) {
