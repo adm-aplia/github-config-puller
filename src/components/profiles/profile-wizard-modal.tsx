@@ -24,6 +24,243 @@ import {
 } from "lucide-react";
 import { ProfessionalProfile } from "@/hooks/use-professional-profiles";
 
+// Helper component outside main component to prevent re-mounting
+const StepIconWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">{children}</div>
+);
+
+// Separate step components to prevent re-mounting
+const StepBasics = React.memo<{
+  formData: Partial<ProfessionalProfile>;
+  setField: (field: keyof ProfessionalProfile, value: string) => void;
+}>(({ formData, setField }) => (
+  <div className="space-y-6">
+    <div className="flex items-center gap-3 mb-2">
+      <StepIconWrapper>
+        <User className="h-5 w-5" />
+      </StepIconWrapper>
+      <div>
+        <h3 className="text-lg font-semibold">Informações Básicas</h3>
+        <p className="text-sm text-muted-foreground">Dados pessoais e profissionais</p>
+      </div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="fullname">Nome Completo <span className="text-destructive">*</span></Label>
+        <Input id="fullname" value={formData.fullname || ""} onChange={(e) => setField("fullname", e.target.value)} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="specialty">Especialidade <span className="text-destructive">*</span></Label>
+        <Input id="specialty" value={formData.specialty || ""} onChange={(e) => setField("specialty", e.target.value)} required />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="professionalid">Registro Profissional</Label>
+        <Input id="professionalid" value={formData.professionalid || ""} onChange={(e) => setField("professionalid", e.target.value)} placeholder="CRM, CRO, etc." />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="phonenumber">Telefone</Label>
+        <Input id="phonenumber" value={formData.phonenumber || ""} onChange={(e) => setField("phonenumber", e.target.value)} placeholder="(11) 99999-9999" />
+      </div>
+    </div>
+    <div className="grid grid-cols-1 gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="email">E-mail</Label>
+        <Input id="email" value={formData.email || ""} onChange={(e) => setField("email", e.target.value)} placeholder="seu@email.com" />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="education">Formação Acadêmica</Label>
+        <Textarea id="education" value={formData.education || ""} onChange={(e) => setField("education", e.target.value)} placeholder="Descreva sua formação, residência, especializações..." />
+      </div>
+    </div>
+  </div>
+));
+StepBasics.displayName = "StepBasics";
+
+const StepLocation = React.memo<{
+  formData: Partial<ProfessionalProfile>;
+  setField: (field: keyof ProfessionalProfile, value: string) => void;
+}>(({ formData, setField }) => (
+  <div className="space-y-6">
+    <div className="flex items-center gap-3 mb-2">
+      <StepIconWrapper>
+        <MapPin className="h-5 w-5" />
+      </StepIconWrapper>
+      <div>
+        <h3 className="text-lg font-semibold">Localização e Atendimento</h3>
+        <p className="text-sm text-muted-foreground">Onde e quando você atende</p>
+      </div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="locations">Locais de Atendimento</Label>
+        <Textarea id="locations" value={formData.locations || ""} onChange={(e) => setField("locations", e.target.value)} rows={4} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="workinghours">Horários de Funcionamento</Label>
+        <Textarea id="workinghours" value={formData.workinghours || ""} onChange={(e) => setField("workinghours", e.target.value)} rows={4} />
+      </div>
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="procedures">Procedimentos Realizados</Label>
+        <Textarea id="procedures" value={formData.procedures || ""} onChange={(e) => setField("procedures", e.target.value)} rows={4} />
+      </div>
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="communicationchannels">Canais de Comunicação</Label>
+        <Input id="communicationchannels" value={formData.communicationchannels || ""} onChange={(e) => setField("communicationchannels", e.target.value)} placeholder="Telefone, WhatsApp, E-mail..." />
+      </div>
+    </div>
+  </div>
+));
+StepLocation.displayName = "StepLocation";
+
+const StepPayment = React.memo<{
+  formData: Partial<ProfessionalProfile>;
+  setField: (field: keyof ProfessionalProfile, value: string) => void;
+}>(({ formData, setField }) => (
+  <div className="space-y-6">
+    <div className="flex items-center gap-3 mb-2">
+      <StepIconWrapper>
+        <CreditCard className="h-5 w-5" />
+      </StepIconWrapper>
+      <div>
+        <h3 className="text-lg font-semibold">Planos e Pagamento</h3>
+        <p className="text-sm text-muted-foreground">Cobranças e convênios</p>
+      </div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="healthinsurance">Convênios Aceitos</Label>
+        <Textarea id="healthinsurance" value={formData.healthinsurance || ""} onChange={(e) => setField("healthinsurance", e.target.value)} rows={3} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="paymentmethods">Formas de Pagamento</Label>
+        <Input id="paymentmethods" value={formData.paymentmethods || ""} onChange={(e) => setField("paymentmethods", e.target.value)} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="consultationfees">Valores de Consulta</Label>
+        <Input id="consultationfees" value={formData.consultationfees || ""} onChange={(e) => setField("consultationfees", e.target.value)} />
+      </div>
+    </div>
+  </div>
+));
+StepPayment.displayName = "StepPayment";
+
+const StepScheduling = React.memo<{
+  formData: Partial<ProfessionalProfile>;
+  setField: (field: keyof ProfessionalProfile, value: string) => void;
+}>(({ formData, setField }) => (
+  <div className="space-y-6">
+    <div className="flex items-center gap-3 mb-2">
+      <StepIconWrapper>
+        <Calendar className="h-5 w-5" />
+      </StepIconWrapper>
+      <div>
+        <h3 className="text-lg font-semibold">Agendamento e Políticas</h3>
+        <p className="text-sm text-muted-foreground">Regras de atendimento</p>
+      </div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="consultationduration">Duração da Consulta</Label>
+        <Input id="consultationduration" value={formData.consultationduration || ""} onChange={(e) => setField("consultationduration", e.target.value)} placeholder="Ex: 30 minutos" />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="timebetweenconsultations">Intervalo entre Consultas</Label>
+        <Input id="timebetweenconsultations" value={formData.timebetweenconsultations || ""} onChange={(e) => setField("timebetweenconsultations", e.target.value)} placeholder="Ex: 15 minutos" />
+      </div>
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="cancellationpolicy">Política de Cancelamento</Label>
+        <Textarea id="cancellationpolicy" value={formData.cancellationpolicy || ""} onChange={(e) => setField("cancellationpolicy", e.target.value)} rows={3} />
+      </div>
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="reschedulingpolicy">Política de Reagendamento</Label>
+        <Textarea id="reschedulingpolicy" value={formData.reschedulingpolicy || ""} onChange={(e) => setField("reschedulingpolicy", e.target.value)} rows={3} />
+      </div>
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="appointmentconditions">Condições para Agendamento</Label>
+        <Textarea id="appointmentconditions" value={formData.appointmentconditions || ""} onChange={(e) => setField("appointmentconditions", e.target.value)} rows={3} />
+      </div>
+    </div>
+  </div>
+));
+StepScheduling.displayName = "StepScheduling";
+
+const StepOnline = React.memo<{
+  formData: Partial<ProfessionalProfile>;
+  setField: (field: keyof ProfessionalProfile, value: string) => void;
+}>(({ formData, setField }) => (
+  <div className="space-y-6">
+    <div className="flex items-center gap-3 mb-2">
+      <StepIconWrapper>
+        <FileText className="h-5 w-5" />
+      </StepIconWrapper>
+      <div>
+        <h3 className="text-lg font-semibold">Consultas Online</h3>
+        <p className="text-sm text-muted-foreground">Requisitos e informações</p>
+      </div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="onlineconsultations">Consultas Online</Label>
+        <Textarea id="onlineconsultations" value={formData.onlineconsultations || ""} onChange={(e) => setField("onlineconsultations", e.target.value)} rows={3} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="preappointmentinfo">Informações Pré-Atendimento</Label>
+        <Textarea id="preappointmentinfo" value={formData.preappointmentinfo || ""} onChange={(e) => setField("preappointmentinfo", e.target.value)} rows={3} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="requireddocuments">Documentos Necessários</Label>
+        <Textarea id="requireddocuments" value={formData.requireddocuments || ""} onChange={(e) => setField("requireddocuments", e.target.value)} rows={3} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="requiredpatientinfo">Informações do Paciente</Label>
+        <Textarea id="requiredpatientinfo" value={formData.requiredpatientinfo || ""} onChange={(e) => setField("requiredpatientinfo", e.target.value)} rows={3} />
+      </div>
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="medicalhistoryrequirements">Requisitos de Histórico Médico</Label>
+        <Textarea id="medicalhistoryrequirements" value={formData.medicalhistoryrequirements || ""} onChange={(e) => setField("medicalhistoryrequirements", e.target.value)} rows={3} />
+      </div>
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="agerequirements">Restrições de Idade</Label>
+        <Input id="agerequirements" value={formData.agerequirements || ""} onChange={(e) => setField("agerequirements", e.target.value)} placeholder="Ex: Atendo a partir de 12 anos" />
+      </div>
+    </div>
+  </div>
+));
+StepOnline.displayName = "StepOnline";
+
+const StepFinal = React.memo<{
+  formData: Partial<ProfessionalProfile>;
+  setField: (field: keyof ProfessionalProfile, value: string) => void;
+  setFormData: React.Dispatch<React.SetStateAction<Partial<ProfessionalProfile>>>;
+}>(({ formData, setField, setFormData }) => (
+  <div className="space-y-6">
+    <div className="flex items-center gap-3 mb-2">
+      <StepIconWrapper>
+        <Settings className="h-5 w-5" />
+      </StepIconWrapper>
+      <div>
+        <h3 className="text-lg font-semibold">Configurações Finais</h3>
+        <p className="text-sm text-muted-foreground">Preferências e observações</p>
+      </div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="reminderpreferences">Preferências de Lembrete</Label>
+        <Input id="reminderpreferences" value={formData.reminderpreferences || ""} onChange={(e) => setField("reminderpreferences", e.target.value)} placeholder="Ex: 24h e 1h antes" />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="avatar_url">URL do Avatar (opcional)</Label>
+        <Input id="avatar_url" value={(formData as any).avatar_url || ""} onChange={(e) => setFormData((prev) => ({ ...prev, avatar_url: e.target.value }))} placeholder="https://..." />
+      </div>
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="additionalinfo">Informações Adicionais</Label>
+        <Textarea id="additionalinfo" value={formData.additionalinfo || ""} onChange={(e) => setField("additionalinfo", e.target.value)} rows={4} />
+      </div>
+    </div>
+  </div>
+));
+StepFinal.displayName = "StepFinal";
+
 interface ProfileWizardModalProps {
   profile?: ProfessionalProfile | null;
   isOpen: boolean;
@@ -109,219 +346,24 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
     if (ok) onClose();
   }, [formData, onSubmit, onClose]);
 
-  const StepIconWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">{children}</div>
-  );
-
-  const CurrentStepContent = () => {
+  // Render current step content using memoized components
+  const renderCurrentStepContent = () => {
     const key = steps[activeStepIndex].key as StepKey;
     switch (key) {
       case "basics":
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-              <StepIconWrapper>
-                <User className="h-5 w-5" />
-              </StepIconWrapper>
-              <div>
-                <h3 className="text-lg font-semibold">Informações Básicas</h3>
-                <p className="text-sm text-muted-foreground">Dados pessoais e profissionais</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullname">Nome Completo <span className="text-destructive">*</span></Label>
-                <Input id="fullname" value={formData.fullname || ""} onChange={(e) => setField("fullname", e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="specialty">Especialidade <span className="text-destructive">*</span></Label>
-                <Input id="specialty" value={formData.specialty || ""} onChange={(e) => setField("specialty", e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="professionalid">Registro Profissional</Label>
-                <Input id="professionalid" value={formData.professionalid || ""} onChange={(e) => setField("professionalid", e.target.value)} placeholder="CRM, CRO, etc." />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phonenumber">Telefone</Label>
-                <Input id="phonenumber" value={formData.phonenumber || ""} onChange={(e) => setField("phonenumber", e.target.value)} placeholder="(11) 99999-9999" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input id="email" value={formData.email || ""} onChange={(e) => setField("email", e.target.value)} placeholder="seu@email.com" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="education">Formação Acadêmica</Label>
-                <Textarea id="education" value={formData.education || ""} onChange={(e) => setField("education", e.target.value)} placeholder="Descreva sua formação, residência, especializações..." />
-              </div>
-            </div>
-          </div>
-        );
+        return <StepBasics formData={formData} setField={setField} />;
       case "location":
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-              <StepIconWrapper>
-                <MapPin className="h-5 w-5" />
-              </StepIconWrapper>
-              <div>
-                <h3 className="text-lg font-semibold">Localização e Atendimento</h3>
-                <p className="text-sm text-muted-foreground">Onde e quando você atende</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="locations">Locais de Atendimento</Label>
-                <Textarea id="locations" value={formData.locations || ""} onChange={(e) => setField("locations", e.target.value)} rows={4} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="workinghours">Horários de Funcionamento</Label>
-                <Textarea id="workinghours" value={formData.workinghours || ""} onChange={(e) => setField("workinghours", e.target.value)} rows={4} />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="procedures">Procedimentos Realizados</Label>
-                <Textarea id="procedures" value={formData.procedures || ""} onChange={(e) => setField("procedures", e.target.value)} rows={4} />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="communicationchannels">Canais de Comunicação</Label>
-                <Input id="communicationchannels" value={formData.communicationchannels || ""} onChange={(e) => setField("communicationchannels", e.target.value)} placeholder="Telefone, WhatsApp, E-mail..." />
-              </div>
-            </div>
-          </div>
-        );
+        return <StepLocation formData={formData} setField={setField} />;
       case "payment":
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-              <StepIconWrapper>
-                <CreditCard className="h-5 w-5" />
-              </StepIconWrapper>
-              <div>
-                <h3 className="text-lg font-semibold">Planos e Pagamento</h3>
-                <p className="text-sm text-muted-foreground">Cobranças e convênios</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="healthinsurance">Convênios Aceitos</Label>
-                <Textarea id="healthinsurance" value={formData.healthinsurance || ""} onChange={(e) => setField("healthinsurance", e.target.value)} rows={3} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="paymentmethods">Formas de Pagamento</Label>
-                <Input id="paymentmethods" value={formData.paymentmethods || ""} onChange={(e) => setField("paymentmethods", e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="consultationfees">Valores de Consulta</Label>
-                <Input id="consultationfees" value={formData.consultationfees || ""} onChange={(e) => setField("consultationfees", e.target.value)} />
-              </div>
-            </div>
-          </div>
-        );
+        return <StepPayment formData={formData} setField={setField} />;
       case "scheduling":
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-              <StepIconWrapper>
-                <Calendar className="h-5 w-5" />
-              </StepIconWrapper>
-              <div>
-                <h3 className="text-lg font-semibold">Agendamento e Políticas</h3>
-                <p className="text-sm text-muted-foreground">Regras de atendimento</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="consultationduration">Duração da Consulta</Label>
-                <Input id="consultationduration" value={formData.consultationduration || ""} onChange={(e) => setField("consultationduration", e.target.value)} placeholder="Ex: 30 minutos" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="timebetweenconsultations">Intervalo entre Consultas</Label>
-                <Input id="timebetweenconsultations" value={formData.timebetweenconsultations || ""} onChange={(e) => setField("timebetweenconsultations", e.target.value)} placeholder="Ex: 15 minutos" />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="cancellationpolicy">Política de Cancelamento</Label>
-                <Textarea id="cancellationpolicy" value={formData.cancellationpolicy || ""} onChange={(e) => setField("cancellationpolicy", e.target.value)} rows={3} />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="reschedulingpolicy">Política de Reagendamento</Label>
-                <Textarea id="reschedulingpolicy" value={formData.reschedulingpolicy || ""} onChange={(e) => setField("reschedulingpolicy", e.target.value)} rows={3} />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="appointmentconditions">Condições para Agendamento</Label>
-                <Textarea id="appointmentconditions" value={formData.appointmentconditions || ""} onChange={(e) => setField("appointmentconditions", e.target.value)} rows={3} />
-              </div>
-            </div>
-          </div>
-        );
+        return <StepScheduling formData={formData} setField={setField} />;
       case "online":
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-              <StepIconWrapper>
-                <FileText className="h-5 w-5" />
-              </StepIconWrapper>
-              <div>
-                <h3 className="text-lg font-semibold">Consultas Online</h3>
-                <p className="text-sm text-muted-foreground">Requisitos e informações</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="onlineconsultations">Consultas Online</Label>
-                <Textarea id="onlineconsultations" value={formData.onlineconsultations || ""} onChange={(e) => setField("onlineconsultations", e.target.value)} rows={3} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="preappointmentinfo">Informações Pré-Atendimento</Label>
-                <Textarea id="preappointmentinfo" value={formData.preappointmentinfo || ""} onChange={(e) => setField("preappointmentinfo", e.target.value)} rows={3} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="requireddocuments">Documentos Necessários</Label>
-                <Textarea id="requireddocuments" value={formData.requireddocuments || ""} onChange={(e) => setField("requireddocuments", e.target.value)} rows={3} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="requiredpatientinfo">Informações do Paciente</Label>
-                <Textarea id="requiredpatientinfo" value={formData.requiredpatientinfo || ""} onChange={(e) => setField("requiredpatientinfo", e.target.value)} rows={3} />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="medicalhistoryrequirements">Requisitos de Histórico Médico</Label>
-                <Textarea id="medicalhistoryrequirements" value={formData.medicalhistoryrequirements || ""} onChange={(e) => setField("medicalhistoryrequirements", e.target.value)} rows={3} />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="agerequirements">Restrições de Idade</Label>
-                <Input id="agerequirements" value={formData.agerequirements || ""} onChange={(e) => setField("agerequirements", e.target.value)} placeholder="Ex: Atendo a partir de 12 anos" />
-              </div>
-            </div>
-          </div>
-        );
+        return <StepOnline formData={formData} setField={setField} />;
       case "final":
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-2">
-              <StepIconWrapper>
-                <Settings className="h-5 w-5" />
-              </StepIconWrapper>
-              <div>
-                <h3 className="text-lg font-semibold">Configurações Finais</h3>
-                <p className="text-sm text-muted-foreground">Preferências e observações</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="reminderpreferences">Preferências de Lembrete</Label>
-                <Input id="reminderpreferences" value={formData.reminderpreferences || ""} onChange={(e) => setField("reminderpreferences", e.target.value)} placeholder="Ex: 24h e 1h antes" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="avatar_url">URL do Avatar (opcional)</Label>
-                <Input id="avatar_url" value={(formData as any).avatar_url || ""} onChange={(e) => setFormData((prev) => ({ ...prev, avatar_url: e.target.value }))} placeholder="https://..." />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="additionalinfo">Informações Adicionais</Label>
-                <Textarea id="additionalinfo" value={formData.additionalinfo || ""} onChange={(e) => setField("additionalinfo", e.target.value)} rows={4} />
-              </div>
-            </div>
-          </div>
-        );
+        return <StepFinal formData={formData} setField={setField} setFormData={setFormData} />;
+      default:
+        return null;
     }
   };
 
@@ -369,6 +411,7 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                     return (
                       <button
                         key={s.key}
+                        type="button"
                         disabled={disabled}
                         onClick={() => setActiveStepIndex(idx)}
                         className={
@@ -395,25 +438,25 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
             <Card className="mb-6">
               <CardContent className="p-6">
                 <div className="space-y-6">
-                  <CurrentStepContent />
+                  {renderCurrentStepContent()}
                 </div>
               </CardContent>
             </Card>
 
             {/* Footer actions */}
             <div className="flex items-center justify-between">
-              <Button variant="outline" onClick={goPrev} disabled={activeStepIndex === 0} className="flex items-center gap-2">
+              <Button type="button" variant="outline" onClick={goPrev} disabled={activeStepIndex === 0} className="flex items-center gap-2">
                 <ChevronLeft className="h-4 w-4" />
                 Anterior
               </Button>
               <div className="flex items-center gap-2">
                 {activeStepIndex < totalSteps - 1 ? (
-                  <Button onClick={goNext} className="flex items-center gap-2">
+                  <Button type="button" onClick={goNext} className="flex items-center gap-2">
                     Próximo
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 ) : (
-                  <Button onClick={handleFinish} disabled={loading} className="flex items-center gap-2">
+                  <Button type="button" onClick={handleFinish} disabled={loading} className="flex items-center gap-2">
                     {loading ? "Salvando..." : profile ? "Atualizar" : "Salvar"}
                   </Button>
                 )}
