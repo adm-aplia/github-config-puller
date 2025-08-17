@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -51,34 +51,43 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState<Partial<ProfessionalProfile>>({
-    fullname: profile?.fullname || "",
-    specialty: profile?.specialty || "",
-    professionalid: profile?.professionalid || "",
-    phonenumber: profile?.phonenumber || "",
-    email: profile?.email || "",
-    education: profile?.education || "",
-    locations: profile?.locations || "",
-    workinghours: profile?.workinghours || "",
-    procedures: profile?.procedures || "",
-    healthinsurance: profile?.healthinsurance || "",
-    paymentmethods: profile?.paymentmethods || "",
-    consultationfees: profile?.consultationfees || "",
-    consultationduration: profile?.consultationduration || "",
-    timebetweenconsultations: profile?.timebetweenconsultations || "",
-    cancellationpolicy: profile?.cancellationpolicy || "",
-    reschedulingpolicy: profile?.reschedulingpolicy || "",
-    onlineconsultations: profile?.onlineconsultations || "",
-    reminderpreferences: profile?.reminderpreferences || "",
-    requiredpatientinfo: profile?.requiredpatientinfo || "",
-    appointmentconditions: profile?.appointmentconditions || "",
-    medicalhistoryrequirements: profile?.medicalhistoryrequirements || "",
-    agerequirements: profile?.agerequirements || "",
-    communicationchannels: profile?.communicationchannels || "",
-    preappointmentinfo: profile?.preappointmentinfo || "",
-    requireddocuments: profile?.requireddocuments || "",
-    additionalinfo: profile?.additionalinfo || "",
-  });
+  // Initialize empty form data first
+  const [formData, setFormData] = useState<Partial<ProfessionalProfile>>({});
+
+  // Initialize form data when modal opens or profile changes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        fullname: profile?.fullname || "",
+        specialty: profile?.specialty || "",
+        professionalid: profile?.professionalid || "",
+        phonenumber: profile?.phonenumber || "",
+        email: profile?.email || "",
+        education: profile?.education || "",
+        locations: profile?.locations || "",
+        workinghours: profile?.workinghours || "",
+        procedures: profile?.procedures || "",
+        healthinsurance: profile?.healthinsurance || "",
+        paymentmethods: profile?.paymentmethods || "",
+        consultationfees: profile?.consultationfees || "",
+        consultationduration: profile?.consultationduration || "",
+        timebetweenconsultations: profile?.timebetweenconsultations || "",
+        cancellationpolicy: profile?.cancellationpolicy || "",
+        reschedulingpolicy: profile?.reschedulingpolicy || "",
+        onlineconsultations: profile?.onlineconsultations || "",
+        reminderpreferences: profile?.reminderpreferences || "",
+        requiredpatientinfo: profile?.requiredpatientinfo || "",
+        appointmentconditions: profile?.appointmentconditions || "",
+        medicalhistoryrequirements: profile?.medicalhistoryrequirements || "",
+        agerequirements: profile?.agerequirements || "",
+        communicationchannels: profile?.communicationchannels || "",
+        preappointmentinfo: profile?.preappointmentinfo || "",
+        requireddocuments: profile?.requireddocuments || "",
+        additionalinfo: profile?.additionalinfo || "",
+      });
+      setActiveStepIndex(0);
+    }
+  }, [isOpen, profile]);
 
   const totalSteps = steps.length;
   const percent = useMemo(
@@ -86,19 +95,19 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
     [activeStepIndex]
   );
 
-  const setField = (field: keyof typeof formData, value: string) => {
+  const setField = useCallback((field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
   const goNext = () => setActiveStepIndex((i) => Math.min(i + 1, totalSteps - 1));
   const goPrev = () => setActiveStepIndex((i) => Math.max(i - 1, 0));
 
-  const handleFinish = async () => {
+  const handleFinish = useCallback(async () => {
     setLoading(true);
     const ok = await onSubmit(formData);
     setLoading(false);
     if (ok) onClose();
-  };
+  }, [formData, onSubmit, onClose]);
 
   const StepIconWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">{children}</div>
@@ -316,8 +325,14 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
     }
   };
 
+  const handleOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  }, [onClose]);
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-xl font-semibold tracking-tight">
