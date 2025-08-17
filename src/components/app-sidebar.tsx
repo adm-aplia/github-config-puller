@@ -85,12 +85,36 @@ export function AppSidebar() {
   }, [])
 
   useEffect(() => {
-    // Buscar dados do usuário
+    // Buscar dados do usuário e do perfil
     const getUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         setUserEmail(user.email || '')
-        setUserName(user.email?.split('@')[0] || 'Usuário')
+        
+        // Tentar buscar o nome do perfil básico primeiro
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', user.id)
+          .limit(1)
+        
+        if (profiles && profiles.length > 0 && profiles[0].name) {
+          setUserName(profiles[0].name)
+        } else {
+          // Se não tem perfil básico, tentar buscar de professional_profiles
+          const { data: professionalProfiles } = await supabase
+            .from('professional_profiles')
+            .select('fullname')
+            .eq('user_id', user.id)
+            .limit(1)
+          
+          if (professionalProfiles && professionalProfiles.length > 0 && professionalProfiles[0].fullname) {
+            setUserName(professionalProfiles[0].fullname)
+          } else {
+            // Fallback para o email sem @ como antes
+            setUserName(user.email?.split('@')[0] || 'Usuário')
+          }
+        }
       }
     }
     
