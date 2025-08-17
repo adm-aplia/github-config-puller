@@ -4,6 +4,7 @@
    - Habilita webhook explicitamente
    - Atualiza o "nome bonito" no painel
    - Retorna dados úteis para salvar no banco
+   - Implementa desconexão de instâncias
 */
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
@@ -45,7 +46,7 @@ serve(async (req: Request) => {
 
     const BASE_URL = Deno.env.get("EVOLUTION_API_URL");
     const API_KEY = Deno.env.get("EVOLUTION_API_KEY");
-    const WEBHOOK_URL = "https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/aplia";
+    const WEBHOOK_URL = "https://vmqxzkukyfxxgxekkdem.functions.supabase.co/evolution-webhook?token=aplia-webhook-2024";
 
     if (!BASE_URL || !API_KEY) {
       return new Response(JSON.stringify({ error: "Missing Evolution API config" }), {
@@ -74,6 +75,31 @@ serve(async (req: Request) => {
       });
     }
 
+    if (action === "disconnect_instance") {
+      if (!providedInstanceName) {
+        return new Response(JSON.stringify({ error: "Missing instanceName" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      console.log("[evolution-manager] Disconnecting instance:", providedInstanceName);
+      const logoutRes = await fetch(`${BASE_URL}/instance/logout/${providedInstanceName}`, {
+        method: "DELETE",
+        headers: { "apikey": API_KEY },
+      });
+      
+      console.log("[evolution-manager] logout status:", logoutRes.status);
+      
+      return new Response(JSON.stringify({ 
+        success: logoutRes.ok,
+        status: logoutRes.status 
+      }), {
+        status: logoutRes.ok ? 200 : 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action !== "create_instance") {
       return new Response(JSON.stringify({ error: "Unsupported action" }), {
         status: 400,
@@ -85,7 +111,7 @@ serve(async (req: Request) => {
     const { instanceName, prettyName } = slugifyWithRandom(baseName);
     console.log("[evolution-manager] generated instance:", instanceName, "pretty:", prettyName);
 
-    // 1) Create instance (v2 camelCase)
+    // 1) Create instance (v2 camelCase) with enhanced webhook events
     const createBody = {
       instanceName,
       qrcode: true,
@@ -101,7 +127,7 @@ serve(async (req: Request) => {
         url: WEBHOOK_URL,
         byEvents: false,
         base64: true,
-        events: ["MESSAGES_UPSERT"],
+        events: ["CONNECTION_UPDATE", "QRCODE_UPDATED", "MESSAGES_UPSERT"],
       },
     };
 
@@ -143,7 +169,7 @@ serve(async (req: Request) => {
       url: WEBHOOK_URL,
       webhookByEvents: false,
       webhookBase64: true,
-      events: ["MESSAGES_UPSERT"],
+      events: ["CONNECTION_UPDATE", "QRCODE_UPDATED", "MESSAGES_UPSERT"],
     };
 
     let webhookOk = false;
@@ -165,7 +191,7 @@ serve(async (req: Request) => {
         url: WEBHOOK_URL,
         byEvents: false,
         base64: true,
-        events: ["MESSAGES_UPSERT"],
+        events: ["CONNECTION_UPDATE", "QRCODE_UPDATED", "MESSAGES_UPSERT"],
       } as Record<string, unknown>;
       const retryRes = await fetch(`${BASE_URL}/webhook/set/${instanceName}`, {
         method: "POST",

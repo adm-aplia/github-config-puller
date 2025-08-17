@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,8 @@ export function CreateInstanceModal({ open, onOpenChange, onSubmit }: CreateInst
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!displayName.trim()) return;
+    if (!displayName.trim() || submitting) return;
+    
     try {
       setSubmitting(true);
       await onSubmit(displayName.trim());
@@ -27,8 +29,17 @@ export function CreateInstanceModal({ open, onOpenChange, onSubmit }: CreateInst
     }
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!submitting) {
+      onOpenChange(newOpen);
+      if (!newOpen) {
+        setDisplayName("");
+      }
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <div className="p-6 pb-0">
           <DialogHeader>
@@ -47,15 +58,21 @@ export function CreateInstanceModal({ open, onOpenChange, onSubmit }: CreateInst
                 id="displayName"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
+                disabled={submitting}
                 required
               />
             </div>
 
             <div className="flex items-center justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => handleOpenChange(false)}
+                disabled={submitting}
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={submitting}>
+              <Button type="submit" disabled={submitting || !displayName.trim()}>
                 {submitting ? "Criando..." : "Criar"}
               </Button>
             </div>

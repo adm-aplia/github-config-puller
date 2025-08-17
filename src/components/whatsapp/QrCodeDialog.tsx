@@ -42,20 +42,10 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanc
 
   useEffect(() => {
     if (!open || !instanceId) return;
+    
+    // More frequent polling when QR dialog is open (every 5 seconds)
     const interval = setInterval(async () => {
       try {
-        // Try to refresh QR via edge function if we have the slug
-        if (instanceSlug) {
-          const evoRes = await supabase.functions.invoke('evolution-manager', {
-            body: { action: 'refresh_qr', instanceName: instanceSlug },
-          });
-          const newQr = (evoRes.data as any)?.qrCode as string | null;
-          if (newQr) {
-            const dataUrl = newQr.startsWith('data:image') ? newQr : await QRCode.toDataURL(newQr);
-            setQrImage(dataUrl);
-          }
-        }
-
         // Check DB for status and potential QR updates
         const { data } = await supabase
           .from('whatsapp_instances')
@@ -63,22 +53,23 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanc
           .eq('id', instanceId)
           .single();
 
-        if (data?.qr_code) {
+        if (data?.qr_code && data.qr_code !== qrCode) {
           const dataUrl = data.qr_code.startsWith('data:image') ? data.qr_code : await QRCode.toDataURL(data.qr_code);
           setQrImage(dataUrl);
         }
 
         if (data?.status === 'connected') {
+          console.log('[QrCodeDialog] Instance connected, closing modal');
           onConnected?.();
           onOpenChange(false);
         }
       } catch (e) {
-        console.error('[QrCodeDialog] refresh error', e);
+        console.error('[QrCodeDialog] polling error', e);
       }
-    }, 30000);
+    }, 5000); // 5 seconds when dialog is open
 
     return () => clearInterval(interval);
-  }, [open, instanceId, instanceSlug]);
+  }, [open, instanceId, instanceSlug, qrCode, onConnected, onOpenChange]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -97,10 +88,15 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanc
               className="w-64 h-64 border rounded bg-white"
             />
           ) : (
-            <div className="text-sm text-muted-foreground">
-              QR Code não disponível no momento.
+            <div className="w-64 h-64 border rounded bg-gray-100 flex items-center justify-center">
+              <div className="text-sm text-muted-foreground text-center">
+                Gerando QR Code...
+              </div>
             </div>
           )}
+        </div>
+        <div className="text-xs text-muted-foreground text-center">
+          O status será atualizado automaticamente quando conectar.
         </div>
       </DialogContent>
     </Dialog>

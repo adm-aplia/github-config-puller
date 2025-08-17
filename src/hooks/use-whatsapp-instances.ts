@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -69,6 +70,30 @@ export const useWhatsAppInstances = () => {
 
       const displayName = instanceData.display_name || instanceData.instance_name || 'Nova Instância';
 
+      // Check if instance already exists to prevent duplicates
+      const { data: existing } = await supabase
+        .from('whatsapp_instances')
+        .select('*')
+        .eq('user_id', userData.user.id)
+        .eq('display_name', displayName)
+        .single();
+
+      if (existing) {
+        console.log('[useWhatsAppInstances] Instance already exists, returning existing one');
+        const existingInstance = { ...existing, status: existing.status as 'connected' | 'qr_pending' | 'disconnected' } as WhatsAppInstance;
+        
+        // Update local state to include this instance if not already present
+        setInstances(prev => {
+          const existsInState = prev.some(inst => inst.id === existingInstance.id);
+          if (!existsInState) {
+            return [existingInstance, ...prev];
+          }
+          return prev;
+        });
+        
+        return existingInstance;
+      }
+
       console.log('[useWhatsAppInstances] Creating Evolution instance via edge function...');
       const evoRes = await supabase.functions.invoke('evolution-manager', {
         body: {
@@ -93,27 +118,51 @@ export const useWhatsAppInstances = () => {
 
       console.log('[useWhatsAppInstances] Evolution payload:', payload);
 
+      const insertData = {
+        user_id: userData.user.id,
+        instance_name: payload.instanceName,
+        display_name: displayName,
+        phone_number: instanceData.phone_number,
+        professional_profile_id: instanceData.professional_profile_id,
+        status: 'qr_pending' as const,
+        qr_code: payload.qrCode,
+        evolution_instance_id: payload.evolutionInstanceId,
+        evolution_instance_key: payload.evolutionInstanceKey,
+        groups_ignore: true,
+        webhook_enabled: payload.webhookEnabled ?? true,
+        webhook_url: 'https://vmqxzkukyfxxgxekkdem.functions.supabase.co/evolution-webhook?token=aplia-webhook-2024',
+        integration_provider: 'evolution',
+      };
+
       const { data, error } = await supabase
         .from('whatsapp_instances')
-        .insert({
-          user_id: userData.user.id,
-          instance_name: payload.instanceName,
-          display_name: displayName,
-          phone_number: instanceData.phone_number,
-          professional_profile_id: instanceData.professional_profile_id,
-          status: 'qr_pending',
-          qr_code: payload.qrCode,
-          evolution_instance_id: payload.evolutionInstanceId,
-          evolution_instance_key: payload.evolutionInstanceKey,
-          groups_ignore: true,
-          webhook_enabled: payload.webhookEnabled ?? true,
-          webhook_url: 'https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/aplia',
-          integration_provider: 'evolution',
-        })
+        .insert(insertData)
         .select()
         .single();
 
       if (error) {
+        // Handle unique constraint violations
+        if (error.code === '23505') {
+          console.log('[useWhatsAppInstances] Unique constraint violation, fetching existing instance');
+          const { data: existingData } = await supabase
+            .from('whatsapp_instances')
+            .select('*')
+            .eq('user_id', userData.user.id)
+            .eq('instance_name', payload.instanceName)
+            .single();
+          
+          if (existingData) {
+            const existingInstance = { ...existingData, status: existingData.status as 'connected' | 'qr_pending' | 'disconnected' } as WhatsAppInstance;
+            
+            setInstances(prev => {
+              const filtered = prev.filter(inst => inst.id !== existingInstance.id);
+              return [existingInstance, ...filtered];
+            });
+            
+            return existingInstance;
+          }
+        }
+        
         // Verificar se é erro de limite
         if (error.message?.includes('limite de Números de WhatsApp')) {
           toast({
@@ -128,10 +177,10 @@ export const useWhatsAppInstances = () => {
 
       const created = { ...data, status: data.status as 'connected' | 'qr_pending' | 'disconnected' } as WhatsAppInstance;
 
-      setInstances(prev => [
-        created,
-        ...prev,
-      ]);
+      setInstances(prev => {
+        const filtered = prev.filter(inst => inst.id !== created.id);
+        return [created, ...filtered];
+      });
       
       toast({
         title: 'Instância criada',
