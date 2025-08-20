@@ -87,11 +87,26 @@ export function AppSidebar() {
   useEffect(() => {
     // Buscar dados do usuário e do perfil
     const getUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        
         setUserEmail(user.email || '')
         
-        // Tentar buscar o nome do perfil básico primeiro
+        // 1. Primeiro, tentar buscar o nome do professional_profiles mais recente
+        const { data: professionalProfiles } = await supabase
+          .from('professional_profiles')
+          .select('fullname')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+        
+        if (professionalProfiles && professionalProfiles.length > 0 && professionalProfiles[0].fullname) {
+          setUserName(professionalProfiles[0].fullname)
+          return
+        }
+        
+        // 2. Se não tem professional profile, tentar buscar do profiles
         const { data: profiles } = await supabase
           .from('profiles')
           .select('name')
@@ -100,21 +115,26 @@ export function AppSidebar() {
         
         if (profiles && profiles.length > 0 && profiles[0].name) {
           setUserName(profiles[0].name)
-        } else {
-          // Se não tem perfil básico, tentar buscar de professional_profiles
-          const { data: professionalProfiles } = await supabase
-            .from('professional_profiles')
-            .select('fullname')
-            .eq('user_id', user.id)
-            .limit(1)
-          
-          if (professionalProfiles && professionalProfiles.length > 0 && professionalProfiles[0].fullname) {
-            setUserName(professionalProfiles[0].fullname)
-          } else {
-            // Fallback para o email sem @ como antes
-            setUserName(user.email?.split('@')[0] || 'Usuário')
-          }
+          return
         }
+        
+        // 3. Se não tem profiles, tentar buscar do clientes
+        const { data: clientes } = await supabase
+          .from('clientes')
+          .select('nome')
+          .eq('user_id', user.id)
+          .limit(1)
+        
+        if (clientes && clientes.length > 0 && clientes[0].nome) {
+          setUserName(clientes[0].nome)
+          return
+        }
+        
+        // 4. Fallback para o email sem @ como antes
+        setUserName(user.email?.split('@')[0] || 'Usuário')
+      } catch (error) {
+        console.error('Erro ao buscar dados do usuário:', error)
+        setUserName('Usuário')
       }
     }
     
