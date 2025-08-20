@@ -26,7 +26,7 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedTime, setSelectedTime] = useState("")
   const [formData, setFormData] = useState({
-    agent_id: "",
+    professional_profile_id: "",
     patient_name: "",
     patient_phone: "",
     patient_email: "",
@@ -43,7 +43,7 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!selectedDate || !selectedTime || !formData.patient_name || !formData.agent_id) {
+    if (!selectedDate || !selectedTime || !formData.patient_name || !formData.professional_profile_id) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -80,7 +80,7 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
       const queryObj = {
         action: "create",
         user_id: user?.id,
-        agent_id: formData.agent_id,
+        agent_id: formData.professional_profile_id,
         patient_name: formData.patient_name,
         patient_phone: formattedPhone,
         patient_email: formData.patient_email || "",
@@ -113,7 +113,7 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
         
         // Reset form
         setFormData({
-          agent_id: "",
+          professional_profile_id: "",
           patient_name: "",
           patient_phone: "",
           patient_email: "",
@@ -156,10 +156,10 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Professional Selection */}
             <div className="md:col-span-2">
-              <Label htmlFor="agent_id">Profissional *</Label>
+              <Label htmlFor="professional_profile_id">Profissional *</Label>
               <Select
-                value={formData.agent_id}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, agent_id: value }))}
+                value={formData.professional_profile_id}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, professional_profile_id: value }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o profissional" />

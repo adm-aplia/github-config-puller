@@ -13,7 +13,7 @@ export interface Appointment {
   appointment_type?: string;
   status: string;
   notes?: string;
-  agent_id?: string;
+  professional_profile_id?: string;
   conversation_id?: string;
   google_event_id?: string;
   created_at: string;
@@ -158,7 +158,7 @@ export const useAppointments = () => {
               event.description,
               event.location ? `Local: ${event.location}` : null
             ].filter(Boolean).join('\n') || null,
-            agent_id: professionalProfileId || null,
+            professional_profile_id: professionalProfileId || null,
           };
           
           console.debug('[mapping-event] Created appointment:', appointment);
@@ -247,7 +247,7 @@ export const useAppointments = () => {
       const queryObj = {
         action: "create",
         user_id: userData.user.id,
-        agent_id: appointmentData.agent_id,
+        agent_id: appointmentData.professional_profile_id,
         patient_name: appointmentData.patient_name,
         patient_phone: formattedPhone,
         patient_email: appointmentData.patient_email || "",
@@ -289,7 +289,7 @@ export const useAppointments = () => {
           appointment_type: appointmentData.appointment_type,
           status: appointmentData.status || 'agendado',
           notes: appointmentData.notes,
-          agent_id: appointmentData.agent_id,
+          professional_profile_id: appointmentData.professional_profile_id,
           conversation_id: appointmentData.conversation_id,
         })
         .select()

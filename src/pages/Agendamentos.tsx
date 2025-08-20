@@ -123,7 +123,7 @@ export default function AgendamentosPage() {
 
     if (filters.professionalIds.length > 0) {
       filtered = filtered.filter(apt => 
-        apt.agent_id && filters.professionalIds.includes(apt.agent_id)
+        apt.professional_profile_id && filters.professionalIds.includes(apt.professional_profile_id)
       )
     }
 
