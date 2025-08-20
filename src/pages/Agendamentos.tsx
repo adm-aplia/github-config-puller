@@ -13,6 +13,7 @@ import { useAuth } from "@/components/auth-provider"
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useAppointments } from "@/hooks/use-appointments"
 import { useToast } from "@/hooks/use-toast"
+import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
 import { 
   Calendar as CalendarIcon, 
   Plus, 
@@ -65,11 +66,13 @@ export default function AgendamentosPage() {
   const [selectedProfessional, setSelectedProfessional] = useState("all")
   const [isGoogleEventsDialogOpen, setIsGoogleEventsDialogOpen] = useState(false)
   const [selectedProfessionalForImport, setSelectedProfessionalForImport] = useState<string>("")
+  const [selectedGoogleCredentialId, setSelectedGoogleCredentialId] = useState<string>("")
   const [isImporting, setIsImporting] = useState(false)
   
   const { user } = useAuth()
   const { profiles, loading: profilesLoading } = useProfessionalProfiles()
   const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment } = useAppointments()
+  const { credentials, profileLinks, loading: googleLoading, connectGoogleAccount } = useGoogleIntegrations()
   const { toast } = useToast()
   // Calcular estatísticas dinamicamente baseadas nos dados reais
   const calculateStats = () => {
@@ -149,6 +152,34 @@ export default function AgendamentosPage() {
   useEffect(() => {
     applyFilters()
   }, [appointments, filters])
+
+  // Auto-select Google credential when modal opens or when credentials change
+  useEffect(() => {
+    if (isGoogleEventsDialogOpen && credentials.length > 0 && !selectedGoogleCredentialId) {
+      // If only one credential, auto-select it
+      if (credentials.length === 1) {
+        setSelectedGoogleCredentialId(credentials[0].id)
+      } else if (selectedProfessionalForImport) {
+        // Check if the selected professional profile is linked to a Google credential
+        const profileLink = profileLinks.find(link => link.professional_profile_id === selectedProfessionalForImport)
+        if (profileLink) {
+          setSelectedGoogleCredentialId(profileLink.google_credential_id)
+        }
+      }
+    }
+  }, [isGoogleEventsDialogOpen, credentials, profileLinks, selectedProfessionalForImport, selectedGoogleCredentialId])
+
+  // Auto-select credential when professional profile changes
+  useEffect(() => {
+    if (selectedProfessionalForImport && credentials.length > 0) {
+      const profileLink = profileLinks.find(link => link.professional_profile_id === selectedProfessionalForImport)
+      if (profileLink) {
+        setSelectedGoogleCredentialId(profileLink.google_credential_id)
+      } else if (credentials.length === 1) {
+        setSelectedGoogleCredentialId(credentials[0].id)
+      }
+    }
+  }, [selectedProfessionalForImport, credentials, profileLinks])
 
   // Get appointments for a specific date
   const getAppointmentsForDate = (date: Date) => {
@@ -256,13 +287,13 @@ export default function AgendamentosPage() {
 
   // Function to pull Google Calendar events
   const handleGoogleEventsSync = async () => {
-    console.log('handleGoogleEventsSync called', { selectedProfessionalForImport, userEmail: user?.email });
+    console.log('handleGoogleEventsSync called', { selectedProfessionalForImport, selectedGoogleCredentialId });
     
-    if (!user?.email) {
-      console.log('Missing user email');
+    if (!selectedGoogleCredentialId) {
+      console.log('Missing Google credential');
       toast({
         title: 'Erro',
-        description: 'Email do usuário não encontrado.',
+        description: 'Selecione uma conta do Google.',
         variant: 'destructive',
       });
       return;
@@ -278,6 +309,16 @@ export default function AgendamentosPage() {
       return;
     }
 
+    const selectedCredential = credentials.find(c => c.id === selectedGoogleCredentialId);
+    if (!selectedCredential) {
+      toast({
+        title: 'Erro',
+        description: 'Conta do Google não encontrada.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsImporting(true)
 
     // Set 1 year range automatically: 6 months before and 6 months after current date
@@ -286,7 +327,7 @@ export default function AgendamentosPage() {
     const sixMonthsLater = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
 
     const query = {
-      my_email: user.email,
+      my_email: selectedCredential.email,
       user_id: user.id,
       calendarId: "primary",
       timeMin: sixMonthsAgo.toISOString(),
@@ -318,6 +359,7 @@ export default function AgendamentosPage() {
           await createAppointmentsFromGoogleEvents(data[0], selectedProfessionalForImport)
           setIsGoogleEventsDialogOpen(false)
           setSelectedProfessionalForImport("")
+          setSelectedGoogleCredentialId("")
         } else {
           console.log('No events in response');
           toast({
@@ -516,11 +558,49 @@ export default function AgendamentosPage() {
                                      </SelectContent>
                                    </Select>
                                  </div>
+
+                                 <div className="space-y-2">
+                                   <label className="text-sm font-medium">Conta Google</label>
+                                   {googleLoading ? (
+                                     <div className="p-2 text-center text-sm text-muted-foreground">
+                                       Carregando contas...
+                                     </div>
+                                   ) : credentials.length === 0 ? (
+                                     <div className="space-y-2">
+                                       <div className="p-3 border rounded-lg bg-muted/50">
+                                         <p className="text-sm text-muted-foreground">
+                                           Nenhuma conta Google conectada. Conecte uma conta para importar eventos.
+                                         </p>
+                                       </div>
+                                       <Button 
+                                         variant="outline" 
+                                         size="sm" 
+                                         onClick={connectGoogleAccount}
+                                         className="w-full"
+                                       >
+                                         Conectar Google Agenda
+                                       </Button>
+                                     </div>
+                                   ) : (
+                                     <Select value={selectedGoogleCredentialId} onValueChange={setSelectedGoogleCredentialId}>
+                                       <SelectTrigger>
+                                         <SelectValue placeholder="Selecione a conta Google" />
+                                       </SelectTrigger>
+                                       <SelectContent>
+                                         {credentials.map(credential => (
+                                           <SelectItem key={credential.id} value={credential.id}>
+                                             {credential.email}
+                                           </SelectItem>
+                                         ))}
+                                       </SelectContent>
+                                     </Select>
+                                   )}
+                                 </div>
                                 
                                 <div className="flex gap-2 pt-4">
                                    <Button 
                                      onClick={handleGoogleEventsSync}
-                                     disabled={!selectedProfessionalForImport || isImporting}
+                                     disabled={!selectedProfessionalForImport || !selectedGoogleCredentialId || isImporting || credentials.length === 0}
                                      className="flex-1"
                                    >
                                     {isImporting ? "Vinculando..." : "Vincular eventos"}
