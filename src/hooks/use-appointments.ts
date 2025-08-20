@@ -223,6 +223,26 @@ export const useAppointments = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
 
+      // Format phone with +55 prefix if not already present
+      let formattedPhone = appointmentData.patient_phone?.replace(/\D/g, '') || ''; // Remove non-digits
+      if (formattedPhone && !formattedPhone.startsWith('55')) {
+        formattedPhone = `+55${formattedPhone}`;
+      } else if (formattedPhone) {
+        formattedPhone = `+${formattedPhone}`;
+      }
+
+      // Format date as required: "YYYY-MM-DD HH:mm:ss+00"
+      let formattedDate = appointmentData.appointment_date;
+      if (appointmentData.appointment_date) {
+        const date = new Date(appointmentData.appointment_date);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hour = String(date.getHours()).padStart(2, '0');
+        const minute = String(date.getMinutes()).padStart(2, '0');
+        formattedDate = `${year}-${month}-${day} ${hour}:${minute}:00+00`;
+      }
+
       // Create the webhook payload in the required format
       const payload = {
         query: JSON.stringify({
@@ -230,14 +250,12 @@ export const useAppointments = () => {
           user_id: userData.user.id,
           agent_id: appointmentData.agent_id,
           patient_name: appointmentData.patient_name,
-          patient_phone: appointmentData.patient_phone,
+          patient_phone: formattedPhone,
           patient_email: appointmentData.patient_email || null,
-          appointment_date: appointmentData.appointment_date,
-          appointment_type: appointmentData.appointment_type || "consulta",
-          duration_minutes: appointmentData.duration_minutes || 60,
+          appointment_date: formattedDate,
           status: appointmentData.status || "agendado",
           summary: `Consulta com ${appointmentData.patient_name}`,
-          notes: appointmentData.notes || `Paciente: ${appointmentData.patient_name}. Telefone: ${appointmentData.patient_phone}. E-mail: ${appointmentData.patient_email || 'Não informado'}.`
+          notes: appointmentData.notes || `Paciente: ${appointmentData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${appointmentData.patient_email || 'Não informado'}.`
         })
       };
 

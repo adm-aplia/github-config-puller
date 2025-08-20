@@ -60,8 +60,21 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
       const appointmentDate = new Date(selectedDate)
       appointmentDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
       
-      // Convert to UTC
-      const utcDate = appointmentDate.toISOString()
+      // Format as required: "YYYY-MM-DD HH:mm:ss+00"
+      const year = appointmentDate.getFullYear()
+      const month = String(appointmentDate.getMonth() + 1).padStart(2, '0')
+      const day = String(appointmentDate.getDate()).padStart(2, '0')
+      const hour = String(appointmentDate.getHours()).padStart(2, '0')
+      const minute = String(appointmentDate.getMinutes()).padStart(2, '0')
+      const formattedDate = `${year}-${month}-${day} ${hour}:${minute}:00+00`
+
+      // Format phone with +55 prefix if not already present
+      let formattedPhone = formData.patient_phone.replace(/\D/g, '') // Remove non-digits
+      if (formattedPhone && !formattedPhone.startsWith('55')) {
+        formattedPhone = `+55${formattedPhone}`
+      } else if (formattedPhone) {
+        formattedPhone = `+${formattedPhone}`
+      }
 
       // Create the webhook payload in the exact format requested
       const payload = {
@@ -70,14 +83,12 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
           user_id: user?.id,
           agent_id: formData.agent_id,
           patient_name: formData.patient_name,
-          patient_phone: formData.patient_phone,
+          patient_phone: formattedPhone,
           patient_email: formData.patient_email || null,
-          appointment_date: utcDate,
-          appointment_type: formData.appointment_type || "consulta",
-          duration_minutes: formData.duration,
+          appointment_date: formattedDate,
           status: formData.status,
           summary: `${formData.appointment_type || 'Consulta'} com ${formData.patient_name}`,
-          notes: formData.notes || `Paciente: ${formData.patient_name}. Telefone: ${formData.patient_phone}. E-mail: ${formData.patient_email || 'Não informado'}. Motivo: ${formData.appointment_type || 'consulta'}.`
+          notes: formData.notes || `Paciente: ${formData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${formData.patient_email || 'Não informado'}. Motivo: ${formData.appointment_type || 'consulta'}.`
         })
       }
 
