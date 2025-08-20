@@ -340,7 +340,94 @@ export const useAppointments = () => {
   };
 
   const rescheduleAppointment = async (appointmentId: string, newDateTime: string) => {
-    return updateAppointment(appointmentId, { appointment_date: newDateTime });
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user?.id) throw new Error('User not authenticated');
+
+      // First, fetch the current appointment details
+      const { data: appointment, error: fetchError } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('id', appointmentId)
+        .single();
+
+      if (fetchError || !appointment) {
+        throw new Error('Appointment not found');
+      }
+
+      // Format phone with +55 prefix if not already present
+      let formattedPhone = appointment.patient_phone?.replace(/\D/g, '') || '';
+      if (formattedPhone && !formattedPhone.startsWith('55')) {
+        formattedPhone = `+55${formattedPhone}`;
+      } else if (formattedPhone) {
+        formattedPhone = `+${formattedPhone}`;
+      }
+
+      // Format new_datetime as "YYYY-MM-DD HH:mm"
+      const date = new Date(newDateTime);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hour = String(date.getHours()).padStart(2, '0');
+      const minute = String(date.getMinutes()).padStart(2, '0');
+      const formattedDateTime = `${year}-${month}-${day} ${hour}:${minute}`;
+
+      // Create the webhook payload
+      const queryObj = {
+        action: "update",
+        user_id: userData.user.id,
+        agent_id: (appointment as any).professional_profile_id,
+        appointment_id: appointmentId,
+        google_event_id: appointment.google_event_id || "",
+        new_datetime: formattedDateTime,
+        duration_minutes: appointment.duration_minutes || 60,
+        status: "confirmed",
+        summary: `Consulta ${appointment.appointment_type || 'médica'} (remarcada)`,
+        notes: "Reagendado pelo sistema",
+        patient_name: appointment.patient_name,
+        patient_phone: formattedPhone,
+        patient_email: appointment.patient_email || ""
+      };
+
+      // Send to webhook in the correct array format
+      const payload = [{
+        query: JSON.stringify(queryObj)
+      }];
+
+      console.log('Sending reschedule webhook payload:', JSON.stringify(payload, null, 2));
+
+      const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/remarcar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook error: ${response.status}`);
+      }
+
+      // Update the appointment in Supabase
+      await updateAppointment(appointmentId, { appointment_date: newDateTime });
+      
+      // Refresh appointments
+      await fetchAppointments();
+
+      toast({
+        title: 'Agendamento remarcado',
+        description: 'O agendamento foi remarcado com sucesso.',
+      });
+
+    } catch (error) {
+      console.error('Error rescheduling appointment:', error);
+      toast({
+        title: 'Erro ao remarcar agendamento',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        variant: 'destructive',
+      });
+      throw error;
+    }
   };
 
   const deleteAppointment = async (appointmentId: string) => {
