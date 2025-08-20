@@ -35,20 +35,36 @@ export const useWhatsAppInstances = () => {
     try {
       const { data, error } = await supabase
         .from('whatsapp_instances')
-        .select(`
-          *,
-          professional_profiles(fullname, specialty)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const formattedInstances = data?.map(instance => ({
+      let formattedInstances = data?.map(instance => ({
         ...instance,
-        status: instance.status as 'connected' | 'qr_pending' | 'disconnected',
-        profile_name: instance.professional_profiles?.fullname,
-        profile_specialty: instance.professional_profiles?.specialty
+        status: instance.status as 'connected' | 'qr_pending' | 'disconnected'
       } as WhatsAppInstance)) || [];
+
+      // Fetch profile names for instances with professional_profile_id
+      const instancesWithProfiles = formattedInstances.filter(inst => inst.professional_profile_id);
+      if (instancesWithProfiles.length > 0) {
+        const profileIds = instancesWithProfiles.map(inst => inst.professional_profile_id);
+        const { data: profiles } = await supabase
+          .from('professional_profiles')
+          .select('id, fullname, specialty')
+          .in('id', profileIds);
+
+        if (profiles) {
+          formattedInstances = formattedInstances.map(instance => {
+            const profile = profiles.find(p => p.id === instance.professional_profile_id);
+            return {
+              ...instance,
+              profile_name: profile?.fullname,
+              profile_specialty: profile?.specialty
+            };
+          });
+        }
+      }
 
       setInstances(formattedInstances);
 

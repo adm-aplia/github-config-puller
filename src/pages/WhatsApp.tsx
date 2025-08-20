@@ -81,49 +81,46 @@ export default function WhatsAppPage() {
 
   const handleAssignProfileSubmit = async (profileId: string) => {
     if (!selectedInstance) return;
-    
+
     const success = await updateInstance(selectedInstance.id, {
-      professional_profile_id: profileId
+      professional_profile_id: profileId,
     });
-    
+
     if (success) {
-      // If instance doesn't have phone number, try to fetch it
+      // If instance doesn't have phone number, fetch it
       if (!selectedInstance.phone_number) {
         try {
-          const res = await supabase.functions.invoke('evolution-manager', {
+          const { data } = await supabase.functions.invoke('evolution-manager', {
             body: {
               action: 'fetch_instance_info',
               instanceName: selectedInstance.instance_name,
             },
           });
 
-          if (!res.error && res.data?.phone_number) {
-            const phoneNumber = res.data.phone_number.replace(/\D/g, '');
+          if (data?.success && data.phone_number) {
+            const normalizedPhone = data.phone_number.replace(/\D/g, '');
             
             // Update instance with phone number
-            await updateInstance(selectedInstance.id, { phone_number: phoneNumber });
-            
-            // Sync with profile
+            await supabase
+              .from('whatsapp_instances')
+              .update({
+                phone_number: normalizedPhone,
+                profile_picture_url: data.profile_picture_url,
+                display_name: data.display_name
+              })
+              .eq('id', selectedInstance.id);
+
+            // Update profile with phone number
             await supabase
               .from('professional_profiles')
-              .update({ phonenumber: phoneNumber })
+              .update({ phonenumber: normalizedPhone })
               .eq('id', profileId);
           }
         } catch (error) {
-          console.error('Failed to fetch and sync phone number:', error);
-        }
-      } else {
-        // Sync existing phone number with profile
-        try {
-          await supabase
-            .from('professional_profiles')
-            .update({ phonenumber: selectedInstance.phone_number })
-            .eq('id', profileId);
-        } catch (error) {
-          console.error('Failed to sync phone number with profile:', error);
+          console.error('Error fetching phone number:', error);
         }
       }
-      
+
       setAssignProfileOpen(false);
       setSelectedInstance(null);
       refetch();
@@ -188,65 +185,74 @@ export default function WhatsAppPage() {
 
   const handleSyncInstance = async (instance: any) => {
     try {
-      const res = await supabase.functions.invoke('evolution-manager', {
+      const { data } = await supabase.functions.invoke('evolution-manager', {
         body: {
           action: 'fetch_instance_info',
           instanceName: instance.instance_name,
         },
       });
 
-      if (!res.error && res.data) {
-        const { phone_number, profile_picture_url, display_name, isConnected } = res.data;
-        
+      if (data && data.success) {
         const updateData: any = {};
         
-        if (phone_number) {
-          updateData.phone_number = phone_number.replace(/\D/g, '');
+        if (data.phone_number) {
+          updateData.phone_number = data.phone_number.replace(/\D/g, ''); // Normalize to digits only
         }
         
-        if (profile_picture_url) {
-          updateData.profile_picture_url = profile_picture_url;
+        if (data.profile_picture_url) {
+          updateData.profile_picture_url = data.profile_picture_url;
         }
         
-        if (display_name) {
-          updateData.display_name = display_name;
+        if (data.display_name) {
+          updateData.display_name = data.display_name;
         }
         
-        if (isConnected) {
+        if (data.isConnected) {
           updateData.status = 'connected';
           updateData.last_connected_at = new Date().toISOString();
         }
 
         if (Object.keys(updateData).length > 0) {
-          await updateInstance(instance.id, updateData);
-          refetch();
-          
+          await supabase
+            .from('whatsapp_instances')
+            .update(updateData)
+            .eq('id', instance.id);
+
           toast({
             title: 'Instância sincronizada',
-            description: 'Os dados da instância foram atualizados com sucesso.',
+            description: 'Dados da instância atualizados com sucesso.',
           });
+          refetch();
         } else {
           toast({
             title: 'Nenhuma atualização necessária',
-            description: 'A instância já está com os dados mais recentes.',
+            description: 'A instância já está atualizada.',
           });
         }
+      } else {
+        toast({
+          title: 'Erro na sincronização',
+          description: 'Não foi possível sincronizar a instância.',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
-      console.error('Failed to sync instance:', error);
+      console.error('Erro ao sincronizar instância:', error);
       toast({
-        title: 'Erro ao sincronizar',
-        description: 'Não foi possível sincronizar os dados da instância.',
+        title: 'Erro na sincronização',
+        description: 'Erro interno ao sincronizar a instância.',
         variant: 'destructive',
       });
     }
   };
 
-  // Add periodic sync while on this page
+  // Sync on mount and periodic sync every 15 seconds
   useEffect(() => {
+    syncInstances();
+    
     const interval = setInterval(() => {
       syncInstances();
-    }, 15000); // Every 15 seconds
+    }, 15000);
 
     return () => clearInterval(interval);
   }, [syncInstances]);
@@ -403,13 +409,13 @@ export default function WhatsAppPage() {
                           </Button>
                         </DropdownMenuTrigger>
                          <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
-                           <DropdownMenuItem 
-                             className="flex items-center gap-2 text-black"
-                             onClick={() => handleSyncInstance(instance)}
-                           >
-                             <RefreshCw className="h-4 w-4" />
-                             Sincronizar
-                           </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="flex items-center gap-2 text-black"
+                              onClick={() => handleSyncInstance(instance)}
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                              Sincronizar
+                            </DropdownMenuItem>
                            <DropdownMenuItem 
                              className="flex items-center gap-2 text-black"
                              onClick={() => handleDisconnect(instance)}

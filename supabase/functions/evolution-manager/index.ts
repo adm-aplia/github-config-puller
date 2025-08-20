@@ -121,7 +121,10 @@ serve(async (req: Request) => {
           
           if (connectionRes.ok) {
             const connectionData = await connectionRes.json().catch(() => ({}));
-            isConnected = connectionData?.instance?.state === 'open';
+            const state = connectionData?.instance?.state;
+            // Check for various connected states
+            isConnected = ['open', 'connected', 'CONNECTED', 'online'].includes(state);
+            console.log("[evolution-manager] Connection state:", state, "isConnected:", isConnected);
           }
         } catch (connError) {
           console.log("[evolution-manager] Connection check failed:", connError);
@@ -152,6 +155,11 @@ serve(async (req: Request) => {
                 phoneNumber = profileData.number;
               }
               
+              // Normalize phone number to digits only
+              if (phoneNumber) {
+                phoneNumber = phoneNumber.replace(/\D/g, '');
+              }
+              
               profilePictureUrl = profileData?.picture || profileData?.profilePictureUrl || null;
               displayName = profileData?.name || profileData?.pushName || null;
             }
@@ -169,6 +177,11 @@ serve(async (req: Request) => {
                 phoneNumber = altProfileData?.wuid || altProfileData?.phone || altProfileData?.number || null;
                 profilePictureUrl = altProfileData?.profilePictureUrl || altProfileData?.picture || null;
                 displayName = altProfileData?.name || altProfileData?.pushName || null;
+                
+                // Normalize phone number to digits only
+                if (phoneNumber) {
+                  phoneNumber = phoneNumber.replace(/\D/g, '');
+                }
               }
             } catch (altError) {
               console.log("[evolution-manager] Alternative profile fetch also failed:", altError);

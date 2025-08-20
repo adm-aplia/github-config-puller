@@ -69,11 +69,12 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanc
               });
               
               if (infoData?.success && infoData.phone_number) {
-                // Update the WhatsApp instance with phone number and profile info
+                // Normalize phone number and update the WhatsApp instance
+                const normalizedPhone = infoData.phone_number.replace(/\D/g, '');
                 await supabase
                   .from('whatsapp_instances')
                   .update({
-                    phone_number: infoData.phone_number,
+                    phone_number: normalizedPhone,
                     profile_picture_url: infoData.profile_picture_url,
                     display_name: infoData.display_name
                   })
@@ -89,7 +90,7 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanc
                 if (instanceData?.professional_profile_id) {
                   await supabase
                     .from('professional_profiles')
-                    .update({ phonenumber: infoData.phone_number })
+                    .update({ phonenumber: normalizedPhone })
                     .eq('id', instanceData.professional_profile_id);
                 }
               }
