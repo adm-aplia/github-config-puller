@@ -102,35 +102,21 @@ export function SelectGoogleAccountModal({
           {linkedCredential && (
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground">Conta atual:</h4>
-              <Card className="border-green-200 bg-green-50/50">
+              <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium text-sm">{linkedCredential.name || linkedCredential.email}</p>
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-2">
+                      <p className="font-medium text-sm mb-3">
                         {linkedCredential.email}
                       </p>
-                      <p className="text-xs text-muted-foreground mb-2">
-                        Conectado em {format(new Date(linkedCredential.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                      </p>
-                      <p className="text-xs text-green-600">
-                        ✓ Vinculado a este perfil
-                      </p>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      Google
-                    </Badge>
                   </div>
-                  <div className="flex gap-2 mt-3">
+                  <div className="flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={handleUnlink}
                       disabled={unlinking}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
                     >
                       {unlinking ? 'Desvinculando...' : 'Desvincular'}
                     </Button>
