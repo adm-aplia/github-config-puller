@@ -57,12 +57,13 @@ serve(async (req: Request) => {
     switch (event) {
       case "connection.update":
       case "CONNECTION_UPDATE":
-        console.log("[evolution-webhook] Processing connection update");
-        if (data?.state === "open") {
+        console.log(`[evolution-webhook] Processing connection update, state: ${data?.state}`);
+        // Map various connection states to "connected"
+        if (["open", "connected", "CONNECTED", "online"].includes(data?.state)) {
           updateData.status = "connected";
           updateData.last_connected_at = new Date().toISOString();
           shouldUpdate = true;
-        } else if (data?.state === "close") {
+        } else if (["close", "disconnected", "DISCONNECTED", "offline"].includes(data?.state)) {
           updateData.status = "disconnected";
           shouldUpdate = true;
         }

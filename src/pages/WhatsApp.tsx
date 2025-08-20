@@ -3,11 +3,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Phone, Plus, Settings, Smartphone, Signal, User, UserPlus, QrCode, EllipsisVertical, Pen, UserCheck, UserX, Trash2 } from "lucide-react"
+import { Phone, Plus, Settings, Smartphone, Signal, User, UserPlus, QrCode, EllipsisVertical, Pen, UserCheck, UserX, Trash2, RefreshCw } from "lucide-react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useWhatsAppInstances } from "@/hooks/use-whatsapp-instances"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { QrCodeDialog } from "@/components/whatsapp/QrCodeDialog"
 import { CreateInstanceModal } from "@/components/whatsapp/CreateInstanceModal"
 import { AssignProfileModal } from "@/components/whatsapp/AssignProfileModal"
@@ -37,7 +37,7 @@ const getStatusConfig = (status: string) => {
 }
 
 export default function WhatsAppPage() {
-  const { instances, loading, createInstance, updateInstance, deleteInstance, refetch } = useWhatsAppInstances();
+  const { instances, loading, createInstance, updateInstance, deleteInstance, refetch, syncInstances } = useWhatsAppInstances();
   const [qrOpen, setQrOpen] = useState(false);
   const [qrData, setQrData] = useState<{ id?: string; slug?: string; displayName?: string; code?: string | null }>({});
   const [createOpen, setCreateOpen] = useState(false);
@@ -87,8 +87,33 @@ export default function WhatsAppPage() {
     });
     
     if (success) {
-      // If instance has phone number, sync it with the profile
-      if (selectedInstance.phone_number) {
+      // If instance doesn't have phone number, try to fetch it
+      if (!selectedInstance.phone_number) {
+        try {
+          const res = await supabase.functions.invoke('evolution-manager', {
+            body: {
+              action: 'fetch_instance_info',
+              instanceName: selectedInstance.instance_name,
+            },
+          });
+
+          if (!res.error && res.data?.phone_number) {
+            const phoneNumber = res.data.phone_number.replace(/\D/g, '');
+            
+            // Update instance with phone number
+            await updateInstance(selectedInstance.id, { phone_number: phoneNumber });
+            
+            // Sync with profile
+            await supabase
+              .from('professional_profiles')
+              .update({ phonenumber: phoneNumber })
+              .eq('id', profileId);
+          }
+        } catch (error) {
+          console.error('Failed to fetch and sync phone number:', error);
+        }
+      } else {
+        // Sync existing phone number with profile
         try {
           await supabase
             .from('professional_profiles')
@@ -160,6 +185,71 @@ export default function WhatsAppPage() {
       });
     }
   };
+
+  const handleSyncInstance = async (instance: any) => {
+    try {
+      const res = await supabase.functions.invoke('evolution-manager', {
+        body: {
+          action: 'fetch_instance_info',
+          instanceName: instance.instance_name,
+        },
+      });
+
+      if (!res.error && res.data) {
+        const { phone_number, profile_picture_url, display_name, isConnected } = res.data;
+        
+        const updateData: any = {};
+        
+        if (phone_number) {
+          updateData.phone_number = phone_number.replace(/\D/g, '');
+        }
+        
+        if (profile_picture_url) {
+          updateData.profile_picture_url = profile_picture_url;
+        }
+        
+        if (display_name) {
+          updateData.display_name = display_name;
+        }
+        
+        if (isConnected) {
+          updateData.status = 'connected';
+          updateData.last_connected_at = new Date().toISOString();
+        }
+
+        if (Object.keys(updateData).length > 0) {
+          await updateInstance(instance.id, updateData);
+          refetch();
+          
+          toast({
+            title: 'Instância sincronizada',
+            description: 'Os dados da instância foram atualizados com sucesso.',
+          });
+        } else {
+          toast({
+            title: 'Nenhuma atualização necessária',
+            description: 'A instância já está com os dados mais recentes.',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to sync instance:', error);
+      toast({
+        title: 'Erro ao sincronizar',
+        description: 'Não foi possível sincronizar os dados da instância.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Add periodic sync while on this page
+  useEffect(() => {
+    const interval = setInterval(() => {
+      syncInstances();
+    }, 15000); // Every 15 seconds
+
+    return () => clearInterval(interval);
+  }, [syncInstances]);
 
   if (loading) {
     return (
@@ -312,22 +402,29 @@ export default function WhatsAppPage() {
                             <EllipsisVertical className="h-4 w-4 text-black" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
-                          <DropdownMenuItem 
-                            className="flex items-center gap-2 text-black"
-                            onClick={() => handleDisconnect(instance)}
-                          >
-                            <UserX className="h-4 w-4" />
-                            Desconectar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="flex items-center gap-2 text-destructive"
-                            onClick={() => handleDeleteInstance(instance.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
+                         <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
+                           <DropdownMenuItem 
+                             className="flex items-center gap-2 text-black"
+                             onClick={() => handleSyncInstance(instance)}
+                           >
+                             <RefreshCw className="h-4 w-4" />
+                             Sincronizar
+                           </DropdownMenuItem>
+                           <DropdownMenuItem 
+                             className="flex items-center gap-2 text-black"
+                             onClick={() => handleDisconnect(instance)}
+                           >
+                             <UserX className="h-4 w-4" />
+                             Desconectar
+                           </DropdownMenuItem>
+                           <DropdownMenuItem 
+                             className="flex items-center gap-2 text-destructive"
+                             onClick={() => handleDeleteInstance(instance.id)}
+                           >
+                             <Trash2 className="h-4 w-4" />
+                             Excluir
+                           </DropdownMenuItem>
+                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
                   </div>

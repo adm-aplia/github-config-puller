@@ -31,7 +31,7 @@ export const useWhatsAppInstances = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchInstances = async () => {
+  const fetchInstances = async (silent = false) => {
     try {
       const { data, error } = await supabase
         .from('whatsapp_instances')
@@ -51,13 +51,69 @@ export const useWhatsAppInstances = () => {
       } as WhatsAppInstance)) || [];
 
       setInstances(formattedInstances);
+
+      // Auto-sync instances that need status/phone updates
+      for (const instance of formattedInstances) {
+        if (instance.status !== 'connected' || !instance.phone_number) {
+          try {
+            const res = await supabase.functions.invoke('evolution-manager', {
+              body: {
+                action: 'fetch_instance_info',
+                instanceName: instance.instance_name,
+              },
+            });
+
+            if (!res.error && res.data) {
+              const { phone_number, profile_picture_url, display_name, isConnected } = res.data;
+              
+              if (phone_number || isConnected) {
+                const updateData: any = {};
+                
+                if (phone_number && phone_number !== instance.phone_number) {
+                  updateData.phone_number = phone_number.replace(/\D/g, ''); // Normalize to digits only
+                }
+                
+                if (profile_picture_url && profile_picture_url !== instance.profile_picture_url) {
+                  updateData.profile_picture_url = profile_picture_url;
+                }
+                
+                if (display_name && display_name !== instance.display_name) {
+                  updateData.display_name = display_name;
+                }
+                
+                if (isConnected && instance.status !== 'connected') {
+                  updateData.status = 'connected';
+                  updateData.last_connected_at = new Date().toISOString();
+                }
+
+                if (Object.keys(updateData).length > 0) {
+                  await supabase
+                    .from('whatsapp_instances')
+                    .update(updateData)
+                    .eq('id', instance.id);
+
+                  // Update local state
+                  setInstances(prev => prev.map(inst => 
+                    inst.id === instance.id ? { ...inst, ...updateData } : inst
+                  ));
+                }
+              }
+            }
+          } catch (syncError) {
+            // Silent fail for auto-sync to avoid spam
+            console.log(`Auto-sync failed for instance ${instance.instance_name}:`, syncError);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error fetching WhatsApp instances:', error);
-      toast({
-        title: 'Erro ao carregar instâncias',
-        description: 'Não foi possível carregar as instâncias do WhatsApp.',
-        variant: 'destructive',
-      });
+      if (!silent) {
+        toast({
+          title: 'Erro ao carregar instâncias',
+          description: 'Não foi possível carregar as instâncias do WhatsApp.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -271,6 +327,7 @@ export const useWhatsAppInstances = () => {
     createInstance,
     updateInstance,
     deleteInstance,
-    refetch: fetchInstances,
+    refetch: () => fetchInstances(false),
+    syncInstances: () => fetchInstances(true),
   };
 };

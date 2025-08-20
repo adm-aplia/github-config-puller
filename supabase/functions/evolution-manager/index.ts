@@ -111,30 +111,76 @@ serve(async (req: Request) => {
       console.log("[evolution-manager] Fetching instance info:", providedInstanceName);
       
       try {
-        // Try to get profile info from Evolution API
-        const profileRes = await fetch(`${BASE_URL}/chat/findProfile/${providedInstanceName}`, {
-          method: "GET",
-          headers: { "apikey": API_KEY },
-        });
-        
+        // First try to get instance connection status
+        let isConnected = false;
+        try {
+          const connectionRes = await fetch(`${BASE_URL}/instance/connectionState/${providedInstanceName}`, {
+            method: "GET",
+            headers: { "apikey": API_KEY },
+          });
+          
+          if (connectionRes.ok) {
+            const connectionData = await connectionRes.json().catch(() => ({}));
+            isConnected = connectionData?.instance?.state === 'open';
+          }
+        } catch (connError) {
+          console.log("[evolution-manager] Connection check failed:", connError);
+        }
+
         let phoneNumber = null;
         let profilePictureUrl = null;
         let displayName = null;
         
-        if (profileRes.ok) {
-          const profileData = await profileRes.json().catch(() => ({}));
-          console.log("[evolution-manager] profile data:", profileData);
-          
-          // Extract info from response
-          phoneNumber = profileData?.wuid || profileData?.phone || profileData?.number || null;
-          profilePictureUrl = profileData?.profilePictureUrl || profileData?.picture || null;
-          displayName = profileData?.name || profileData?.pushName || null;
+        // If connected, try to get profile info
+        if (isConnected) {
+          try {
+            const profileRes = await fetch(`${BASE_URL}/chat/whatsappProfile/${providedInstanceName}`, {
+              method: "GET",
+              headers: { "apikey": API_KEY },
+            });
+            
+            if (profileRes.ok) {
+              const profileData = await profileRes.json().catch(() => ({}));
+              console.log("[evolution-manager] profile data:", profileData);
+              
+              // Extract phone number (various possible formats)
+              if (profileData?.wuid) {
+                phoneNumber = profileData.wuid.split('@')[0];
+              } else if (profileData?.phone) {
+                phoneNumber = profileData.phone;
+              } else if (profileData?.number) {
+                phoneNumber = profileData.number;
+              }
+              
+              profilePictureUrl = profileData?.picture || profileData?.profilePictureUrl || null;
+              displayName = profileData?.name || profileData?.pushName || null;
+            }
+          } catch (profileError) {
+            console.log("[evolution-manager] Profile fetch failed:", profileError);
+            // Try alternative endpoint
+            try {
+              const altProfileRes = await fetch(`${BASE_URL}/chat/findProfile/${providedInstanceName}`, {
+                method: "GET",
+                headers: { "apikey": API_KEY },
+              });
+              
+              if (altProfileRes.ok) {
+                const altProfileData = await altProfileRes.json().catch(() => ({}));
+                phoneNumber = altProfileData?.wuid || altProfileData?.phone || altProfileData?.number || null;
+                profilePictureUrl = altProfileData?.profilePictureUrl || altProfileData?.picture || null;
+                displayName = altProfileData?.name || altProfileData?.pushName || null;
+              }
+            } catch (altError) {
+              console.log("[evolution-manager] Alternative profile fetch also failed:", altError);
+            }
+          }
         }
         
         return new Response(JSON.stringify({
           phone_number: phoneNumber,
           profile_picture_url: profilePictureUrl,
           display_name: displayName,
+          isConnected,
           success: true
         }), {
           status: 200,
@@ -143,10 +189,14 @@ serve(async (req: Request) => {
       } catch (error) {
         console.error("[evolution-manager] fetch_instance_info error:", error);
         return new Response(JSON.stringify({ 
-          error: "Failed to fetch instance info",
-          success: false 
+          phone_number: null,
+          profile_picture_url: null,
+          display_name: null,
+          isConnected: false,
+          success: false,
+          error: "Failed to fetch instance info"
         }), {
-          status: 500,
+          status: 200, // Don't fail the request, just return empty data
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
