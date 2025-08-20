@@ -180,14 +180,14 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
+                     <NavLink 
                       to={item.url} 
                       end={item.url === "/dashboard"}
                       className={({ isActive }) =>
                         `flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                           isActive 
-                            ? "bg-primary/10 text-primary font-medium border border-primary/20" 
-                            : "text-sidebar-foreground hover:bg-muted hover:text-foreground"
+                            ? "bg-accent text-accent-foreground" 
+                            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                         }`
                       }
                     >

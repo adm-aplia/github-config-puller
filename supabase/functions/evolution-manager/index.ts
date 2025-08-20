@@ -146,14 +146,13 @@ serve(async (req: Request) => {
               const profileData = await profileRes.json().catch(() => ({}));
               console.log("[evolution-manager] profile data:", profileData);
               
-              // Extract phone number (various possible formats)
-              if (profileData?.wuid) {
-                phoneNumber = profileData.wuid.split('@')[0];
-              } else if (profileData?.phone) {
-                phoneNumber = profileData.phone;
-              } else if (profileData?.number) {
-                phoneNumber = profileData.number;
-              }
+              // Extract phone number from multiple possible sources
+              phoneNumber = profileData?.wuid?.split('@')[0] || 
+                           profileData?.phone || 
+                           profileData?.number || 
+                           profileData?.id?.user?.split('@')[0] || 
+                           profileData?.jid?.split('@')[0] ||
+                           null;
               
               // Normalize phone number to digits only
               if (phoneNumber) {
@@ -174,7 +173,12 @@ serve(async (req: Request) => {
               
               if (altProfileRes.ok) {
                 const altProfileData = await altProfileRes.json().catch(() => ({}));
-                phoneNumber = altProfileData?.wuid || altProfileData?.phone || altProfileData?.number || null;
+                phoneNumber = altProfileData?.wuid?.split('@')[0] || 
+                             altProfileData?.phone || 
+                             altProfileData?.number || 
+                             altProfileData?.id?.user?.split('@')[0] || 
+                             altProfileData?.jid?.split('@')[0] ||
+                             null;
                 profilePictureUrl = altProfileData?.profilePictureUrl || altProfileData?.picture || null;
                 displayName = altProfileData?.name || altProfileData?.pushName || null;
                 
