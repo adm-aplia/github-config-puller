@@ -95,9 +95,6 @@ export function SelectGoogleAccountModal({
                             <CheckCircle className="h-4 w-4 text-primary" />
                           )}
                         </div>
-                        {credential.name && (
-                          <p className="text-xs text-muted-foreground mt-1">{credential.name}</p>
-                        )}
                         <p className="text-xs text-muted-foreground mt-1">
                           Conectado em {format(new Date(credential.created_at), "dd/MM/yyyy", { locale: ptBR })}
                         </p>
