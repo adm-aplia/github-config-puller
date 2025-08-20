@@ -408,15 +408,14 @@ export const useAppointments = () => {
         throw new Error(`Webhook error: ${response.status}`);
       }
 
-      // Update the appointment in Supabase
-      await updateAppointment(appointmentId, { appointment_date: newDateTime });
-      
-      // Refresh appointments
-      await fetchAppointments();
+      // Optionally refresh appointments after a delay to see changes
+      setTimeout(() => {
+        fetchAppointments();
+      }, 2000);
 
       toast({
-        title: 'Agendamento remarcado',
-        description: 'O agendamento foi remarcado com sucesso.',
+        title: 'Remarcação enviada',
+        description: 'A remarcação foi enviada para processamento.',
       });
 
     } catch (error) {
