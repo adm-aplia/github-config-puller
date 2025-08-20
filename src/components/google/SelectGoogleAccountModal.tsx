@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -30,6 +31,11 @@ export function SelectGoogleAccountModal({
   const [selectedCredentialId, setSelectedCredentialId] = useState<string | null>(null)
   const [linking, setLinking] = useState(false)
   const [connecting, setConnecting] = useState(false)
+
+  // Filter out credentials already linked to this profile
+  const availableCredentials = credentials.filter(credential => 
+    credential.professional_profile_id !== profileId
+  )
 
   const handleLink = async () => {
     if (!selectedCredentialId) return
@@ -73,10 +79,10 @@ export function SelectGoogleAccountModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {credentials.length > 0 ? (
+          {availableCredentials.length > 0 ? (
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground">Contas disponíveis:</h4>
-              {credentials.map((credential) => (
+              {availableCredentials.map((credential) => (
                 <Card 
                   key={credential.id}
                   className={`cursor-pointer transition-colors ${
@@ -110,7 +116,7 @@ export function SelectGoogleAccountModal({
           ) : (
             <div className="text-center py-6">
               <Calendar className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-              <h4 className="font-medium mb-2">Nenhuma conta conectada</h4>
+              <h4 className="font-medium mb-2">Nenhuma conta disponível</h4>
               <p className="text-sm text-muted-foreground">
                 Conecte uma conta Google para sincronizar eventos de calendário.
               </p>
@@ -138,7 +144,7 @@ export function SelectGoogleAccountModal({
           >
             Cancelar
           </Button>
-          {credentials.length > 0 && (
+          {availableCredentials.length > 0 && (
             <Button 
               onClick={handleLink}
               disabled={!selectedCredentialId || linking || connecting}

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -9,6 +10,7 @@ export interface GoogleCredential {
   email: string;
   name?: string;
   expires_at?: string;
+  professional_profile_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -31,7 +33,7 @@ export const useGoogleIntegrations = () => {
     try {
       const { data: credentialsData, error: credentialsError } = await supabase
         .from('google_credentials')
-        .select('id, user_id, email, name, expires_at, created_at, updated_at')
+        .select('id, user_id, email, name, expires_at, professional_profile_id, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       if (credentialsError) throw credentialsError;
@@ -171,6 +173,15 @@ export const useGoogleIntegrations = () => {
 
       setProfileLinks(prev => [...prev, data]);
 
+      // Atualizar a credencial local com o novo professional_profile_id
+      setCredentials(prev => 
+        prev.map(cred => 
+          cred.id === googleCredentialId 
+            ? { ...cred, professional_profile_id: professionalProfileId }
+            : cred
+        )
+      );
+
       toast({
         title: 'Perfil vinculado',
         description: 'Perfil vinculado à conta Google com sucesso.',
@@ -190,6 +201,8 @@ export const useGoogleIntegrations = () => {
 
   const unlinkProfileFromGoogle = async (linkId: string) => {
     try {
+      const linkToDelete = profileLinks.find(link => link.id === linkId);
+      
       const { error } = await supabase
         .from('google_profile_links')
         .delete()
@@ -198,6 +211,23 @@ export const useGoogleIntegrations = () => {
       if (error) throw error;
 
       setProfileLinks(prev => prev.filter(link => link.id !== linkId));
+
+      // Atualizar a credencial local removendo o professional_profile_id se necessário
+      if (linkToDelete) {
+        const remainingLinks = profileLinks.filter(
+          link => link.id !== linkId && link.google_credential_id === linkToDelete.google_credential_id
+        );
+        
+        if (remainingLinks.length === 0) {
+          setCredentials(prev => 
+            prev.map(cred => 
+              cred.id === linkToDelete.google_credential_id 
+                ? { ...cred, professional_profile_id: undefined }
+                : cred
+            )
+          );
+        }
+      }
 
       toast({
         title: 'Vinculação removida',
@@ -228,7 +258,7 @@ export const useGoogleIntegrations = () => {
           updated_at: new Date().toISOString(),
         })
         .eq('id', credentialId)
-        .select('id, user_id, email, name, expires_at, created_at, updated_at')
+        .select('id, user_id, email, name, expires_at, professional_profile_id, created_at, updated_at')
         .single();
 
       if (error) throw error;

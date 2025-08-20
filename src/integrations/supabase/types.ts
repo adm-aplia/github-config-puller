@@ -159,6 +159,30 @@ export type Database = {
           },
         ]
       }
+      chats: {
+        Row: {
+          created_at: string
+          "day-counter": string | null
+          id: number
+          phone: string | null
+          "updated-at": string | null
+        }
+        Insert: {
+          created_at?: string
+          "day-counter"?: string | null
+          id?: number
+          phone?: string | null
+          "updated-at"?: string | null
+        }
+        Update: {
+          created_at?: string
+          "day-counter"?: string | null
+          id?: number
+          phone?: string | null
+          "updated-at"?: string | null
+        }
+        Relationships: []
+      }
       clientes: {
         Row: {
           asaas_card_token: string | null
@@ -371,6 +395,30 @@ export type Database = {
           },
         ]
       }
+      dados_cliente: {
+        Row: {
+          atendimento_ia: string | null
+          created_at: string
+          id: number
+          nomewpp: string | null
+          telefone: string | null
+        }
+        Insert: {
+          atendimento_ia?: string | null
+          created_at?: string
+          id?: number
+          nomewpp?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          atendimento_ia?: string | null
+          created_at?: string
+          id?: number
+          nomewpp?: string | null
+          telefone?: string | null
+        }
+        Relationships: []
+      }
       google_credentials: {
         Row: {
           access_token: string | null
@@ -379,6 +427,7 @@ export type Database = {
           expires_at: string | null
           id: string
           name: string | null
+          professional_profile_id: string | null
           refresh_token: string | null
           updated_at: string | null
           user_id: string
@@ -390,6 +439,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           name?: string | null
+          professional_profile_id?: string | null
           refresh_token?: string | null
           updated_at?: string | null
           user_id: string
@@ -401,11 +451,20 @@ export type Database = {
           expires_at?: string | null
           id?: string
           name?: string | null
+          professional_profile_id?: string | null
           refresh_token?: string | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "google_credentials_professional_profile_id_fkey"
+            columns: ["professional_profile_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       google_profile_links: {
         Row: {

@@ -140,8 +140,9 @@ export default function PerfilsPage() {
   }
 
   const getGoogleStatus = (profileId: string) => {
-    const link = profileLinks.find(link => link.professional_profile_id === profileId)
-    return link ? true : false
+    // Now we can check directly from credentials using the synchronized professional_profile_id
+    const credential = credentials.find(cred => cred.professional_profile_id === profileId)
+    return credential ? true : false
   }
 
   if (loading) {
