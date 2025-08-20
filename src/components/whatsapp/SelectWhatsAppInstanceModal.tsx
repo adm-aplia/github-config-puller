@@ -13,6 +13,7 @@ interface SelectWhatsAppInstanceModalProps {
   profileId: string
   onLinkInstance: (instanceId: string, profileId: string) => Promise<boolean>
   onCreateNewInstance: () => void
+  onUnlinkInstance?: (profileId: string) => Promise<boolean>
   loading?: boolean
 }
 
@@ -23,10 +24,12 @@ export function SelectWhatsAppInstanceModal({
   profileId,
   onLinkInstance,
   onCreateNewInstance,
+  onUnlinkInstance,
   loading = false
 }: SelectWhatsAppInstanceModalProps) {
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null)
   const [linking, setLinking] = useState(false)
+  const [unlinking, setUnlinking] = useState(false)
 
   const handleLink = async () => {
     if (!selectedInstanceId) return
@@ -46,12 +49,29 @@ export function SelectWhatsAppInstanceModal({
     onOpenChange(false)
   }
 
+  // Find instance linked to this profile
+  const linkedInstance = instances.find(instance => 
+    instance.professional_profile_id === profileId
+  )
+  
   // Filter out instances already linked to this profile
   const availableInstances = instances.filter(instance => 
     instance.professional_profile_id !== profileId
   )
+  const handleUnlink = async () => {
+    if (!onUnlinkInstance) return
+    
+    setUnlinking(true)
+    const success = await onUnlinkInstance(profileId)
+    setUnlinking(false)
+    
+    if (success) {
+      onOpenChange(false)
+    }
+  }
+
   const handleOpenChange = (newOpen: boolean) => {
-    if (linking) return
+    if (linking || unlinking) return
     onOpenChange(newOpen)
     if (!newOpen) {
       setSelectedInstanceId(null)
@@ -92,6 +112,54 @@ export function SelectWhatsAppInstanceModal({
         </DialogHeader>
 
         <div className="space-y-4">
+          {linkedInstance && (
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">Instância atual:</h4>
+              <Card className="border-green-200 bg-green-50/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium text-sm">
+                          {linkedInstance.display_name || linkedInstance.instance_name}
+                        </p>
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        {getStatusBadge(linkedInstance.status)}
+                        <Badge variant="outline" className="text-xs">
+                          {getProviderName(linkedInstance.integration_provider)}
+                        </Badge>
+                      </div>
+
+                      {linkedInstance.phone_number && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                          <Phone className="h-3 w-3" />
+                          <span>{linkedInstance.phone_number}</span>
+                        </div>
+                      )}
+                      
+                      <p className="text-xs text-green-600">
+                        ✓ Vinculado a este perfil
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleUnlink}
+                      disabled={unlinking}
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      {unlinking ? 'Desvinculando...' : 'Desvincular'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {availableInstances.length > 0 ? (
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground">Instâncias disponíveis:</h4>
@@ -141,41 +209,43 @@ export function SelectWhatsAppInstanceModal({
                 </Card>
               ))}
             </div>
-          ) : (
+          ) : !linkedInstance ? (
             <div className="text-center py-6">
               <MessageCircle className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-              <h4 className="font-medium mb-2">Nenhuma instância configurada</h4>
+              <h4 className="font-medium mb-2">Nenhuma instância disponível</h4>
               <p className="text-sm text-muted-foreground">
                 Crie uma nova instância do WhatsApp para conectar ao perfil.
               </p>
             </div>
-          )}
+          ) : null}
 
-          <div className="pt-4 border-t">
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={handleCreateNew}
-              disabled={linking}
-            >
-              <Plus className="h-4 w-4" />
-              Criar nova instância
-            </Button>
-          </div>
+          {(!linkedInstance || availableInstances.length > 0) && (
+            <div className="pt-4 border-t">
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={handleCreateNew}
+                disabled={linking || unlinking}
+              >
+                <Plus className="h-4 w-4" />
+                {linkedInstance ? 'Criar nova instância' : 'Criar instância'}
+              </Button>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
           <Button 
             variant="outline" 
             onClick={() => handleOpenChange(false)}
-            disabled={linking}
+            disabled={linking || unlinking}
           >
-            Cancelar
+            {linkedInstance ? 'Fechar' : 'Cancelar'}
           </Button>
           {availableInstances.length > 0 && (
             <Button 
               onClick={handleLink}
-              disabled={!selectedInstanceId || linking}
+              disabled={!selectedInstanceId || linking || unlinking}
             >
               {linking ? 'Vinculando...' : 'Vincular Instância'}
             </Button>

@@ -16,6 +16,7 @@ interface SelectGoogleAccountModalProps {
   profileId: string
   onLinkAccount: (credentialId: string, profileId: string) => Promise<boolean>
   onConnectNewAccount: () => Promise<void>
+  onUnlinkAccount?: (profileId: string) => Promise<boolean>
   loading?: boolean
 }
 
@@ -26,12 +27,19 @@ export function SelectGoogleAccountModal({
   profileId,
   onLinkAccount,
   onConnectNewAccount,
+  onUnlinkAccount,
   loading = false
 }: SelectGoogleAccountModalProps) {
   const [selectedCredentialId, setSelectedCredentialId] = useState<string | null>(null)
   const [linking, setLinking] = useState(false)
   const [connecting, setConnecting] = useState(false)
+  const [unlinking, setUnlinking] = useState(false)
 
+  // Find credential linked to this profile
+  const linkedCredential = credentials.find(credential => 
+    credential.professional_profile_id === profileId
+  )
+  
   // Filter out credentials already linked to this profile
   const availableCredentials = credentials.filter(credential => 
     credential.professional_profile_id !== profileId
@@ -57,8 +65,20 @@ export function SelectGoogleAccountModal({
     onOpenChange(false)
   }
 
+  const handleUnlink = async () => {
+    if (!onUnlinkAccount) return
+    
+    setUnlinking(true)
+    const success = await onUnlinkAccount(profileId)
+    setUnlinking(false)
+    
+    if (success) {
+      onOpenChange(false)
+    }
+  }
+
   const handleOpenChange = (newOpen: boolean) => {
-    if (linking || connecting) return
+    if (linking || connecting || unlinking) return
     onOpenChange(newOpen)
     if (!newOpen) {
       setSelectedCredentialId(null)
@@ -79,6 +99,47 @@ export function SelectGoogleAccountModal({
         </DialogHeader>
 
         <div className="space-y-4">
+          {linkedCredential && (
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">Conta atual:</h4>
+              <Card className="border-green-200 bg-green-50/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium text-sm">{linkedCredential.name || linkedCredential.email}</p>
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        {linkedCredential.email}
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Conectado em {format(new Date(linkedCredential.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                      </p>
+                      <p className="text-xs text-green-600">
+                        ✓ Vinculado a este perfil
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      Google
+                    </Badge>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleUnlink}
+                      disabled={unlinking}
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      {unlinking ? 'Desvinculando...' : 'Desvincular'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {availableCredentials.length > 0 ? (
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground">Contas disponíveis:</h4>
@@ -113,7 +174,7 @@ export function SelectGoogleAccountModal({
                 </Card>
               ))}
             </div>
-          ) : (
+          ) : !linkedCredential ? (
             <div className="text-center py-6">
               <Calendar className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
               <h4 className="font-medium mb-2">Nenhuma conta disponível</h4>
@@ -121,33 +182,35 @@ export function SelectGoogleAccountModal({
                 Conecte uma conta Google para sincronizar eventos de calendário.
               </p>
             </div>
-          )}
+          ) : null}
 
-          <div className="pt-4 border-t">
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={handleConnectNew}
-              disabled={connecting || linking}
-            >
-              <Plus className="h-4 w-4" />
-              {connecting ? 'Conectando...' : 'Conectar nova conta Google'}
-            </Button>
-          </div>
+          {(!linkedCredential || availableCredentials.length > 0) && (
+            <div className="pt-4 border-t">
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={handleConnectNew}
+                disabled={connecting || linking || unlinking}
+              >
+                <Plus className="h-4 w-4" />
+                {connecting ? 'Conectando...' : linkedCredential ? 'Conectar nova conta Google' : 'Conectar conta Google'}
+              </Button>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
           <Button 
             variant="outline" 
             onClick={() => handleOpenChange(false)}
-            disabled={linking || connecting}
+            disabled={linking || connecting || unlinking}
           >
-            Cancelar
+            {linkedCredential ? 'Fechar' : 'Cancelar'}
           </Button>
           {availableCredentials.length > 0 && (
             <Button 
               onClick={handleLink}
-              disabled={!selectedCredentialId || linking || connecting}
+              disabled={!selectedCredentialId || linking || connecting || unlinking}
             >
               {linking ? 'Vinculando...' : 'Vincular Conta'}
             </Button>

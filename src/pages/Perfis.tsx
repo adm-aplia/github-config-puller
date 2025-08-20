@@ -19,7 +19,7 @@ import { ptBR } from "date-fns/locale"
 
 export default function PerfilsPage() {
   const { profiles, limits, loading, createProfile, updateProfile, deleteProfile, refetch } = useProfessionalProfiles()
-  const { credentials, profileLinks, connectGoogleAccount, linkProfileToGoogle, refetch: refetchGoogle } = useGoogleIntegrations()
+  const { credentials, profileLinks, connectGoogleAccount, linkProfileToGoogle, unlinkProfileFromGoogle, refetch: refetchGoogle } = useGoogleIntegrations()
   const { instances, createInstance, updateInstance, refetch: refetchInstances } = useWhatsAppInstances()
   const [showForm, setShowForm] = useState(false)
   const [editingProfile, setEditingProfile] = useState(null)
@@ -131,6 +131,41 @@ export default function PerfilsPage() {
   const handleCreateNewWhatsAppInstance = () => {
     setShowWhatsAppModal(false)
     setShowCreateInstanceModal(true)
+  }
+
+  const handleUnlinkWhatsAppInstance = async (profileId: string) => {
+    // Find the linked instance and remove its profile association
+    const linkedInstance = instances.find(inst => inst.professional_profile_id === profileId)
+    if (linkedInstance) {
+      const success = await updateInstance(linkedInstance.id, { professional_profile_id: null })
+      if (success) {
+        refetchInstances()
+        refetch()
+      }
+      return success
+    }
+    return false
+  }
+
+  const handleUnlinkGoogleAccount = async (profileId: string) => {
+    // Find the linked credential and unlink it
+    const linkedCredential = credentials.find(cred => cred.professional_profile_id === profileId)
+    if (linkedCredential) {
+      // Find the link in profileLinks
+      const link = profileLinks.find(link => 
+        link.google_credential_id === linkedCredential.id && 
+        link.professional_profile_id === profileId
+      )
+      if (link) {
+        const success = await unlinkProfileFromGoogle(link.id)
+        if (success) {
+          refetchGoogle()
+          refetch()
+        }
+        return success
+      }
+    }
+    return false
   }
 
   // Helper functions to check connection status
@@ -377,6 +412,7 @@ export default function PerfilsPage() {
         profileId={selectedProfileId || ''}
         onLinkInstance={handleLinkWhatsAppInstance}
         onCreateNewInstance={handleCreateNewWhatsAppInstance}
+        onUnlinkInstance={handleUnlinkWhatsAppInstance}
       />
 
       <SelectGoogleAccountModal
@@ -386,6 +422,7 @@ export default function PerfilsPage() {
         profileId={selectedProfileId || ''}
         onLinkAccount={handleLinkGoogleAccount}
         onConnectNewAccount={handleConnectNewGoogleAccount}
+        onUnlinkAccount={handleUnlinkGoogleAccount}
       />
 
       <CreateInstanceModal
