@@ -218,6 +218,83 @@ export const useAppointments = () => {
     }
   };
 
+  const createAppointment = async (appointmentData: Partial<Appointment>) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user?.id) throw new Error('User not authenticated');
+
+      // Create the webhook payload in the required format
+      const payload = {
+        query: JSON.stringify({
+          action: "create",
+          user_id: userData.user.id,
+          agent_id: appointmentData.agent_id,
+          patient_name: appointmentData.patient_name,
+          patient_phone: appointmentData.patient_phone,
+          patient_email: appointmentData.patient_email || null,
+          appointment_date: appointmentData.appointment_date,
+          appointment_type: appointmentData.appointment_type || "consulta",
+          duration_minutes: appointmentData.duration_minutes || 60,
+          status: appointmentData.status || "agendado",
+          summary: `Consulta com ${appointmentData.patient_name}`,
+          notes: appointmentData.notes || `Paciente: ${appointmentData.patient_name}. Telefone: ${appointmentData.patient_phone}. E-mail: ${appointmentData.patient_email || 'Não informado'}.`
+        })
+      };
+
+      // Send to webhook
+      const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/agendamento-aplia', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([payload])
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook error: ${response.status}`);
+      }
+
+      // Also save locally in Supabase
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert({
+          user_id: userData.user.id,
+          patient_name: appointmentData.patient_name,
+          patient_phone: appointmentData.patient_phone,
+          patient_email: appointmentData.patient_email,
+          appointment_date: appointmentData.appointment_date,
+          duration_minutes: appointmentData.duration_minutes || 60,
+          appointment_type: appointmentData.appointment_type,
+          status: appointmentData.status || 'agendado',
+          notes: appointmentData.notes,
+          agent_id: appointmentData.agent_id,
+          conversation_id: appointmentData.conversation_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update local state
+      setAppointments(prev => [...prev, data]);
+      
+      toast({
+        title: 'Agendamento criado',
+        description: 'O agendamento foi criado e enviado para processamento.',
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      toast({
+        title: 'Erro ao criar agendamento',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchAppointments();
   }, []);
@@ -262,6 +339,7 @@ export const useAppointments = () => {
     appointments,
     loading,
     fetchAppointments,
+    createAppointment,
     createAppointmentsFromGoogleEvents,
     updateAppointment,
     updateAppointmentStatus,

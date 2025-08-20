@@ -63,7 +63,7 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
       // Convert to UTC
       const utcDate = appointmentDate.toISOString()
 
-      // Create the webhook payload
+      // Create the webhook payload in the exact format requested
       const payload = {
         query: JSON.stringify({
           action: "create",
@@ -71,12 +71,13 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
           agent_id: formData.agent_id,
           patient_name: formData.patient_name,
           patient_phone: formData.patient_phone,
-          patient_email: formData.patient_email,
+          patient_email: formData.patient_email || null,
           appointment_date: utcDate,
           appointment_type: formData.appointment_type || "consulta",
           duration_minutes: formData.duration,
           status: formData.status,
-          notes: formData.notes
+          summary: `${formData.appointment_type || 'Consulta'} com ${formData.patient_name}`,
+          notes: formData.notes || `Paciente: ${formData.patient_name}. Telefone: ${formData.patient_phone}. E-mail: ${formData.patient_email || 'Não informado'}. Motivo: ${formData.appointment_type || 'consulta'}.`
         })
       }
 
