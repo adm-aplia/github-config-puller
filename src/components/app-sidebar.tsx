@@ -114,6 +114,17 @@ export function AppSidebar() {
     }
     
     getUserData()
+    
+    // Listener para evento de cliente atualizado
+    const handleClienteUpdated = (event: CustomEvent) => {
+      setUserName(event.detail.nome || 'Usuário')
+    }
+    
+    window.addEventListener('cliente-updated', handleClienteUpdated as EventListener)
+    
+    return () => {
+      window.removeEventListener('cliente-updated', handleClienteUpdated as EventListener)
+    }
   }, [])
 
   const isActive = (path: string) => currentPath === path

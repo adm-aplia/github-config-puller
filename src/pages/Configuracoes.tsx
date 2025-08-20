@@ -7,15 +7,149 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth-provider";
+
+interface UserData {
+  nome: string;
+  telefone: string;
+  email: string;
+}
+
+interface UserSettings {
+  timezone: string;
+  language: string;
+  notifications_enabled: boolean;
+  theme: string;
+}
 
 export default function ConfiguracoesPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  const [userData, setUserData] = useState<UserData>({
+    nome: "",
+    telefone: "",
+    email: ""
+  });
+  
+  const [userSettings, setUserSettings] = useState<UserSettings>({
+    timezone: "America/Sao_Paulo",
+    language: "pt-BR",
+    notifications_enabled: true,
+    theme: "light"
+  });
 
-  const handleSave = () => {
-    toast({
-      title: "Configurações salvas",
-      description: "Suas configurações foram atualizadas com sucesso.",
-    });
+  useEffect(() => {
+    if (user) {
+      loadUserData();
+    }
+  }, [user]);
+
+  const loadUserData = async () => {
+    try {
+      setLoading(true);
+      
+      // Carregar dados do cliente
+      const { data: clienteData } = await supabase
+        .from('clientes')
+        .select('nome, telefone, email')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      
+      if (clienteData) {
+        setUserData({
+          nome: clienteData.nome || "",
+          telefone: clienteData.telefone || "",
+          email: clienteData.email || ""
+        });
+      } else {
+        // Se não existe cliente, usar email do usuário
+        setUserData(prev => ({ ...prev, email: user!.email || "" }));
+      }
+      
+      // Carregar configurações do usuário
+      const { data: settingsData } = await supabase
+        .from('user_settings')
+        .select('timezone, language, notifications_enabled, theme')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      
+      if (settingsData) {
+        setUserSettings({
+          timezone: settingsData.timezone || "America/Sao_Paulo",
+          language: settingsData.language || "pt-BR", 
+          notifications_enabled: settingsData.notifications_enabled ?? true,
+          theme: settingsData.theme || "light"
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar suas configurações.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      
+      // Atualizar ou inserir dados do cliente
+      const { error: clienteError } = await supabase
+        .from('clientes')
+        .upsert({
+          user_id: user!.id,
+          nome: userData.nome,
+          telefone: userData.telefone,
+          email: userData.email || user!.email
+        }, {
+          onConflict: 'user_id'
+        });
+      
+      if (clienteError) throw clienteError;
+      
+      // Atualizar ou inserir configurações do usuário
+      const { error: settingsError } = await supabase
+        .from('user_settings')
+        .upsert({
+          user_id: user!.id,
+          timezone: userSettings.timezone,
+          language: userSettings.language,
+          notifications_enabled: userSettings.notifications_enabled,
+          theme: userSettings.theme
+        }, {
+          onConflict: 'user_id'
+        });
+      
+      if (settingsError) throw settingsError;
+      
+      // Emitir evento para atualizar a sidebar
+      window.dispatchEvent(new CustomEvent('cliente-updated', { 
+        detail: { nome: userData.nome } 
+      }));
+      
+      toast({
+        title: "Configurações salvas",
+        description: "Suas configurações foram atualizadas com sucesso.",
+      });
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar suas configurações.",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -38,33 +172,56 @@ export default function ConfiguracoesPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Nome</Label>
-                  <Input id="name" defaultValue="Nathan Almeida" />
+              {loading ? (
+                <div className="text-center py-4">Carregando...</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Nome</Label>
+                    <Input 
+                      id="name" 
+                      value={userData.nome}
+                      onChange={(e) => setUserData(prev => ({ ...prev, nome: e.target.value }))}
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input 
+                      id="email" 
+                      value={userData.email}
+                      disabled 
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Telefone</Label>
+                    <Input 
+                      id="phone" 
+                      value={userData.telefone}
+                      onChange={(e) => setUserData(prev => ({ ...prev, telefone: e.target.value }))}
+                      placeholder="(11) 99999-9999"
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="timezone">Fuso Horário</Label>
+                    <Select 
+                      value={userSettings.timezone}
+                      onValueChange={(value) => setUserSettings(prev => ({ ...prev, timezone: value }))}
+                      disabled={saving}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="America/Sao_Paulo">America/São Paulo</SelectItem>
+                        <SelectItem value="America/Rio_Branco">America/Rio Branco</SelectItem>
+                        <SelectItem value="America/Manaus">America/Manaus</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" defaultValue="nathancwb@gmail.com" disabled />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input id="phone" defaultValue="(11) 99999-9999" />
-                </div>
-                <div>
-                  <Label htmlFor="timezone">Fuso Horário</Label>
-                  <Select defaultValue="america/sao_paulo">
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="america/sao_paulo">America/São Paulo</SelectItem>
-                      <SelectItem value="america/rio_branco">America/Rio Branco</SelectItem>
-                      <SelectItem value="america/manaus">America/Manaus</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -84,7 +241,12 @@ export default function ConfiguracoesPage() {
                     Receber notificações importantes por e-mail
                   </p>
                 </div>
-                <Switch id="email-notifications" defaultChecked />
+                <Switch 
+                  id="email-notifications" 
+                  checked={userSettings.notifications_enabled}
+                  onCheckedChange={(checked) => setUserSettings(prev => ({ ...prev, notifications_enabled: checked }))}
+                  disabled={saving}
+                />
               </div>
               <Separator />
               <div className="flex items-center justify-between">
@@ -94,7 +256,12 @@ export default function ConfiguracoesPage() {
                     Receber lembretes sobre novos agendamentos
                   </p>
                 </div>
-                <Switch id="appointment-reminders" defaultChecked />
+                <Switch 
+                  id="appointment-reminders" 
+                  checked={userSettings.notifications_enabled}
+                  onCheckedChange={(checked) => setUserSettings(prev => ({ ...prev, notifications_enabled: checked }))}
+                  disabled={saving}
+                />
               </div>
               <Separator />
               <div className="flex items-center justify-between">
@@ -104,7 +271,12 @@ export default function ConfiguracoesPage() {
                     Receber notificações sobre novas mensagens
                   </p>
                 </div>
-                <Switch id="message-notifications" defaultChecked />
+                <Switch 
+                  id="message-notifications" 
+                  checked={userSettings.notifications_enabled}
+                  onCheckedChange={(checked) => setUserSettings(prev => ({ ...prev, notifications_enabled: checked }))}
+                  disabled={saving}
+                />
               </div>
             </CardContent>
           </Card>
@@ -121,12 +293,16 @@ export default function ConfiguracoesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="language">Idioma</Label>
-                  <Select defaultValue="pt-br">
+                  <Select 
+                    value={userSettings.language}
+                    onValueChange={(value) => setUserSettings(prev => ({ ...prev, language: value }))}
+                    disabled={saving}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pt-br">Português (Brasil)</SelectItem>
+                      <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
                       <SelectItem value="en">English</SelectItem>
                       <SelectItem value="es">Español</SelectItem>
                     </SelectContent>
@@ -150,8 +326,8 @@ export default function ConfiguracoesPage() {
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={handleSave}>
-              Salvar Configurações
+            <Button onClick={handleSave} disabled={saving || loading}>
+              {saving ? "Salvando..." : "Salvar Configurações"}
             </Button>
           </div>
         </div>
