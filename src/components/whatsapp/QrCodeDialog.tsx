@@ -59,7 +59,45 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanc
         }
 
         if (data?.status === 'connected') {
-          console.log('[QrCodeDialog] Instance connected, closing modal');
+          console.log('[QrCodeDialog] Instance connected, fetching instance info');
+          
+          // Fetch instance info to get phone number and sync with profile
+          if (instanceSlug) {
+            try {
+              const { data: infoData } = await supabase.functions.invoke('evolution-manager', {
+                body: { action: 'fetch_instance_info', instanceName: instanceSlug }
+              });
+              
+              if (infoData?.success && infoData.phone_number) {
+                // Update the WhatsApp instance with phone number and profile info
+                await supabase
+                  .from('whatsapp_instances')
+                  .update({
+                    phone_number: infoData.phone_number,
+                    profile_picture_url: infoData.profile_picture_url,
+                    display_name: infoData.display_name
+                  })
+                  .eq('id', instanceId);
+                
+                // If this instance has a linked profile, update the profile's phone number
+                const { data: instanceData } = await supabase
+                  .from('whatsapp_instances')
+                  .select('professional_profile_id')
+                  .eq('id', instanceId)
+                  .single();
+                
+                if (instanceData?.professional_profile_id) {
+                  await supabase
+                    .from('professional_profiles')
+                    .update({ phonenumber: infoData.phone_number })
+                    .eq('id', instanceData.professional_profile_id);
+                }
+              }
+            } catch (error) {
+              console.error('[QrCodeDialog] Failed to fetch instance info:', error);
+            }
+          }
+          
           onConnected?.();
           onOpenChange(false);
         }

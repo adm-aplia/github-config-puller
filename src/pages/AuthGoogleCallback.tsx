@@ -73,6 +73,47 @@ export default function AuthGoogleCallback() {
 
         if (!resp.ok) throw new Error("webhook_failed");
 
+        // Auto-link profile if pending
+        const pendingProfileId = localStorage.getItem('pending_google_link_profile_id');
+        if (pendingProfileId) {
+          try {
+            // Import supabase client
+            const { supabase } = await import("@/integrations/supabase/client");
+            
+            // Get current user
+            const { data: userData } = await supabase.auth.getUser();
+            
+            if (userData.user) {
+              // Get the most recent Google credential for this user
+              const { data: credential } = await supabase
+                .from('google_credentials')
+                .select('id')
+                .eq('user_id', userData.user.id)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+              
+              if (credential) {
+                // Link the profile to the Google credential
+                await supabase
+                  .from('google_profile_links')
+                  .insert({
+                    google_credential_id: credential.id,
+                    professional_profile_id: pendingProfileId
+                  });
+                
+                console.log('[AuthGoogleCallback] Auto-linked profile to Google credential');
+              }
+            }
+            
+            // Clean up localStorage
+            localStorage.removeItem('pending_google_link_profile_id');
+          } catch (linkError) {
+            console.error('[AuthGoogleCallback] Failed to auto-link profile:', linkError);
+            // Don't fail the whole process if linking fails
+          }
+        }
+
         setStatus("success");
         setMessage("Conta Google conectada!");
         sendMessageToOpener({ type: 'success' });

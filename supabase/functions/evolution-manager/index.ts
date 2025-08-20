@@ -100,6 +100,58 @@ serve(async (req: Request) => {
       });
     }
 
+    if (action === "fetch_instance_info") {
+      if (!providedInstanceName) {
+        return new Response(JSON.stringify({ error: "Missing instanceName" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      console.log("[evolution-manager] Fetching instance info:", providedInstanceName);
+      
+      try {
+        // Try to get profile info from Evolution API
+        const profileRes = await fetch(`${BASE_URL}/chat/findProfile/${providedInstanceName}`, {
+          method: "GET",
+          headers: { "apikey": API_KEY },
+        });
+        
+        let phoneNumber = null;
+        let profilePictureUrl = null;
+        let displayName = null;
+        
+        if (profileRes.ok) {
+          const profileData = await profileRes.json().catch(() => ({}));
+          console.log("[evolution-manager] profile data:", profileData);
+          
+          // Extract info from response
+          phoneNumber = profileData?.wuid || profileData?.phone || profileData?.number || null;
+          profilePictureUrl = profileData?.profilePictureUrl || profileData?.picture || null;
+          displayName = profileData?.name || profileData?.pushName || null;
+        }
+        
+        return new Response(JSON.stringify({
+          phone_number: phoneNumber,
+          profile_picture_url: profilePictureUrl,
+          display_name: displayName,
+          success: true
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch (error) {
+        console.error("[evolution-manager] fetch_instance_info error:", error);
+        return new Response(JSON.stringify({ 
+          error: "Failed to fetch instance info",
+          success: false 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     if (action !== "create_instance") {
       return new Response(JSON.stringify({ error: "Unsupported action" }), {
         status: 400,

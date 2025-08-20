@@ -95,15 +95,9 @@ export default function PerfilsPage() {
   }
 
   const handleGoogleConnect = async (profileId: string) => {
-    const success = await connectGoogleAccount()
-    if (success && credentials.length > 0) {
-      // Auto-link to the first available credential or newly created one
-      const availableCredential = credentials[0]
-      if (availableCredential) {
-        await linkProfileToGoogle(availableCredential.id, profileId)
-        refetch()
-      }
-    }
+    // Store profile ID in localStorage for auto-linking after OAuth
+    localStorage.setItem('pending_google_link_profile_id', profileId)
+    await connectGoogleAccount()
   }
 
   // Helper functions to check connection status

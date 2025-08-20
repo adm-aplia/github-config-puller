@@ -87,6 +87,18 @@ export default function WhatsAppPage() {
     });
     
     if (success) {
+      // If instance has phone number, sync it with the profile
+      if (selectedInstance.phone_number) {
+        try {
+          await supabase
+            .from('professional_profiles')
+            .update({ phonenumber: selectedInstance.phone_number })
+            .eq('id', profileId);
+        } catch (error) {
+          console.error('Failed to sync phone number with profile:', error);
+        }
+      }
+      
       setAssignProfileOpen(false);
       setSelectedInstance(null);
       refetch();
