@@ -86,7 +86,7 @@ export const useGoogleIntegrations = () => {
       const popup = window.open(
         authUrl,
         'googleAuthPopup',
-        'width=600,height=700,noopener'
+        'width=600,height=700'
       );
 
       try {
