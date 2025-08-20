@@ -46,6 +46,10 @@ export function SelectWhatsAppInstanceModal({
     onOpenChange(false)
   }
 
+  // Filter out instances already linked to this profile
+  const availableInstances = instances.filter(instance => 
+    instance.professional_profile_id !== profileId
+  )
   const handleOpenChange = (newOpen: boolean) => {
     if (linking) return
     onOpenChange(newOpen)
@@ -88,10 +92,10 @@ export function SelectWhatsAppInstanceModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {instances.length > 0 ? (
+          {availableInstances.length > 0 ? (
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground">Instâncias disponíveis:</h4>
-              {instances.map((instance) => (
+              {availableInstances.map((instance) => (
                 <Card 
                   key={instance.id}
                   className={`cursor-pointer transition-colors ${
@@ -112,7 +116,6 @@ export function SelectWhatsAppInstanceModal({
                             <CheckCircle className="h-4 w-4 text-primary" />
                           )}
                         </div>
-                        
                         <div className="flex items-center gap-2 mb-2">
                           {getStatusBadge(instance.status)}
                           <Badge variant="outline" className="text-xs">
@@ -169,7 +172,7 @@ export function SelectWhatsAppInstanceModal({
           >
             Cancelar
           </Button>
-          {instances.length > 0 && (
+          {availableInstances.length > 0 && (
             <Button 
               onClick={handleLink}
               disabled={!selectedInstanceId || linking}
