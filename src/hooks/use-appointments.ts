@@ -363,6 +363,15 @@ export const useAppointments = () => {
         formattedPhone = `+${formattedPhone}`;
       }
 
+      // Format current appointment datetime as "YYYY-MM-DD HH:mm"
+      const currentDate = new Date(appointment.appointment_date);
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const currentDay = String(currentDate.getDate()).padStart(2, '0');
+      const currentHour = String(currentDate.getHours()).padStart(2, '0');
+      const currentMinute = String(currentDate.getMinutes()).padStart(2, '0');
+      const formattedCurrentDateTime = `${currentYear}-${currentMonth}-${currentDay} ${currentHour}:${currentMinute}`;
+
       // Format new_datetime as "YYYY-MM-DD HH:mm"
       const date = new Date(newDateTime);
       const year = date.getFullYear();
@@ -372,14 +381,31 @@ export const useAppointments = () => {
       const minute = String(date.getMinutes()).padStart(2, '0');
       const formattedDateTime = `${year}-${month}-${day} ${hour}:${minute}`;
 
-      // Create the webhook payload
-      const queryObj = {
+      // Create first query object with current appointment details
+      const currentQueryObj = {
+        action: "current",
+        user_id: userData.user.id,
+        agent_id: (appointment as any).professional_profile_id,
+        appointment_id: appointmentId,
+        google_event_id: appointment.google_event_id || "",
+        datetime: formattedCurrentDateTime,
+        duration_minutes: appointment.duration_minutes || 60,
+        status: appointment.status,
+        summary: `Consulta ${appointment.appointment_type || 'médica'}`,
+        notes: appointment.notes || "Consulta atual",
+        patient_name: appointment.patient_name,
+        patient_phone: formattedPhone,
+        patient_email: appointment.patient_email || ""
+      };
+
+      // Create second query object with new appointment details
+      const newQueryObj = {
         action: "update",
         user_id: userData.user.id,
         agent_id: (appointment as any).professional_profile_id,
         appointment_id: appointmentId,
         google_event_id: appointment.google_event_id || "",
-        new_datetime: formattedDateTime,
+        datetime: formattedDateTime,
         duration_minutes: appointment.duration_minutes || 60,
         status: "confirmed",
         summary: `Consulta ${appointment.appointment_type || 'médica'} (remarcada)`,
@@ -389,10 +415,15 @@ export const useAppointments = () => {
         patient_email: appointment.patient_email || ""
       };
 
-      // Send to webhook in the correct array format
-      const payload = [{
-        query: JSON.stringify(queryObj)
-      }];
+      // Send both queries to webhook in the correct array format
+      const payload = [
+        {
+          query: JSON.stringify(currentQueryObj)
+        },
+        {
+          query: JSON.stringify(newQueryObj)
+        }
+      ];
 
       console.log('Sending reschedule webhook payload:', JSON.stringify(payload, null, 2));
 
