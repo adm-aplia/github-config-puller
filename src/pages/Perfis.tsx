@@ -11,17 +11,21 @@ import { useWhatsAppInstances } from "@/hooks/use-whatsapp-instances"
 import { ProfileWizardModal } from "@/components/profiles/profile-wizard-modal"
 import { CreateInstanceModal } from "@/components/whatsapp/CreateInstanceModal"
 import { QrCodeDialog } from "@/components/whatsapp/QrCodeDialog"
+import { SelectGoogleAccountModal } from "@/components/google/SelectGoogleAccountModal"
+import { SelectWhatsAppInstanceModal } from "@/components/whatsapp/SelectWhatsAppInstanceModal"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
 export default function PerfilsPage() {
   const { profiles, limits, loading, createProfile, updateProfile, deleteProfile, refetch } = useProfessionalProfiles()
-  const { credentials, profileLinks, connectGoogleAccount, linkProfileToGoogle } = useGoogleIntegrations()
-  const { instances, createInstance, refetch: refetchInstances } = useWhatsAppInstances()
+  const { credentials, profileLinks, connectGoogleAccount, linkProfileToGoogle, refetch: refetchGoogle } = useGoogleIntegrations()
+  const { instances, createInstance, updateInstance, refetch: refetchInstances } = useWhatsAppInstances()
   const [showForm, setShowForm] = useState(false)
   const [editingProfile, setEditingProfile] = useState(null)
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
+  const [showGoogleModal, setShowGoogleModal] = useState(false)
+  const [showCreateInstanceModal, setShowCreateInstanceModal] = useState(false)
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null)
   const [showQrDialog, setShowQrDialog] = useState(false)
   const [createdInstance, setCreatedInstance] = useState<any>(null)
@@ -76,7 +80,7 @@ export default function PerfilsPage() {
 
     if (instance) {
       setCreatedInstance(instance)
-      setShowWhatsAppModal(false)
+      setShowCreateInstanceModal(false)
       setShowQrDialog(true)
     }
   }
@@ -94,10 +98,39 @@ export default function PerfilsPage() {
     refetch()
   }
 
-  const handleGoogleConnect = async (profileId: string) => {
-    // Store profile ID in localStorage for auto-linking after OAuth
-    localStorage.setItem('pending_google_link_profile_id', profileId)
+  const handleGoogleConnect = (profileId: string) => {
+    setSelectedProfileId(profileId)
+    setShowGoogleModal(true)
+  }
+
+  const handleLinkGoogleAccount = async (credentialId: string, profileId: string) => {
+    const success = await linkProfileToGoogle(credentialId, profileId)
+    if (success) {
+      refetchGoogle()
+      refetch()
+    }
+    return success
+  }
+
+  const handleConnectNewGoogleAccount = async () => {
+    if (selectedProfileId) {
+      localStorage.setItem('pending_google_link_profile_id', selectedProfileId)
+    }
     await connectGoogleAccount()
+  }
+
+  const handleLinkWhatsAppInstance = async (instanceId: string, profileId: string) => {
+    const success = await updateInstance(instanceId, { professional_profile_id: profileId })
+    if (success) {
+      refetchInstances()
+      refetch()
+    }
+    return success
+  }
+
+  const handleCreateNewWhatsAppInstance = () => {
+    setShowWhatsAppModal(false)
+    setShowCreateInstanceModal(true)
   }
 
   // Helper functions to check connection status
@@ -263,28 +296,28 @@ export default function PerfilsPage() {
                                  <SquarePen className="h-4 w-4" />
                                  Editar
                                </Button>
-                               <Button 
-                                 variant="ghost" 
-                                 size="sm" 
-                                 className={`gap-1 hover:bg-muted hover:text-foreground ${
-                                   whatsappStatus === 'connected' ? 'text-green-600' : ''
-                                 }`}
-                                 onClick={() => handleWhatsAppClick(profile.id)}
-                               >
-                                 <MessageCircle className="h-4 w-4" />
-                                 {whatsappStatus === 'connected' ? 'WhatsApp' : 'Conectar WhatsApp'}
-                               </Button>
-                               <Button 
-                                 variant="ghost" 
-                                 size="sm" 
-                                 className={`gap-1 hover:bg-muted hover:text-foreground ${
-                                   googleConnected ? 'text-green-600' : ''
-                                 }`}
-                                 onClick={() => handleGoogleConnect(profile.id)}
-                               >
-                                 <CalendarDays className="h-4 w-4" />
-                                 {googleConnected ? 'Google' : 'Conectar Google'}
-                               </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className={`gap-1 hover:bg-muted hover:text-foreground ${
+                                    whatsappStatus === 'connected' ? 'text-green-600' : ''
+                                  }`}
+                                  onClick={() => handleWhatsAppClick(profile.id)}
+                                >
+                                  <MessageCircle className="h-4 w-4" />
+                                  WhatsApp
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className={`gap-1 hover:bg-muted hover:text-foreground ${
+                                    googleConnected ? 'text-green-600' : ''
+                                  }`}
+                                  onClick={() => handleGoogleConnect(profile.id)}
+                                >
+                                  <CalendarDays className="h-4 w-4" />
+                                  Google
+                                </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button 
@@ -336,9 +369,27 @@ export default function PerfilsPage() {
         onSubmit={editingProfile ? handleUpdateProfile : handleCreateProfile}
       />
 
-      <CreateInstanceModal
+      <SelectWhatsAppInstanceModal
         open={showWhatsAppModal}
         onOpenChange={setShowWhatsAppModal}
+        instances={instances}
+        profileId={selectedProfileId || ''}
+        onLinkInstance={handleLinkWhatsAppInstance}
+        onCreateNewInstance={handleCreateNewWhatsAppInstance}
+      />
+
+      <SelectGoogleAccountModal
+        open={showGoogleModal}
+        onOpenChange={setShowGoogleModal}
+        credentials={credentials}
+        profileId={selectedProfileId || ''}
+        onLinkAccount={handleLinkGoogleAccount}
+        onConnectNewAccount={handleConnectNewGoogleAccount}
+      />
+
+      <CreateInstanceModal
+        open={showCreateInstanceModal}
+        onOpenChange={setShowCreateInstanceModal}
         onSubmit={handleWhatsAppCreate}
       />
 
