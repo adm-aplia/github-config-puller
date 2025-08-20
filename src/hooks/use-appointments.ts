@@ -244,28 +244,32 @@ export const useAppointments = () => {
       }
 
       // Create the webhook payload in the required format
-      const payload = {
-        query: JSON.stringify({
-          action: "create",
-          user_id: userData.user.id,
-          agent_id: appointmentData.agent_id,
-          patient_name: appointmentData.patient_name,
-          patient_phone: formattedPhone,
-          patient_email: appointmentData.patient_email || null,
-          appointment_date: formattedDate,
-          status: appointmentData.status || "agendado",
-          summary: `Consulta com ${appointmentData.patient_name}`,
-          notes: appointmentData.notes || `Paciente: ${appointmentData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${appointmentData.patient_email || 'Não informado'}.`
-        })
+      const queryObj = {
+        action: "create",
+        user_id: userData.user.id,
+        agent_id: appointmentData.agent_id,
+        patient_name: appointmentData.patient_name,
+        patient_phone: formattedPhone,
+        patient_email: appointmentData.patient_email || "",
+        appointment_date: formattedDate,
+        status: appointmentData.status || "agendado",
+        summary: `Consulta com ${appointmentData.patient_name}`,
+        notes: appointmentData.notes || `Paciente: ${appointmentData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${appointmentData.patient_email || 'Não informado'}.`
       };
 
-      // Send to webhook
+      // Send to webhook in the correct array format
+      const payload = [{
+        query: JSON.stringify(queryObj)
+      }];
+
+      console.log('Sending webhook payload:', JSON.stringify(payload, null, 2));
+
       const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/agendamento-aplia', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify([payload])
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {

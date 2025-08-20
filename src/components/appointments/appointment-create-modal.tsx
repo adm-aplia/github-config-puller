@@ -77,27 +77,32 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
       }
 
       // Create the webhook payload in the exact format requested
-      const payload = {
-        query: JSON.stringify({
-          action: "create",
-          user_id: user?.id,
-          agent_id: formData.agent_id,
-          patient_name: formData.patient_name,
-          patient_phone: formattedPhone,
-          patient_email: formData.patient_email || null,
-          appointment_date: formattedDate,
-          status: formData.status,
-          summary: `${formData.appointment_type || 'Consulta'} com ${formData.patient_name}`,
-          notes: formData.notes || `Paciente: ${formData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${formData.patient_email || 'Não informado'}. Motivo: ${formData.appointment_type || 'consulta'}.`
-        })
+      const queryObj = {
+        action: "create",
+        user_id: user?.id,
+        agent_id: formData.agent_id,
+        patient_name: formData.patient_name,
+        patient_phone: formattedPhone,
+        patient_email: formData.patient_email || "",
+        appointment_date: formattedDate,
+        status: formData.status,
+        summary: `${formData.appointment_type || 'Consulta'} com ${formData.patient_name}`,
+        notes: formData.notes || `Paciente: ${formData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${formData.patient_email || 'Não informado'}. Motivo: ${formData.appointment_type || 'consulta'}.`
       }
+
+      // Send to webhook in the correct array format
+      const payload = [{
+        query: JSON.stringify(queryObj)
+      }]
+
+      console.log('Sending webhook payload:', JSON.stringify(payload, null, 2))
 
       const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/agendamento-aplia', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify([payload])
+        body: JSON.stringify(payload)
       })
 
       if (response.ok) {
