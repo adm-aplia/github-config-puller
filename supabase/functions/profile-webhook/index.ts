@@ -22,7 +22,7 @@ serve(async (req) => {
       )
     }
 
-    const { profileData } = await req.json()
+    const { profileData, action } = await req.json()
     
     if (!profileData) {
       return new Response(
@@ -34,7 +34,7 @@ serve(async (req) => {
       )
     }
 
-    console.log('Sending profile data to n8n webhook:', profileData)
+    console.log('Sending profile data to n8n webhook:', { profileData, action })
 
     // Send data to the n8n webhook
     const webhookResponse = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/questionario', {
@@ -42,7 +42,7 @@ serve(async (req) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(profileData)
+      body: JSON.stringify({ profileData, action })
     })
 
     if (!webhookResponse.ok) {

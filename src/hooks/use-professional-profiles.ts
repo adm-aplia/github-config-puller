@@ -111,7 +111,10 @@ export const useProfessionalProfiles = () => {
       // Send profile data to n8n webhook
       try {
         await supabase.functions.invoke('profile-webhook', {
-          body: { profileData: data }
+          body: { 
+            profileData: data,
+            action: 'create'
+          }
         });
         console.log('Profile data sent to webhook successfully');
       } catch (webhookError) {
@@ -156,7 +159,10 @@ export const useProfessionalProfiles = () => {
       // Send updated profile data to n8n webhook
       try {
         await supabase.functions.invoke('profile-webhook', {
-          body: { profileData: data }
+          body: { 
+            profileData: data,
+            action: 'update'
+          }
         });
         console.log('Updated profile data sent to webhook successfully');
       } catch (webhookError) {
@@ -183,6 +189,9 @@ export const useProfessionalProfiles = () => {
 
   const deleteProfile = async (id: string) => {
     try {
+      // Get profile data before deletion for webhook
+      const profileToDelete = profiles.find(profile => profile.id === id);
+      
       const { error } = await supabase
         .from('professional_profiles')
         .delete()
@@ -191,6 +200,20 @@ export const useProfessionalProfiles = () => {
       if (error) throw error;
 
       setProfiles(prev => prev.filter(profile => profile.id !== id));
+
+      // Send delete action to n8n webhook
+      try {
+        await supabase.functions.invoke('profile-webhook', {
+          body: { 
+            profileData: profileToDelete,
+            action: 'delete'
+          }
+        });
+        console.log('Profile deletion sent to webhook successfully');
+      } catch (webhookError) {
+        console.error('Failed to send profile deletion to webhook:', webhookError);
+        // Don't fail the profile deletion if webhook fails
+      }
 
       toast({
         title: 'Perfil excluído',
