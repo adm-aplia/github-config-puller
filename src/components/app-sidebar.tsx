@@ -93,32 +93,7 @@ export function AppSidebar() {
         
         setUserEmail(user.email || '')
         
-        // 1. Primeiro, tentar buscar o nome do professional_profiles mais recente
-        const { data: professionalProfiles } = await supabase
-          .from('professional_profiles')
-          .select('fullname')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-        
-        if (professionalProfiles && professionalProfiles.length > 0 && professionalProfiles[0].fullname) {
-          setUserName(professionalProfiles[0].fullname)
-          return
-        }
-        
-        // 2. Se não tem professional profile, tentar buscar do profiles
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('user_id', user.id)
-          .limit(1)
-        
-        if (profiles && profiles.length > 0 && profiles[0].name) {
-          setUserName(profiles[0].name)
-          return
-        }
-        
-        // 3. Se não tem profiles, tentar buscar do clientes
+        // 1. Primeiro, tentar buscar o nome do clientes (usuário logado)
         const { data: clientes } = await supabase
           .from('clientes')
           .select('nome')
@@ -130,7 +105,7 @@ export function AppSidebar() {
           return
         }
         
-        // 4. Fallback para o email sem @ como antes
+        // 2. Fallback para o email sem @ como antes
         setUserName(user.email?.split('@')[0] || 'Usuário')
       } catch (error) {
         console.error('Erro ao buscar dados do usuário:', error)
