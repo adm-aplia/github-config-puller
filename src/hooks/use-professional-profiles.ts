@@ -153,6 +153,17 @@ export const useProfessionalProfiles = () => {
         )
       );
 
+      // Send updated profile data to n8n webhook
+      try {
+        await supabase.functions.invoke('profile-webhook', {
+          body: { profileData: data }
+        });
+        console.log('Updated profile data sent to webhook successfully');
+      } catch (webhookError) {
+        console.error('Failed to send updated profile data to webhook:', webhookError);
+        // Don't fail the profile update if webhook fails
+      }
+
       toast({
         title: 'Perfil atualizado',
         description: 'Perfil profissional atualizado com sucesso.',
