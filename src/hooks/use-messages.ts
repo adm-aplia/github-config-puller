@@ -55,6 +55,12 @@ export const useMessages = () => {
         return;
       }
 
+      // Update conversation's last_message_at
+      await supabase
+        .from('conversations')
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', conversationId);
+
       setMessages(prev => [...prev, data as Message]);
       return data;
     } catch (error) {

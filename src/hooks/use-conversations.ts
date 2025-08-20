@@ -25,7 +25,7 @@ export const useConversations = () => {
 
   const fetchConversations = async () => {
     try {
-      // Primeiro buscar as conversas
+      // Buscar conversas
       const { data: conversationsData, error: conversationsError } = await supabase
         .from('conversations')
         .select('*')
@@ -33,45 +33,62 @@ export const useConversations = () => {
 
       if (conversationsError) throw conversationsError;
 
-      // Para cada conversa, buscar o count de mensagens e a última mensagem
-      const conversationsWithDetails = await Promise.all(
-        (conversationsData || []).map(async (conversation) => {
-          // Buscar count de mensagens
-          const { count } = await supabase
-            .from('messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('conversation_id', conversation.id);
+      if (!conversationsData || conversationsData.length === 0) {
+        setConversations([]);
+        return;
+      }
 
-          // Buscar última mensagem
-          const { data: lastMessage } = await supabase
-            .from('messages')
-            .select('content')
-            .eq('conversation_id', conversation.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+      // Get all conversation IDs for bulk queries
+      const conversationIds = conversationsData.map(c => c.id);
+      const agentIds = conversationsData.filter(c => c.agent_id).map(c => c.agent_id);
 
-          // Buscar perfil profissional se agent_id existe
-          let profileName = '';
-          if (conversation.agent_id) {
-            const { data: profile } = await supabase
-              .from('professional_profiles')
-              .select('fullname')
-              .eq('id', conversation.agent_id)
-              .maybeSingle();
-            
-            profileName = profile?.fullname || '';
-          }
+      // Bulk fetch message counts
+      const { data: messageCounts } = await supabase
+        .from('messages')
+        .select('conversation_id')
+        .in('conversation_id', conversationIds);
 
-          return {
-            ...conversation,
-            
-            message_count: count || 0,
-            last_message: lastMessage?.content || 'Nenhuma mensagem',
-            profile_name: profileName
-          } as Conversation;
-        })
-      );
+      // Bulk fetch last messages
+      const { data: lastMessages } = await supabase
+        .from('messages')
+        .select('conversation_id, content, created_at')
+        .in('conversation_id', conversationIds)
+        .order('created_at', { ascending: false });
+
+      // Bulk fetch profiles
+      const { data: profiles } = agentIds.length > 0 ? await supabase
+        .from('professional_profiles')
+        .select('id, fullname')
+        .in('id', agentIds) : { data: [] };
+
+      // Create lookup maps
+      const messageCountMap = new Map<string, number>();
+      messageCounts?.forEach(msg => {
+        const count = messageCountMap.get(msg.conversation_id) || 0;
+        messageCountMap.set(msg.conversation_id, count + 1);
+      });
+
+      const lastMessageMap = new Map<string, string>();
+      const seenConversations = new Set<string>();
+      lastMessages?.forEach(msg => {
+        if (!seenConversations.has(msg.conversation_id)) {
+          lastMessageMap.set(msg.conversation_id, msg.content);
+          seenConversations.add(msg.conversation_id);
+        }
+      });
+
+      const profileMap = new Map<string, string>();
+      profiles?.forEach(profile => {
+        profileMap.set(profile.id, profile.fullname);
+      });
+
+      // Combine data
+      const conversationsWithDetails = conversationsData.map(conversation => ({
+        ...conversation,
+        message_count: messageCountMap.get(conversation.id) || 0,
+        last_message: lastMessageMap.get(conversation.id) || 'Nenhuma mensagem',
+        profile_name: conversation.agent_id ? (profileMap.get(conversation.agent_id) || '') : ''
+      })) as Conversation[];
 
       setConversations(conversationsWithDetails);
     } catch (error) {
@@ -90,6 +107,23 @@ export const useConversations = () => {
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.id) throw new Error('User not authenticated');
+
+      // Check conversation limits before creating
+      const { data: canCreate, error: limitError } = await supabase.rpc('check_user_limits', {
+        p_user_id: userData.user.id,
+        p_resource_type: 'conversa'
+      });
+
+      if (limitError) {
+        console.error('Error checking limits:', limitError);
+      } else if (!canCreate) {
+        toast({
+          title: 'Limite atingido',
+          description: 'Você atingiu o limite mensal de conversas do seu plano.',
+          variant: 'destructive',
+        });
+        return false;
+      }
 
       const { data, error } = await supabase
         .from('conversations')
@@ -157,6 +191,18 @@ export const useConversations = () => {
 
   const deleteConversation = async (id: string) => {
     try {
+      // Delete associated messages first
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('conversation_id', id);
+
+      if (messagesError) {
+        console.error('Error deleting messages:', messagesError);
+        // Continue with conversation deletion even if messages deletion fails
+      }
+
+      // Delete the conversation
       const { error } = await supabase
         .from('conversations')
         .delete()
@@ -168,7 +214,7 @@ export const useConversations = () => {
 
       toast({
         title: 'Conversa excluída',
-        description: 'Conversa excluída com sucesso.',
+        description: 'Conversa e suas mensagens foram excluídas com sucesso.',
       });
 
       return true;
