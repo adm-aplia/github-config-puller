@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -91,12 +92,6 @@ export default function ConversasPage() {
       );
     }
 
-    if (filters.status.length > 0) {
-      filtered = filtered.filter(conv => 
-        conv.status && filters.status.includes(conv.status)
-      );
-    }
-
     // Apply message count range
     if (filters.messageCountRange[0] > 0 || filters.messageCountRange[1] < 100) {
       filtered = filtered.filter(conv => {
@@ -166,7 +161,7 @@ export default function ConversasPage() {
           {filteredConversations.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
-                {searchTerm.trim() || filters.professionalIds.length > 0 || filters.status.length > 0 
+                {searchTerm.trim() || filters.professionalIds.length > 0 
                   ? "Nenhuma conversa encontrada com os filtros aplicados" 
                   : "Nenhuma conversa encontrada"
                 }
