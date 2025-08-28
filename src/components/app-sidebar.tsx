@@ -150,8 +150,11 @@ export function AppSidebar() {
   const planName = subscription?.plano?.nome || 'Gratuito'
 
   return (
-    <Sidebar className={state === "collapsed" ? "w-14" : "w-64"} collapsible="icon">
-      <SidebarHeader className="border-b border-border/30">
+    <Sidebar 
+      className={`${state === "collapsed" ? "w-14" : "w-64"} bg-background border-r border-border/30`} 
+      collapsible="icon"
+    >
+      <SidebarHeader className="border-b border-border/30 bg-background">
         <div className="flex h-14 items-center px-4">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
@@ -173,7 +176,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="bg-background">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -186,13 +189,13 @@ export function AppSidebar() {
                       className={({ isActive }) =>
                         `flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                           isActive 
-                            ? "bg-accent text-accent-foreground" 
+                            ? "bg-accent text-accent-foreground font-medium" 
                             : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                         }`
                       }
                     >
-                      <item.icon className="h-5 w-5" />
-                      {state !== "collapsed" && <span>{item.title}</span>}
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      {state !== "collapsed" && <span className="truncate">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -202,7 +205,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/30 p-2">
+      <SidebarFooter className="border-t border-border/30 p-2 bg-background">
         {state !== "collapsed" ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
