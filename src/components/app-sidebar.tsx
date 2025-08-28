@@ -190,7 +190,7 @@ export function AppSidebar() {
                         `flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                           isActive 
                             ? "bg-accent text-accent-foreground font-medium" 
-                            : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                            : "text-foreground hover:bg-accent hover:text-black"
                         }`
                       }
                     >
