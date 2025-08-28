@@ -31,7 +31,7 @@ export const useDashboardStats = () => {
 
       // Buscar estatísticas do dashboard usando a função RPC
       const { data: statsData, error: statsError } = await supabase
-        .rpc('get_dashboard_stats', { p_user_id: userData.user.id });
+        .rpc('get_dashboard_stats', { user_id_param: userData.user.id });
 
       if (statsError) {
         console.error('Error calling get_dashboard_stats:', statsError);

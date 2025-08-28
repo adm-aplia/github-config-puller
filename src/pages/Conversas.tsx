@@ -31,7 +31,6 @@ export default function ConversasPage() {
     professionalIds: [],
     dateFrom: undefined,
     dateTo: undefined,
-    status: [],
     messageCountRange: [0, 100]
   });
 

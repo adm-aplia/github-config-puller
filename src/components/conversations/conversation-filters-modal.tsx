@@ -18,7 +18,6 @@ export interface ConversationFilters {
   professionalIds: string[]
   dateFrom: Date | undefined
   dateTo: Date | undefined
-  status: string[]
   messageCountRange: [number, number]
 }
 
@@ -30,12 +29,6 @@ interface ConversationFiltersModalProps {
   onApplyFilters: () => void
 }
 
-const statusOptions = [
-  { value: "active", label: "Ativa" },
-  { value: "archived", label: "Arquivada" },
-  { value: "resolved", label: "Resolvida" },
-  { value: "pending", label: "Pendente" },
-]
 
 export function ConversationFiltersModal({
   open,
@@ -51,13 +44,6 @@ export function ConversationFiltersModal({
     setLocalFilters(filters)
   }, [filters, open])
 
-  const handleStatusToggle = (statusValue: string) => {
-    const newStatus = localFilters.status.includes(statusValue)
-      ? localFilters.status.filter(s => s !== statusValue)
-      : [...localFilters.status, statusValue]
-    
-    setLocalFilters(prev => ({ ...prev, status: newStatus }))
-  }
 
   const handleProfessionalToggle = (professionalId: string) => {
     const newProfessionals = localFilters.professionalIds.includes(professionalId)
@@ -72,7 +58,6 @@ export function ConversationFiltersModal({
       professionalIds: [],
       dateFrom: undefined,
       dateTo: undefined,
-      status: [],
       messageCountRange: [0, 100]
     }
     setLocalFilters(clearedFilters)
@@ -86,7 +71,6 @@ export function ConversationFiltersModal({
 
   const getActiveFiltersCount = () => {
     let count = 0
-    if (localFilters.status.length > 0) count++
     if (localFilters.professionalIds.length > 0) count++
     if (localFilters.dateFrom || localFilters.dateTo) count++
     if (localFilters.messageCountRange[0] > 0 || localFilters.messageCountRange[1] < 100) count++
@@ -109,30 +93,6 @@ export function ConversationFiltersModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Status */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Status da Conversa</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {statusOptions.map((status) => (
-                  <Badge
-                    key={status.value}
-                    variant={localFilters.status.includes(status.value) ? "default" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => handleStatusToggle(status.value)}
-                  >
-                    {status.label}
-                    {localFilters.status.includes(status.value) && (
-                      <X className="h-3 w-3 ml-1" />
-                    )}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Profissionais/Assistentes */}
           <Card>
             <CardHeader className="pb-3">

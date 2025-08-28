@@ -986,8 +986,15 @@ export type Database = {
         Returns: undefined
       }
       get_dashboard_stats: {
-        Args: { p_user_id: string }
-        Returns: Json
+        Args: { user_id_param: string }
+        Returns: {
+          active_conversations: number
+          total_appointments: number
+          total_conversations: number
+          total_instances: number
+          total_messages: number
+          total_profiles: number
+        }[]
       }
       get_real_user_usage_summary: {
         Args: { p_user_id?: string }
