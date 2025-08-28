@@ -16,7 +16,6 @@ export type Database = {
     Tables: {
       appointments: {
         Row: {
-          agent_id: string | null
           appointment_date: string
           appointment_type: string | null
           conversation_id: string | null
@@ -28,12 +27,12 @@ export type Database = {
           patient_email: string | null
           patient_name: string
           patient_phone: string
+          professional_profile_id: string | null
           status: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
-          agent_id?: string | null
           appointment_date: string
           appointment_type?: string | null
           conversation_id?: string | null
@@ -45,12 +44,12 @@ export type Database = {
           patient_email?: string | null
           patient_name: string
           patient_phone: string
+          professional_profile_id?: string | null
           status?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
-          agent_id?: string | null
           appointment_date?: string
           appointment_type?: string | null
           conversation_id?: string | null
@@ -62,18 +61,12 @@ export type Database = {
           patient_email?: string | null
           patient_name?: string
           patient_phone?: string
+          professional_profile_id?: string | null
           status?: string | null
           updated_at?: string | null
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "appointments_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "appointments_conversation_id_fkey"
             columns: ["conversation_id"]
@@ -82,8 +75,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "appointments_professional_profile_id_fkey"
+            columns: ["professional_profile_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fk_appointments_professional_profile"
-            columns: ["agent_id"]
+            columns: ["professional_profile_id"]
             isOneToOne: false
             referencedRelation: "professional_profiles"
             referencedColumns: ["id"]
@@ -162,24 +162,24 @@ export type Database = {
       chats: {
         Row: {
           created_at: string
-          "day-counter": string | null
+          day_counter: string | null
           id: number
           phone: string | null
-          "updated-at": string | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string
-          "day-counter"?: string | null
+          day_counter?: string | null
           id?: number
           phone?: string | null
-          "updated-at"?: string | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string
-          "day-counter"?: string | null
+          day_counter?: string | null
           id?: number
           phone?: string | null
-          "updated-at"?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -350,7 +350,6 @@ export type Database = {
           id: string
           instance_id: string | null
           last_message_at: string | null
-          status: string | null
           updated_at: string | null
           user_id: string
         }
@@ -362,7 +361,6 @@ export type Database = {
           id?: string
           instance_id?: string | null
           last_message_at?: string | null
-          status?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -374,7 +372,6 @@ export type Database = {
           id?: string
           instance_id?: string | null
           last_message_at?: string | null
-          status?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -785,7 +782,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           prompt_text: string
-          prompt_type: string
+          prompt_type: string | null
           questionnaire_id: string | null
           updated_at: string | null
           user_id: string
@@ -795,7 +792,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           prompt_text: string
-          prompt_type: string
+          prompt_type?: string | null
           questionnaire_id?: string | null
           updated_at?: string | null
           user_id: string
@@ -805,7 +802,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           prompt_text?: string
-          prompt_type?: string
+          prompt_type?: string | null
           questionnaire_id?: string | null
           updated_at?: string | null
           user_id?: string

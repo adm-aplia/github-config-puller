@@ -1,7 +1,7 @@
+
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-
 import { Skeleton } from "@/components/ui/skeleton"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
@@ -10,7 +10,6 @@ interface Conversation {
   id: string
   contact_name: string | null
   contact_phone: string
-  status: string
   last_message_at: string | null
   created_at: string
   professional_profile?: {
@@ -22,7 +21,6 @@ interface Conversation {
     created_at: string
   }
 }
-
 
 export function RecentConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -45,7 +43,6 @@ export function RecentConversations() {
           id,
           contact_name,
           contact_phone,
-          status,
           last_message_at,
           created_at,
           agent_id

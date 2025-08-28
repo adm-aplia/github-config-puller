@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -45,13 +46,36 @@ export const useDashboardStats = () => {
         // Fallback: buscar dados diretamente das tabelas se a função RPC não funcionar
         console.log('Using fallback stats calculation');
         
-        const [assistentesData, instanciasData, conversasData, agendamentosData, mensagensData] = await Promise.all([
+        const [assistentesData, instanciasData, conversasData, agendamentosData] = await Promise.all([
           supabase.from('professional_profiles').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id),
           supabase.from('whatsapp_instances').select('id, status', { count: 'exact' }).eq('user_id', userData.user.id),
-          supabase.from('conversations').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).eq('status', 'active'),
-          supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).gte('appointment_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
-          supabase.from('messages').select('id', { count: 'exact', head: true }).eq('created_at', new Date().toISOString().split('T')[0])
+          supabase.from('conversations').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).or(`last_message_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()},and(last_message_at.is.null,created_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()})`),
+          supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).gte('appointment_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
         ]);
+
+        // Get conversations for today's messages count
+        const { data: todayConversations } = await supabase
+          .from('conversations')
+          .select('id')
+          .eq('user_id', userData.user.id);
+
+        let mensagensHoje = 0;
+        if (todayConversations && todayConversations.length > 0) {
+          const conversationIds = todayConversations.map(c => c.id);
+          const startOfDay = new Date();
+          startOfDay.setHours(0, 0, 0, 0);
+          const endOfDay = new Date();
+          endOfDay.setHours(23, 59, 59, 999);
+
+          const { count } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .in('conversation_id', conversationIds)
+            .gte('created_at', startOfDay.toISOString())
+            .lte('created_at', endOfDay.toISOString());
+
+          mensagensHoje = count || 0;
+        }
 
         const instanciasAtivas = instanciasData.data?.filter(inst => inst.status === 'connected').length || 0;
 
@@ -61,7 +85,7 @@ export const useDashboardStats = () => {
           instancias_ativas: instanciasAtivas,
           conversas_ativas: conversasData.count || 0,
           agendamentos_mes: agendamentosData.count || 0,
-          mensagens_hoje: mensagensData.count || 0
+          mensagens_hoje: mensagensHoje
         };
 
         setStats(fallbackStats);

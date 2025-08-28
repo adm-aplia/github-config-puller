@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -9,7 +10,6 @@ export interface Conversation {
   contact_name?: string;
   agent_id?: string;
   instance_id?: string;
-  status: 'active' | 'pending' | 'completed';
   last_message_at?: string;
   created_at: string;
   updated_at: string;
@@ -29,7 +29,8 @@ export const useConversations = () => {
       const { data: conversationsData, error: conversationsError } = await supabase
         .from('conversations')
         .select('*')
-        .order('last_message_at', { ascending: false });
+        .order('last_message_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
 
       if (conversationsError) throw conversationsError;
 
@@ -133,7 +134,6 @@ export const useConversations = () => {
           contact_name: conversationData.contact_name,
           agent_id: conversationData.agent_id,
           instance_id: conversationData.instance_id,
-          status: 'active',
           last_message_at: new Date().toISOString()
         })
         .select()
