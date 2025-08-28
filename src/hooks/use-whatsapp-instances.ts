@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { extractPhoneNumberFromApi, normalizePhoneNumber } from '@/lib/whatsapp';
 
 export interface WhatsAppInstance {
   id: string;
@@ -82,11 +83,14 @@ export const useWhatsAppInstances = () => {
             if (!res.error && res.data) {
               const { phone_number, profile_picture_url, display_name, isConnected } = res.data;
               
-              if (phone_number || isConnected) {
+              // Extract phone number using utility function
+              const extractedPhone = extractPhoneNumberFromApi(res.data) || phone_number;
+              
+              if (extractedPhone || isConnected) {
                 const updateData: any = {};
                 
-                if (phone_number && phone_number !== instance.phone_number) {
-                  updateData.phone_number = phone_number.replace(/\D/g, ''); // Normalize to digits only
+                if (extractedPhone && extractedPhone !== instance.phone_number) {
+                  updateData.phone_number = normalizePhoneNumber(extractedPhone);
                 }
                 
                 if (profile_picture_url && profile_picture_url !== instance.profile_picture_url) {

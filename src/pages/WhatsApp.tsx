@@ -14,6 +14,7 @@ import { AssignProfileModal } from "@/components/whatsapp/AssignProfileModal"
 import { EditInstanceNameModal } from "@/components/whatsapp/edit-instance-name-modal"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
+import { formatPhoneNumber, extractPhoneNumberFromApi, normalizePhoneNumber } from "@/lib/whatsapp"
 
 const getStatusConfig = (status: string) => {
   const configs = {
@@ -97,8 +98,9 @@ export default function WhatsAppPage() {
             },
           });
 
-          if (data?.success && data.phone_number) {
-            const normalizedPhone = data.phone_number.replace(/\D/g, '');
+          if (data?.success) {
+            const extractedPhone = extractPhoneNumberFromApi(data) || data.phone_number;
+            const normalizedPhone = extractedPhone ? normalizePhoneNumber(extractedPhone) : null;
             
             // Update instance with phone number
             await supabase
@@ -195,8 +197,9 @@ export default function WhatsAppPage() {
       if (data && data.success) {
         const updateData: any = {};
         
-        if (data.phone_number) {
-          updateData.phone_number = data.phone_number.replace(/\D/g, ''); // Normalize to digits only
+        const extractedPhone = extractPhoneNumberFromApi(data) || data.phone_number;
+        if (extractedPhone) {
+          updateData.phone_number = normalizePhoneNumber(extractedPhone);
         }
         
         if (data.profile_picture_url) {
@@ -350,8 +353,19 @@ export default function WhatsAppPage() {
                     </div>
 
                     {/* Número */}
-                    <div className="text-sm text-muted-foreground">
-                      {instance.phone_number || '-'}
+                    <div className="flex items-center gap-2">
+                      {instance.phone_number ? (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-green-600" />
+                          <span className="font-mono text-sm">
+                            {formatPhoneNumber(instance.phone_number)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">
+                          Número não disponível
+                        </span>
+                      )}
                     </div>
 
                     {/* Perfil Vinculado */}
