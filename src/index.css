@@ -53,6 +53,17 @@ html {
     --shadow-elegant: 0 10px 30px -10px hsl(var(--aplia-coral) / 0.15);
     --shadow-glow: 0 0 40px hsl(var(--aplia-coral) / 0.2);
     --shadow-card: 0 4px 12px hsl(var(--aplia-dark) / 0.1);
+
+    /* Sidebar variables */
+    --sidebar-background: var(--background);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--accent);
+    --sidebar-accent-foreground: var(--accent-foreground);
+    --sidebar-border: var(--border);
+    --sidebar-input: var(--input);
+    --sidebar-ring: var(--ring);
   }
 
   .dark {
@@ -87,6 +98,17 @@ html {
     --aplia-light-gray: 222 25% 20%;
     --aplia-white: 222 30% 12%;
     --aplia-blue: 217 91% 60%;
+
+    /* Sidebar variables for dark mode */
+    --sidebar-background: var(--background);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--accent);
+    --sidebar-accent-foreground: var(--accent-foreground);
+    --sidebar-border: var(--border);
+    --sidebar-input: var(--input);
+    --sidebar-ring: var(--ring);
   }
 }
 
