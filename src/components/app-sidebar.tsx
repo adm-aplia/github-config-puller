@@ -185,7 +185,7 @@ export function AppSidebar() {
                    <SidebarMenuButton 
                      asChild 
                      isActive={currentPath === item.url}
-                     className="hover:text-black data-[active=true]:text-white"
+                     className="hover:text-black data-[active=true]:text-black"
                    >
                      <NavLink 
                       to={item.url} 
