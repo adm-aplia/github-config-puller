@@ -46,19 +46,21 @@ import { AppointmentEditModal } from "@/components/appointments/appointment-edit
 import { AppointmentRescheduleModal } from "@/components/appointments/appointment-reschedule-modal"
 import { AppointmentFiltersModal, AppointmentFilters } from "@/components/appointments/appointment-filters-modal"
 import { AppointmentCreateModal } from "@/components/appointments/appointment-create-modal"
+import { AppointmentBlockModal } from "@/components/appointments/appointment-block-modal"
 import { cn } from "@/lib/utils"
 
-const getStatusBadge = (status: string) => {
-  const statusConfig = {
-    confirmed: { label: "Confirmado", variant: "default" as const },
-    scheduled: { label: "Agendado", variant: "secondary" as const },
-    pending: { label: "Pendente", variant: "secondary" as const },
-    completed: { label: "Concluído", variant: "default" as const },
-    cancelled: { label: "Cancelado", variant: "destructive" as const },
-    rescheduled: { label: "Remarcado", variant: "secondary" as const },
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      confirmed: { label: "Confirmado", variant: "default" as const },
+      scheduled: { label: "Agendado", variant: "secondary" as const },
+      pending: { label: "Pendente", variant: "secondary" as const },
+      completed: { label: "Concluído", variant: "default" as const },
+      cancelled: { label: "Cancelado", variant: "destructive" as const },
+      rescheduled: { label: "Remarcado", variant: "secondary" as const },
+      blocked: { label: "Bloqueado", variant: "outline" as const },
+    }
+    return statusConfig[status as keyof typeof statusConfig] || { label: status, variant: "default" as const }
   }
-  return statusConfig[status as keyof typeof statusConfig] || { label: status, variant: "default" as const }
-}
 
 export default function AgendamentosPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
@@ -101,6 +103,7 @@ export default function AgendamentosPage() {
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false)
   const [filtersModalOpen, setFiltersModalOpen] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [blockModalOpen, setBlockModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   
   // Filters state
@@ -206,6 +209,8 @@ export default function AgendamentosPage() {
         return 'bg-green-500'
       case 'rescheduled':
         return 'bg-orange-500'
+      case 'blocked':
+        return 'bg-gray-600'
       default:
         return 'bg-gray-500'
     }
@@ -525,6 +530,16 @@ export default function AgendamentosPage() {
                     </Select>
                     
                     <div className="flex items-center gap-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex items-center gap-2"
+                        onClick={() => setBlockModalOpen(true)}
+                      >
+                        <X className="h-4 w-4" />
+                        Bloquear horários
+                      </Button>
+                      
                       <Dialog open={isGoogleEventsDialogOpen} onOpenChange={setIsGoogleEventsDialogOpen}>
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm" className="flex items-center gap-2">
@@ -851,6 +866,12 @@ export default function AgendamentosPage() {
       <AppointmentCreateModal
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
+        onSuccess={fetchAppointments}
+      />
+
+      <AppointmentBlockModal
+        open={blockModalOpen}
+        onOpenChange={setBlockModalOpen}
         onSuccess={fetchAppointments}
       />
     </DashboardLayout>

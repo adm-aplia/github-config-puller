@@ -87,6 +87,26 @@ export const useAppointments = () => {
     }
   };
 
+  // Helper function to send individual appointment to webhook
+  const sendAppointmentToWebhook = async (queryObj: any) => {
+    const payload = [{ query: JSON.stringify(queryObj) }]
+    
+    const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/agendamento-aplia', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (!response.ok) {
+      throw new Error(`Webhook error: ${response.status}`)
+    }
+
+    // Add delay between requests
+    await new Promise(resolve => setTimeout(resolve, 200))
+  }
+
   const createAppointmentsFromGoogleEvents = async (payload: any, professionalId?: string) => {
     try {
       console.debug('[google-events] raw payload:', payload);
@@ -120,7 +140,7 @@ export const useAppointments = () => {
 
       const existingEventIds = new Set(existingAppointments?.map(apt => apt.google_event_id) || []);
 
-      const appointmentsToInsert = events
+      const eventsToSend = events
         .filter(event => event?.id) // Only process events with valid IDs
         .filter(event => !existingEventIds.has(event.id)) // Skip existing events
         .map(event => {
@@ -144,32 +164,43 @@ export const useAppointments = () => {
             durationMinutes = Math.round(diffMs / (1000 * 60));
           }
 
-          const appointment = {
+          // Format date as required: "YYYY-MM-DD HH:mm:ss+00"
+          const date = new Date(startDate);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const hour = String(date.getHours()).padStart(2, '0');
+          const minute = String(date.getMinutes()).padStart(2, '0');
+          const formattedDate = `${year}-${month}-${day} ${hour}:${minute}:00+00`;
+
+          const queryObj = {
+            action: "create",
             user_id: userData.user.id,
-            google_event_id: event.id,
+            agent_id: professionalProfileId || null,
             patient_name: event.summary || 'Sem título',
-            patient_email: event.attendees?.[0]?.email || null,
-            patient_phone: '(00) 00000-0000', // Default phone since Google Calendar doesn't provide this
-            appointment_date: startDate,
-            duration_minutes: durationMinutes,
-            appointment_type: event.summary || 'Consulta',
+            patient_phone: "", // Google Calendar doesn't provide phone
+            patient_email: event.attendees?.[0]?.email || "",
+            appointment_date: formattedDate,
             status: event.status === 'cancelled' ? 'cancelled' : 'confirmed',
+            summary: event.summary || 'Evento Google Calendar',
             notes: [
               event.description,
-              event.location ? `Local: ${event.location}` : null
-            ].filter(Boolean).join('\n') || null,
-            professional_profile_id: professionalProfileId || null,
+              event.location ? `Local: ${event.location}` : null,
+              `Duração: ${durationMinutes} minutos`,
+              `Google Event ID: ${event.id}`
+            ].filter(Boolean).join('\n'),
+            google_event_id: event.id
           };
           
-          console.debug('[mapping-event] Created appointment:', appointment);
-          return appointment;
+          console.debug('[mapping-event] Created queryObj:', queryObj);
+          return queryObj;
         })
         .filter(Boolean); // Remove eventos com erro de parsing
 
       const totalEvents = events.length;
-      const skippedEvents = totalEvents - appointmentsToInsert.length;
+      const skippedEvents = totalEvents - eventsToSend.length;
 
-      if (appointmentsToInsert.length === 0) {
+      if (eventsToSend.length === 0) {
         toast({
           title: 'Nenhum evento novo',
           description: `${skippedEvents} evento(s) já existem no sistema.`,
@@ -177,36 +208,50 @@ export const useAppointments = () => {
         return 0;
       }
 
-      console.log('Appointments to insert:', appointmentsToInsert);
+      console.log('Events to send via webhook:', eventsToSend);
 
-      const { data, error } = await supabase
-        .from('appointments')
-        .insert(appointmentsToInsert) 
-        .select();
+      // Send each event via webhook individually
+      let successCount = 0;
+      let errorCount = 0;
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
+      for (let i = 0; i < eventsToSend.length; i++) {
+        try {
+          await sendAppointmentToWebhook(eventsToSend[i]);
+          successCount++;
+          console.log(`Successfully sent event ${i + 1}/${eventsToSend.length}`);
+        } catch (error) {
+          console.error(`Error sending event ${i + 1}:`, error);
+          errorCount++;
+        }
       }
 
-      console.log('Successfully inserted appointments:', data);
-      await fetchAppointments(); // Refresh the list
+      // Wait for backend processing, then refresh
+      setTimeout(() => {
+        fetchAppointments();
+      }, 1500);
       
       // Show success message with details
-      const newEventsCount = data?.length || 0;
-      if (skippedEvents > 0) {
-        toast({
-          title: 'Eventos importados',
-          description: `${newEventsCount} novos eventos importados. ${skippedEvents} evento(s) já existiam.`,
-        });
+      if (successCount > 0) {
+        if (skippedEvents > 0) {
+          toast({
+            title: 'Eventos importados',
+            description: `${successCount} eventos enviados. ${skippedEvents} já existiam. ${errorCount > 0 ? `${errorCount} erro(s).` : ''}`,
+          });
+        } else {
+          toast({
+            title: 'Eventos importados',
+            description: `${successCount} evento(s) enviados para processamento.${errorCount > 0 ? ` ${errorCount} erro(s).` : ''}`,
+          });
+        }
       } else {
         toast({
-          title: 'Eventos importados',
-          description: `${newEventsCount} evento(s) importados com sucesso.`,
+          title: 'Erro ao importar eventos',
+          description: 'Não foi possível enviar nenhum evento.',
+          variant: 'destructive',
         });
       }
       
-      return newEventsCount;
+      return successCount;
     } catch (error) {
       console.error('Error creating appointments from Google events:', error);
       toast({
@@ -257,55 +302,20 @@ export const useAppointments = () => {
         notes: appointmentData.notes || `Paciente: ${appointmentData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${appointmentData.patient_email || 'Não informado'}.`
       };
 
-      // Send to webhook in the correct array format
-      const payload = [{
-        query: JSON.stringify(queryObj)
-      }];
-
-      console.log('Sending webhook payload:', JSON.stringify(payload, null, 2));
-
-      const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/agendamento-aplia', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Webhook error: ${response.status}`);
-      }
-
-      // Also save locally in Supabase
-      const { data, error } = await supabase
-        .from('appointments')
-        .insert({
-          user_id: userData.user.id,
-          patient_name: appointmentData.patient_name,
-          patient_phone: appointmentData.patient_phone,
-          patient_email: appointmentData.patient_email,
-          appointment_date: appointmentData.appointment_date,
-          duration_minutes: appointmentData.duration_minutes || 60,
-          appointment_type: appointmentData.appointment_type,
-          status: appointmentData.status || 'agendado',
-          notes: appointmentData.notes,
-          professional_profile_id: appointmentData.professional_profile_id,
-          conversation_id: appointmentData.conversation_id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Update local state
-      setAppointments(prev => [...prev, data]);
+      // Send to webhook only (no direct Supabase insert)
+      await sendAppointmentToWebhook(queryObj);
+      
+      // Wait for backend processing, then refresh
+      setTimeout(() => {
+        fetchAppointments();
+      }, 1500);
       
       toast({
         title: 'Agendamento criado',
-        description: 'O agendamento foi criado e enviado para processamento.',
+        description: 'O agendamento foi enviado para processamento.',
       });
 
-      return data;
+      return true;
     } catch (error) {
       console.error('Error creating appointment:', error);
       toast({

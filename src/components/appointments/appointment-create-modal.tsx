@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useAuth } from "@/components/auth-provider"
+import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
 
 interface AppointmentCreateModalProps {
   open: boolean
@@ -38,7 +39,28 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
 
   const { user } = useAuth()
   const { profiles } = useProfessionalProfiles()
+  const { credentials, profileLinks } = useGoogleIntegrations()
   const { toast } = useToast()
+
+  // Helper function to resolve Google email for selected professional
+  const resolveLinkedGoogleEmail = (professionalId: string): string => {
+    // Check if this professional is linked to a Google account
+    const profileLink = profileLinks.find(link => link.professional_profile_id === professionalId)
+    
+    if (profileLink) {
+      const credential = credentials.find(cred => cred.id === profileLink.google_credential_id)
+      if (credential) {
+        return credential.email
+      }
+    }
+    
+    // Fallback to first available Google credential if only one exists
+    if (credentials.length === 1) {
+      return credentials[0].email
+    }
+    
+    return ""
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -76,6 +98,11 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
         formattedPhone = `+${formattedPhone}`
       }
 
+      const myEmail = resolveLinkedGoogleEmail(formData.professional_profile_id)
+      if (!myEmail) {
+        console.warn('No Google email found for professional profile, proceeding without Google sync')
+      }
+
       // Create the webhook payload in the exact format requested
       const queryObj = {
         action: "create",
@@ -87,7 +114,8 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
         appointment_date: formattedDate,
         status: formData.status,
         summary: `${formData.appointment_type || 'Consulta'} com ${formData.patient_name}`,
-        notes: formData.notes || `Paciente: ${formData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${formData.patient_email || 'Não informado'}. Motivo: ${formData.appointment_type || 'consulta'}.`
+        notes: formData.notes || `Paciente: ${formData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${formData.patient_email || 'Não informado'}. Motivo: ${formData.appointment_type || 'consulta'}.`,
+        ...(myEmail && { my_email: myEmail })
       }
 
       // Send to webhook in the correct array format
