@@ -63,6 +63,68 @@ serve(async (req: Request) => {
           updateData.status = "connected";
           updateData.last_connected_at = new Date().toISOString();
           shouldUpdate = true;
+          
+          // When connected, fetch instance info to get phone number
+          try {
+            const EVOLUTION_BASE_URL = Deno.env.get("EVOLUTION_API_URL");
+            const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
+            
+            if (EVOLUTION_BASE_URL && EVOLUTION_API_KEY) {
+              // Try to get owner profile
+              let ownerData = null;
+              try {
+                const ownerResponse = await fetch(`${EVOLUTION_BASE_URL}/instance/owner/${instance}`, {
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': EVOLUTION_API_KEY,
+                  },
+                });
+
+                if (ownerResponse.ok) {
+                  ownerData = await ownerResponse.json();
+                } else {
+                  // Fallback: try fetchInstances
+                  const fallbackResponse = await fetch(`${EVOLUTION_BASE_URL}/instance/fetchInstances?instanceName=${instance}`, {
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'apikey': EVOLUTION_API_KEY,
+                    },
+                  });
+                  
+                  if (fallbackResponse.ok) {
+                    const fallbackData = await fallbackResponse.json();
+                    ownerData = {
+                      number: fallbackData?.number || fallbackData?.wid || fallbackData?.ownerJid || fallbackData?.owner,
+                      name: fallbackData?.displayName || fallbackData?.name,
+                      profilePictureUrl: fallbackData?.profilePictureUrl
+                    };
+                  }
+                }
+              } catch (fetchError) {
+                console.log(`[evolution-webhook] Could not fetch owner data: ${fetchError}`);
+              }
+              
+              if (ownerData) {
+                const phoneNumber = ownerData.number || ownerData.wid || ownerData.jid;
+                if (phoneNumber) {
+                  // Normalize phone number (remove non-digits)
+                  const normalizedPhone = phoneNumber.replace(/\D/g, '');
+                  updateData.phone_number = normalizedPhone;
+                  console.log(`[evolution-webhook] Updated phone number: ${normalizedPhone}`);
+                }
+                
+                if (ownerData.profilePictureUrl) {
+                  updateData.profile_picture_url = ownerData.profilePictureUrl;
+                }
+                
+                if (ownerData.name || ownerData.pushName) {
+                  updateData.display_name = ownerData.name || ownerData.pushName;
+                }
+              }
+            }
+          } catch (error) {
+            console.log(`[evolution-webhook] Error fetching instance info on connection: ${error}`);
+          }
         } else if (["close", "disconnected", "DISCONNECTED", "offline"].includes(data?.state)) {
           updateData.status = "disconnected";
           shouldUpdate = true;

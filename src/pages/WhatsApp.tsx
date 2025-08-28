@@ -258,7 +258,7 @@ export default function WhatsAppPage() {
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [syncInstances]);
+  }, []);
 
   if (loading) {
     return (

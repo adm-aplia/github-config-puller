@@ -69,62 +69,8 @@ export const useWhatsAppInstances = () => {
 
       setInstances(formattedInstances);
 
-      // Auto-sync instances that need status/phone updates
-      for (const instance of formattedInstances) {
-        if (instance.status !== 'connected' || !instance.phone_number) {
-          try {
-            const res = await supabase.functions.invoke('evolution-manager', {
-              body: {
-                action: 'fetch_instance_info',
-                instanceName: instance.instance_name,
-              },
-            });
-
-            if (!res.error && res.data) {
-              const { phone_number, profile_picture_url, display_name, isConnected } = res.data;
-              
-              // Extract phone number using utility function
-              const extractedPhone = extractPhoneNumberFromApi(res.data) || phone_number;
-              
-              if (extractedPhone || isConnected) {
-                const updateData: any = {};
-                
-                if (extractedPhone && extractedPhone !== instance.phone_number) {
-                  updateData.phone_number = normalizePhoneNumber(extractedPhone);
-                }
-                
-                if (profile_picture_url && profile_picture_url !== instance.profile_picture_url) {
-                  updateData.profile_picture_url = profile_picture_url;
-                }
-                
-                if (display_name && display_name !== instance.display_name) {
-                  updateData.display_name = display_name;
-                }
-                
-                if (isConnected && instance.status !== 'connected') {
-                  updateData.status = 'connected';
-                  updateData.last_connected_at = new Date().toISOString();
-                }
-
-                if (Object.keys(updateData).length > 0) {
-                  await supabase
-                    .from('whatsapp_instances')
-                    .update(updateData)
-                    .eq('id', instance.id);
-
-                  // Update local state
-                  setInstances(prev => prev.map(inst => 
-                    inst.id === instance.id ? { ...inst, ...updateData } : inst
-                  ));
-                }
-              }
-            }
-          } catch (syncError) {
-            // Silent fail for auto-sync to avoid spam
-            console.log(`Auto-sync failed for instance ${instance.instance_name}:`, syncError);
-          }
-        }
-      }
+      // Note: Removed auto-sync from fetchInstances to prevent excessive logs
+      // Sync is now handled via page button or periodic interval
     } catch (error) {
       console.error('Error fetching WhatsApp instances:', error);
       if (!silent) {

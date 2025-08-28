@@ -186,6 +186,25 @@ serve(async (req: Request) => {
                 if (phoneNumber) {
                   phoneNumber = phoneNumber.replace(/\D/g, '');
                 }
+              } else {
+                // Final fallback: try fetchInstances
+                console.log("[evolution-manager] findProfile failed, trying fetchInstances fallback");
+                const fallbackRes = await fetch(`${BASE_URL}/instance/fetchInstances?instanceName=${providedInstanceName}`, {
+                  method: "GET",
+                  headers: { "apikey": API_KEY },
+                });
+                
+                if (fallbackRes.ok) {
+                  const fallbackData = await fallbackRes.json().catch(() => ({}));
+                  phoneNumber = fallbackData?.number || fallbackData?.wid || fallbackData?.ownerJid || fallbackData?.owner || null;
+                  displayName = fallbackData?.displayName || fallbackData?.name || null;
+                  profilePictureUrl = fallbackData?.profilePictureUrl || null;
+                  
+                  // Normalize phone number to digits only
+                  if (phoneNumber) {
+                    phoneNumber = phoneNumber.replace(/\D/g, '');
+                  }
+                }
               }
             } catch (altError) {
               console.log("[evolution-manager] Alternative profile fetch also failed:", altError);

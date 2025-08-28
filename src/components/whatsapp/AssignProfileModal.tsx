@@ -57,7 +57,7 @@ export function AssignProfileModal({ open, onOpenChange, onSubmit, currentProfil
                   <SelectItem 
                     key={profile.id} 
                     value={profile.id}
-                    className="hover:bg-muted focus:bg-muted data-[state=checked]:bg-muted"
+                    className="hover:bg-muted focus:bg-muted data-[state=checked]:bg-muted text-foreground focus:text-foreground data-[state=checked]:text-foreground"
                   >
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
