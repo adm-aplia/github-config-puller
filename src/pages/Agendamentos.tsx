@@ -76,14 +76,15 @@ export default function AgendamentosPage() {
   const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment } = useAppointments()
   const { credentials, profileLinks, loading: googleLoading, connectGoogleAccount } = useGoogleIntegrations()
   const { toast } = useToast()
-  // Calcular estatísticas dinamicamente baseadas nos dados reais
+  // Calcular estatísticas dinamicamente baseadas nos dados reais (excluindo bloqueios)
   const calculateStats = () => {
-    const total = appointments.length
-    const scheduled = appointments.filter(apt => apt.status === 'scheduled').length
-    const confirmed = appointments.filter(apt => apt.status === 'confirmed').length
-    const completed = appointments.filter(apt => apt.status === 'completed').length
-    const cancelled = appointments.filter(apt => apt.status === 'cancelled').length
-    const rescheduled = appointments.filter(apt => apt.status === 'rescheduled').length
+    const realAppointments = appointments.filter(apt => apt.appointment_type !== 'blocked')
+    const total = realAppointments.length
+    const scheduled = realAppointments.filter(apt => apt.status === 'scheduled').length
+    const confirmed = realAppointments.filter(apt => apt.status === 'confirmed').length
+    const completed = realAppointments.filter(apt => apt.status === 'completed').length
+    const cancelled = realAppointments.filter(apt => apt.status === 'cancelled').length
+    const rescheduled = realAppointments.filter(apt => apt.status === 'rescheduled').length
 
     return [
       { title: "Total de Agendamentos", value: total.toString(), icon: CalendarIcon, color: "default" },

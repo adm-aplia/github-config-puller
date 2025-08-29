@@ -50,7 +50,7 @@ export const useDashboardStats = () => {
           supabase.from('professional_profiles').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id),
           supabase.from('whatsapp_instances').select('id, status', { count: 'exact' }).eq('user_id', userData.user.id),
           supabase.from('conversations').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).or(`last_message_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()},and(last_message_at.is.null,created_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()})`),
-          supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).gte('appointment_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+          supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).gte('appointment_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()).neq('appointment_type', 'blocked')
         ]);
 
         // Get conversations for today's messages count
