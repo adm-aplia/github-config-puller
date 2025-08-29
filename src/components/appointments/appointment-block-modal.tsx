@@ -1,3 +1,4 @@
+
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -241,6 +242,7 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
           patient_email: "",
           appointment_date: formattedDate,
           status: "blocked",
+          appointment_type: "blocked",
           summary: "Bloqueio de agenda",
           notes: `${formData.reason ? `Motivo: ${formData.reason}. ` : ""}Horário bloqueado até ${slotEndFormatted}.`,
           ...(myEmail && { my_email: myEmail })
