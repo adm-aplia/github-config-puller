@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { CalendarIcon } from "lucide-react"
-import { format, startOfDay } from "date-fns"
+import { format, startOfDay, addDays } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
@@ -24,6 +25,7 @@ interface AppointmentBlockModalProps {
 
 export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: AppointmentBlockModalProps) {
   const [loading, setLoading] = useState(false)
+  const [blockType, setBlockType] = useState("specific") // "specific" or "fullday"
   const [startDate, setStartDate] = useState<Date>()
   const [endDate, setEndDate] = useState<Date>()
   const [startTime, setStartTime] = useState("")
@@ -95,16 +97,53 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
     return slots
   }
 
+  const generateFullDaySlots = (startDate: Date, endDate: Date) => {
+    const slots = []
+    const currentDate = new Date(startDate)
+    
+    while (currentDate <= endDate) {
+      // Generate hourly slots from 00:00 to 23:59 for each day
+      for (let hour = 0; hour < 24; hour++) {
+        const slotStart = new Date(currentDate)
+        slotStart.setHours(hour, 0, 0, 0)
+        
+        const slotEnd = new Date(currentDate)
+        slotEnd.setHours(hour, 59, 59, 999)
+        
+        slots.push({
+          start: slotStart,
+          end: slotEnd
+        })
+      }
+      
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+    
+    return slots
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!startDate || !endDate || !startTime || !endTime || !formData.professional_profile_id) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      })
-      return
+    // Validation based on block type
+    if (blockType === "specific") {
+      if (!startDate || !endDate || !startTime || !endTime || !formData.professional_profile_id) {
+        toast({
+          title: "Campos obrigatórios",
+          description: "Por favor, preencha todos os campos obrigatórios.",
+          variant: "destructive"
+        })
+        return
+      }
+    } else {
+      if (!startDate || !endDate || !formData.professional_profile_id) {
+        toast({
+          title: "Campos obrigatórios",
+          description: "Por favor, selecione o profissional e as datas.",
+          variant: "destructive"
+        })
+        return
+      }
     }
 
     // Validate end date is not before start date
@@ -120,33 +159,49 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
     setLoading(true)
 
     try {
-      // Create start and end DateTime objects
-      const [startHours, startMinutes] = startTime.split(':')
-      const [endHours, endMinutes] = endTime.split(':')
-      
-      const startDateTime = new Date(startDate)
-      startDateTime.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0)
-      
-      const endDateTime = new Date(endDate)
-      endDateTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0)
+      let slots = []
 
-      // Validate end time is after start time for same day
-      if (startDate.toDateString() === endDate.toDateString() && endDateTime <= startDateTime) {
-        toast({
-          title: "Horário inválido",
-          description: "O horário final deve ser posterior ao horário inicial.",
-          variant: "destructive"
-        })
-        return
+      if (blockType === "fullday") {
+        // Generate full day slots
+        slots = generateFullDaySlots(startDate, endDate)
+      } else {
+        // Generate specific time slots
+        const [startHours, startMinutes] = startTime.split(':')
+        const [endHours, endMinutes] = endTime.split(':')
+        
+        const startDateTime = new Date(startDate)
+        startDateTime.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0)
+        
+        const endDateTime = new Date(endDate)
+        endDateTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0)
+
+        // Validate end time is after start time for same day
+        if (startDate.toDateString() === endDate.toDateString() && endDateTime <= startDateTime) {
+          toast({
+            title: "Horário inválido",
+            description: "O horário final deve ser posterior ao horário inicial.",
+            variant: "destructive"
+          })
+          return
+        }
+
+        slots = generateTimeSlots(startDateTime, endDateTime, formData.interval_minutes)
       }
-
-      // Generate time slots
-      const slots = generateTimeSlots(startDateTime, endDateTime, formData.interval_minutes)
       
       if (slots.length === 0) {
         toast({
           title: "Nenhum slot gerado",
           description: "Verifique os horários informados.",
+          variant: "destructive"
+        })
+        return
+      }
+
+      // Limit number of slots to prevent overload
+      if (slots.length > 500) {
+        toast({
+          title: "Muitos bloqueios",
+          description: "Limite máximo de 500 slots. Reduza o período ou aumente o intervalo.",
           variant: "destructive"
         })
         return
@@ -216,6 +271,7 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
       
       // Reset form on success
       if (successCount > 0) {
+        setBlockType("specific")
         setFormData({
           professional_profile_id: "",
           interval_minutes: 30,
@@ -275,7 +331,35 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
               </Select>
             </div>
 
-            {/* Start Date and Time */}
+            {/* Block Type Selection */}
+            <div className="md:col-span-2">
+              <Label>Tipo de bloqueio</Label>
+              <RadioGroup
+                value={blockType}
+                onValueChange={setBlockType}
+                className="flex flex-col space-y-2 mt-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="specific" id="specific" />
+                  <Label htmlFor="specific" className="text-sm font-normal">
+                    Período específico
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="fullday" id="fullday" />
+                  <Label htmlFor="fullday" className="text-sm font-normal">
+                    Dia inteiro
+                  </Label>
+                </div>
+              </RadioGroup>
+              {blockType === "fullday" && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Enviamos blocos de 60 min para manter o dia ocupado no calendário.
+                </p>
+              )}
+            </div>
+
+            {/* Date Range */}
             <div>
               <Label>Data Inicial *</Label>
               <Popover>
@@ -304,18 +388,6 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
             </div>
 
             <div>
-              <Label htmlFor="start_time">Horário Inicial *</Label>
-              <Input
-                id="start_time"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                required
-              />
-            </div>
-
-            {/* End Date and Time */}
-            <div>
               <Label>Data Final *</Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -342,35 +414,54 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
               </Popover>
             </div>
 
-            <div>
-              <Label htmlFor="end_time">Horário Final *</Label>
-              <Input
-                id="end_time"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                required
-              />
-            </div>
+            {/* Time and Interval - only for specific period */}
+            {blockType === "specific" && (
+              <>
+                <div>
+                  <Label htmlFor="start_time">Horário Inicial *</Label>
+                  <Input
+                    id="start_time"
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                  />
+                </div>
 
-            {/* Interval */}
-            <div>
-              <Label htmlFor="interval_minutes">Intervalo (minutos)</Label>
-              <Select
-                value={formData.interval_minutes.toString()}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, interval_minutes: parseInt(value) }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="15">15 minutos</SelectItem>
-                  <SelectItem value="30">30 minutos</SelectItem>
-                  <SelectItem value="60">1 hora</SelectItem>
-                  <SelectItem value="120">2 horas</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div>
+                  <Label htmlFor="end_time">Horário Final *</Label>
+                  <Input
+                    id="end_time"
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    required
+                  />
+                </div>
+
+                {/* Interval */}
+                <div className="md:col-span-2">
+                  <Label htmlFor="interval_minutes">Intervalo</Label>
+                  <Select
+                    value={formData.interval_minutes.toString()}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, interval_minutes: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 minutos</SelectItem>
+                      <SelectItem value="30">30 minutos</SelectItem>
+                      <SelectItem value="60">1 hora</SelectItem>
+                      <SelectItem value="120">2 horas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Define o tamanho de cada slot de bloqueio enviado
+                  </p>
+                </div>
+              </>
+            )}
 
             {/* Reason */}
             <div className="md:col-span-2">
