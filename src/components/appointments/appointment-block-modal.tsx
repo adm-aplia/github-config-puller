@@ -10,13 +10,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { CalendarIcon } from "lucide-react"
-import { format, startOfDay, addDays } from "date-fns"
+import { format, startOfDay, addDays, addWeeks } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useAuth } from "@/components/auth-provider"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
+import { Switch } from "@/components/ui/switch"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface AppointmentBlockModalProps {
   open: boolean
@@ -31,9 +33,11 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
   const [endDate, setEndDate] = useState<Date>()
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurrenceType, setRecurrenceType] = useState("daily") // "daily" or "weekly"
+  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([])
   const [formData, setFormData] = useState({
     professional_profile_id: "",
-    interval_minutes: 30,
     reason: ""
   })
 
@@ -82,41 +86,72 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
     await new Promise(resolve => setTimeout(resolve, 200))
   }
 
-  const generateTimeSlots = (start: Date, end: Date, intervalMinutes: number) => {
-    const slots = []
-    const current = new Date(start)
+  // Helper function to generate dates based on recurrence
+  const generateRecurringDates = (startDate: Date, endDate: Date): Date[] => {
+    const dates = []
+    const current = new Date(startDate)
     
-    while (current < end) {
-      const slotEnd = new Date(current.getTime() + intervalMinutes * 60000)
+    if (!isRecurring) {
+      // No recurrence, just generate dates between start and end
+      while (current <= endDate) {
+        dates.push(new Date(current))
+        current.setDate(current.getDate() + 1)
+      }
+    } else if (recurrenceType === "daily") {
+      // Daily recurrence
+      while (current <= endDate) {
+        dates.push(new Date(current))
+        current.setDate(current.getDate() + 1)
+      }
+    } else if (recurrenceType === "weekly") {
+      // Weekly recurrence based on selected weekdays
+      while (current <= endDate) {
+        if (selectedWeekdays.includes(current.getDay())) {
+          dates.push(new Date(current))
+        }
+        current.setDate(current.getDate() + 1)
+      }
+    }
+    
+    return dates
+  }
+
+  const generateSpecificTimeSlots = (dates: Date[], startTime: string, endTime: string) => {
+    const slots = []
+    const [startHours, startMinutes] = startTime.split(':')
+    const [endHours, endMinutes] = endTime.split(':')
+    
+    dates.forEach(date => {
+      const slotStart = new Date(date)
+      slotStart.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0)
+      
+      const slotEnd = new Date(date)
+      slotEnd.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0)
+      
       slots.push({
-        start: new Date(current),
+        start: slotStart,
         end: slotEnd
       })
-      current.setTime(current.getTime() + intervalMinutes * 60000)
-    }
+    })
     
     return slots
   }
 
-  const generateFullDaySlots = (startDate: Date, endDate: Date) => {
+  const generateFullDaySlots = (dates: Date[]) => {
     const slots = []
-    const currentDate = new Date(startDate)
     
-    while (currentDate <= endDate) {
-      // Generate a single full-day slot (00:00 to 23:59) for each day
-      const slotStart = new Date(currentDate)
+    dates.forEach(date => {
+      const slotStart = new Date(date)
       slotStart.setHours(0, 0, 0, 0)
       
-      const slotEnd = new Date(currentDate)
+      const slotEnd = new Date(date)
       slotEnd.setHours(23, 59, 59, 999)
       
       slots.push({
         start: slotStart,
         end: slotEnd
       })
-      
-      currentDate.setDate(currentDate.getDate() + 1)
-    }
+    })
     
     return slots
   }
@@ -145,6 +180,16 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
       }
     }
 
+    // Validate recurrence settings
+    if (isRecurring && recurrenceType === "weekly" && selectedWeekdays.length === 0) {
+      toast({
+        title: "Dias da semana obrigatórios",
+        description: "Para recorrência semanal, selecione pelo menos um dia da semana.",
+        variant: "destructive"
+      })
+      return
+    }
+
     // Validate end date is not before start date
     if (endDate < startDate) {
       toast({
@@ -158,24 +203,31 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
     setLoading(true)
 
     try {
+      // Generate recurring dates first
+      const dates = generateRecurringDates(startDate, endDate)
+      
+      if (dates.length === 0) {
+        toast({
+          title: "Nenhuma data válida",
+          description: "Verifique as configurações de recorrência.",
+          variant: "destructive"
+        })
+        return
+      }
+
       let slots = []
 
       if (blockType === "fullday") {
-        // Generate full day slots
-        slots = generateFullDaySlots(startDate, endDate)
+        // Generate full day slots for each date
+        slots = generateFullDaySlots(dates)
       } else {
-        // Generate specific time slots
+        // Validate end time is after start time
         const [startHours, startMinutes] = startTime.split(':')
         const [endHours, endMinutes] = endTime.split(':')
+        const startMinutesTotal = parseInt(startHours) * 60 + parseInt(startMinutes)
+        const endMinutesTotal = parseInt(endHours) * 60 + parseInt(endMinutes)
         
-        const startDateTime = new Date(startDate)
-        startDateTime.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0)
-        
-        const endDateTime = new Date(endDate)
-        endDateTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0)
-
-        // Validate end time is after start time for same day
-        if (startDate.toDateString() === endDate.toDateString() && endDateTime <= startDateTime) {
+        if (endMinutesTotal <= startMinutesTotal) {
           toast({
             title: "Horário inválido",
             description: "O horário final deve ser posterior ao horário inicial.",
@@ -184,7 +236,8 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
           return
         }
 
-        slots = generateTimeSlots(startDateTime, endDateTime, formData.interval_minutes)
+        // Generate specific time slots for each date
+        slots = generateSpecificTimeSlots(dates, startTime, endTime)
       }
       
       if (slots.length === 0) {
@@ -242,10 +295,13 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
           status: "blocked",
           appointment_type: "blocked",
           summary: "Bloqueio de agenda",
-          notes: `${formData.reason ? `Motivo: ${formData.reason}. ` : ""}${blockType === "fullday" ? "Dia inteiro bloqueado" : `Horário bloqueado até ${slotEndFormatted}`}.`,
+          notes: `${formData.reason ? `Motivo: ${formData.reason}. ` : ""}${blockType === "fullday" ? "Dia inteiro bloqueado" : `Horário bloqueado de ${format(slot.start, "HH:mm")} até ${slotEndFormatted}`}${isRecurring ? ` (Recorrência: ${recurrenceType === "daily" ? "Diária" : "Semanal"})` : ""}.`,
           ...(blockType === "fullday" && { 
             full_day: true,
             duration_minutes: 1440 
+          }),
+          ...(blockType === "specific" && {
+            duration_minutes: Math.round((slot.end.getTime() - slot.start.getTime()) / (1000 * 60))
           }),
           ...(myEmail && { my_email: myEmail })
         }
@@ -278,13 +334,15 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
         setBlockType("fullday")
         setFormData({
           professional_profile_id: "",
-          interval_minutes: 30,
           reason: ""
         })
         setStartDate(undefined)
         setEndDate(undefined)
         setStartTime("")
         setEndTime("")
+        setIsRecurring(false)
+        setRecurrenceType("daily")
+        setSelectedWeekdays([])
         
         onOpenChange(false)
         
@@ -418,7 +476,7 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
               </Popover>
             </div>
 
-            {/* Time and Interval - only for specific period */}
+            {/* Time - only for specific period */}
             {blockType === "specific" && (
               <>
                 <div>
@@ -442,30 +500,74 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
                     required
                   />
                 </div>
-
-                {/* Interval */}
-                <div className="md:col-span-2">
-                  <Label htmlFor="interval_minutes">Intervalo</Label>
-                  <Select
-                    value={formData.interval_minutes.toString()}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, interval_minutes: parseInt(value) }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15">15 minutos</SelectItem>
-                      <SelectItem value="30">30 minutos</SelectItem>
-                      <SelectItem value="60">1 hora</SelectItem>
-                      <SelectItem value="120">2 horas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Define o tamanho de cada slot de bloqueio enviado
-                  </p>
-                </div>
               </>
             )}
+
+            {/* Recurrence Options */}
+            <div className="md:col-span-2">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="recurring"
+                  checked={isRecurring}
+                  onCheckedChange={setIsRecurring}
+                />
+                <Label htmlFor="recurring">Bloqueio recorrente</Label>
+              </div>
+              
+              {isRecurring && (
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <Label>Frequência</Label>
+                    <Select
+                      value={recurrenceType}
+                      onValueChange={setRecurrenceType}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Diária</SelectItem>
+                        <SelectItem value="weekly">Semanal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {recurrenceType === "weekly" && (
+                    <div>
+                      <Label>Dias da semana</Label>
+                      <div className="grid grid-cols-7 gap-2 mt-2">
+                        {[
+                          { label: "Dom", value: 0 },
+                          { label: "Seg", value: 1 },
+                          { label: "Ter", value: 2 },
+                          { label: "Qua", value: 3 },
+                          { label: "Qui", value: 4 },
+                          { label: "Sex", value: 5 },
+                          { label: "Sáb", value: 6 }
+                        ].map((day) => (
+                          <div key={day.value} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`day-${day.value}`}
+                              checked={selectedWeekdays.includes(day.value)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedWeekdays([...selectedWeekdays, day.value])
+                                } else {
+                                  setSelectedWeekdays(selectedWeekdays.filter(d => d !== day.value))
+                                }
+                              }}
+                            />
+                            <Label htmlFor={`day-${day.value}`} className="text-xs">
+                              {day.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Reason */}
             <div className="md:col-span-2">

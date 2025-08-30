@@ -390,10 +390,20 @@ export default function AgendamentosPage() {
     }
   }
 
+  // Get blocked appointments for a specific date
+  const getBlockedAppointmentsForDate = (date: Date) => {
+    return appointments.filter(apt => {
+      const aptDate = new Date(apt.appointment_date)
+      return aptDate.toDateString() === date.toDateString() && apt.appointment_type === 'blocked'
+    })
+  }
+
   // Custom day content renderer
   const renderDayContent = (date: Date) => {
     const dayAppointments = getAppointmentsForDate(date)
+    const blockedAppointments = getBlockedAppointmentsForDate(date)
     const appointmentCount = dayAppointments.length
+    const hasBlocked = blockedAppointments.length > 0
     
     return (
       <div className="relative w-full h-full flex flex-col justify-between p-1">
@@ -404,6 +414,9 @@ export default function AgendamentosPage() {
               {appointmentCount} consulta{appointmentCount > 1 ? 's' : ''}
             </div>
           </div>
+        )}
+        {hasBlocked && (
+          <div className="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-full" title="Dia com bloqueios" />
         )}
       </div>
     )
