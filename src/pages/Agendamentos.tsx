@@ -76,8 +76,8 @@ export default function AgendamentosPage() {
   const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment } = useAppointments()
   const { credentials, profileLinks, loading: googleLoading, connectGoogleAccount } = useGoogleIntegrations()
   const { toast } = useToast()
-  // Calcular estatísticas dinamicamente baseadas nos dados reais (excluindo bloqueios)
-  const calculateStats = () => {
+  // Calcular estatísticas dinamicamente baseadas nos dados filtrados (excluindo bloqueios)
+  const calculateStats = (appointments: Appointment[]) => {
     const realAppointments = appointments.filter(apt => apt.appointment_type !== 'blocked')
     const total = realAppointments.length
     const scheduled = realAppointments.filter(apt => apt.status === 'scheduled').length
@@ -95,8 +95,6 @@ export default function AgendamentosPage() {
       { title: "Remarcados", value: rescheduled.toString(), percentage: total > 0 ? `${Math.round((rescheduled/total)*100)}%` : "0%", icon: RotateCcw, color: "default" },
     ]
   }
-
-  const stats = calculateStats()
 
   // Modal states
   const [viewModalOpen, setViewModalOpen] = useState(false)
@@ -117,9 +115,47 @@ export default function AgendamentosPage() {
   })
   const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>([])
 
+  // Get period date range based on viewPeriod
+  const getPeriodDateRange = () => {
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    
+    switch (viewPeriod) {
+      case "today":
+        return { from: today, to: today }
+      case "last7days":
+        const last7Days = new Date(today)
+        last7Days.setDate(today.getDate() - 6)
+        return { from: last7Days, to: today }
+      case "last30days":
+        const last30Days = new Date(today)
+        last30Days.setDate(today.getDate() - 29)
+        return { from: last30Days, to: today }
+      default:
+        return { from: today, to: today }
+    }
+  }
+
   // Apply filters to appointments
   const applyFilters = () => {
     let filtered = [...appointments]
+
+    // Apply period filter if no manual date range is set
+    if (!filters.dateFrom && !filters.dateTo) {
+      const periodRange = getPeriodDateRange()
+      filtered = filtered.filter(apt => {
+        const aptDate = new Date(apt.appointment_date)
+        const aptDateOnly = new Date(aptDate.getFullYear(), aptDate.getMonth(), aptDate.getDate())
+        return aptDateOnly >= periodRange.from && aptDateOnly <= periodRange.to
+      })
+    }
+
+    // Apply professional filter from professional selector
+    if (selectedProfessional !== "all") {
+      filtered = filtered.filter(apt => 
+        apt.professional_profile_id === selectedProfessional
+      )
+    }
 
     if (filters.status.length > 0) {
       filtered = filtered.filter(apt => filters.status.includes(apt.status))
@@ -152,10 +188,10 @@ export default function AgendamentosPage() {
     setFilteredAppointments(filtered)
   }
 
-  // Apply filters when appointments or filters change
+  // Apply filters when appointments, filters, viewPeriod, or selectedProfessional change
   useEffect(() => {
     applyFilters()
-  }, [appointments, filters])
+  }, [appointments, filters, viewPeriod, selectedProfessional])
 
   // Auto-select Google credential when modal opens or when credentials change
   useEffect(() => {
@@ -187,14 +223,35 @@ export default function AgendamentosPage() {
 
   // Get appointments for a specific date (excluding blocked appointments)
   const getAppointmentsForDate = (date: Date) => {
-    return appointments.filter(apt => {
+    return filteredAppointments.filter(apt => {
       const aptDate = new Date(apt.appointment_date)
       return aptDate.toDateString() === date.toDateString() && apt.appointment_type !== 'blocked'
     })
   }
 
+  // Get blocked appointments for a specific date
+  const getBlockedAppointmentsForDate = (date: Date) => {
+    return filteredAppointments.filter(apt => {
+      const aptDate = new Date(apt.appointment_date)
+      return aptDate.toDateString() === date.toDateString() && apt.appointment_type === 'blocked'
+    })
+  }
+
   // Get appointments for selected date (excluding blocked appointments)
   const selectedDateAppointments = selectedDate ? getAppointmentsForDate(selectedDate) : []
+
+  // Calculate stats from filtered appointments
+  const stats = calculateStats(filteredAppointments)
+
+  // Get formatted date range for display
+  const getFormattedDateRange = () => {
+    if (filters.dateFrom && filters.dateTo) {
+      return `${format(filters.dateFrom, 'dd/MM/yyyy', { locale: ptBR })} - ${format(filters.dateTo, 'dd/MM/yyyy', { locale: ptBR })}`
+    }
+    
+    const periodRange = getPeriodDateRange()
+    return `${format(periodRange.from, 'dd/MM/yyyy', { locale: ptBR })} - ${format(periodRange.to, 'dd/MM/yyyy', { locale: ptBR })}`
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -390,13 +447,6 @@ export default function AgendamentosPage() {
     }
   }
 
-  // Get blocked appointments for a specific date
-  const getBlockedAppointmentsForDate = (date: Date) => {
-    return appointments.filter(apt => {
-      const aptDate = new Date(apt.appointment_date)
-      return aptDate.toDateString() === date.toDateString() && apt.appointment_type === 'blocked'
-    })
-  }
 
   // Custom day content renderer
   const renderDayContent = (date: Date) => {
@@ -430,7 +480,9 @@ export default function AgendamentosPage() {
           <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Agendamentos</h1>
-              <p className="text-sm text-muted-foreground">Estatísticas e calendário de agendamentos da sua clínica</p>
+              <p className="text-sm text-muted-foreground">
+                Período: {getFormattedDateRange()}
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Button 
@@ -479,14 +531,10 @@ export default function AgendamentosPage() {
                 <Tabs value={viewPeriod} onValueChange={setViewPeriod}>
                   <TabsList>
                     <TabsTrigger value="today">Hoje</TabsTrigger>
-                    <TabsTrigger value="7days">Últimos 7 dias</TabsTrigger>
-                    <TabsTrigger value="30days">Últimos 30 dias</TabsTrigger>
+                    <TabsTrigger value="last7days">Últimos 7 dias</TabsTrigger>
+                    <TabsTrigger value="last30days">Últimos 30 dias</TabsTrigger>
                   </TabsList>
                 </Tabs>
-                <div className="flex items-center gap-2 text-sm border rounded-md px-3 py-1">
-                  <CalendarIcon className="h-4 w-4" />
-                  01/08/2025 - 31/08/2025
-                </div>
               </div>
             </div>
 
