@@ -221,7 +221,38 @@ export default function AgendamentosPage() {
     }
   }, [selectedProfessionalForImport, credentials, profileLinks])
 
-  // Get appointments for a specific date (excluding blocked appointments)
+  // Appointments for day view - shows ALL appointments for selected day regardless of period filters
+  const appointmentsForDayView = () => {
+    let filtered = [...appointments]
+
+    // Apply only status, professional, and appointment type filters (NOT date range)
+    if (filters.status.length > 0) {
+      filtered = filtered.filter(apt => filters.status.includes(apt.status))
+    }
+
+    // Apply professional filter from professional selector
+    if (selectedProfessional !== "all") {
+      filtered = filtered.filter(apt => 
+        apt.professional_profile_id === selectedProfessional
+      )
+    }
+
+    if (filters.professionalIds.length > 0) {
+      filtered = filtered.filter(apt => 
+        apt.professional_profile_id && filters.professionalIds.includes(apt.professional_profile_id)
+      )
+    }
+
+    if (filters.appointmentType !== "all") {
+      filtered = filtered.filter(apt => 
+        apt.appointment_type === filters.appointmentType
+      )
+    }
+
+    return filtered
+  }
+
+  // Get appointments for a specific date (excluding blocked appointments) - for calendar view
   const getAppointmentsForDate = (date: Date) => {
     return filteredAppointments.filter(apt => {
       const aptDate = new Date(apt.appointment_date)
@@ -229,7 +260,7 @@ export default function AgendamentosPage() {
     })
   }
 
-  // Get blocked appointments for a specific date
+  // Get blocked appointments for a specific date - for calendar view
   const getBlockedAppointmentsForDate = (date: Date) => {
     return filteredAppointments.filter(apt => {
       const aptDate = new Date(apt.appointment_date)
@@ -237,8 +268,27 @@ export default function AgendamentosPage() {
     })
   }
 
+  // Get appointments for selected date in day view (ALL appointments, including blocked)
+  const getAppointmentsForSelectedDateDayView = (date: Date) => {
+    return appointmentsForDayView().filter(apt => {
+      const aptDate = new Date(apt.appointment_date)
+      return aptDate.toDateString() === date.toDateString() && apt.appointment_type !== 'blocked'
+    })
+  }
+
+  // Get blocked appointments for selected date in day view
+  const getBlockedForSelectedDateDayView = (date: Date) => {
+    return appointmentsForDayView().filter(apt => {
+      const aptDate = new Date(apt.appointment_date)
+      return aptDate.toDateString() === date.toDateString() && apt.appointment_type === 'blocked'
+    })
+  }
+
   // Get appointments for selected date (excluding blocked appointments)
-  const selectedDateAppointments = selectedDate ? getAppointmentsForDate(selectedDate) : []
+  const selectedDateAppointments = selectedDate ? getAppointmentsForSelectedDateDayView(selectedDate) : []
+  
+  // Get blocked appointments for selected date
+  const selectedDateBlocked = selectedDate ? getBlockedForSelectedDateDayView(selectedDate) : []
 
   // Calculate stats from filtered appointments
   const stats = calculateStats(filteredAppointments)
@@ -795,6 +845,36 @@ export default function AgendamentosPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
+                    {/* Block notifications */}
+                    {selectedDateBlocked.length > 0 && (
+                      <div className="space-y-2">
+                        {selectedDateBlocked.map((blockedApt, index) => {
+                          const blockedDate = new Date(blockedApt.appointment_date)
+                          const timeString = blockedDate.toLocaleTimeString('pt-BR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })
+                          const isDayBlock = blockedApt.duration_minutes && blockedApt.duration_minutes >= 24 * 60
+                          
+                          return (
+                            <div key={`blocked-${index}`} className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                                <span className="text-sm font-medium text-orange-800">
+                                  Bloqueio: {isDayBlock ? 'Dia inteiro' : timeString}
+                                </span>
+                              </div>
+                              {blockedApt.notes && (
+                                <p className="text-sm text-orange-700 mt-1 ml-4">
+                                  {blockedApt.notes}
+                                </p>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                    
                     {selectedDateAppointments.map((appointment, index) => {
                       const statusBadge = getStatusBadge(appointment.status)
                       const appointmentDate = new Date(appointment.appointment_date)
