@@ -26,7 +26,7 @@ interface AppointmentBlockModalProps {
 
 export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: AppointmentBlockModalProps) {
   const [loading, setLoading] = useState(false)
-  const [blockType, setBlockType] = useState("specific") // "specific" or "fullday"
+  const [blockType, setBlockType] = useState("fullday") // "specific" or "fullday"
   const [startDate, setStartDate] = useState<Date>()
   const [endDate, setEndDate] = useState<Date>()
   const [startTime, setStartTime] = useState("")
@@ -103,19 +103,17 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
     const currentDate = new Date(startDate)
     
     while (currentDate <= endDate) {
-      // Generate hourly slots from 00:00 to 23:59 for each day
-      for (let hour = 0; hour < 24; hour++) {
-        const slotStart = new Date(currentDate)
-        slotStart.setHours(hour, 0, 0, 0)
-        
-        const slotEnd = new Date(currentDate)
-        slotEnd.setHours(hour, 59, 59, 999)
-        
-        slots.push({
-          start: slotStart,
-          end: slotEnd
-        })
-      }
+      // Generate a single full-day slot (00:00 to 23:59) for each day
+      const slotStart = new Date(currentDate)
+      slotStart.setHours(0, 0, 0, 0)
+      
+      const slotEnd = new Date(currentDate)
+      slotEnd.setHours(23, 59, 59, 999)
+      
+      slots.push({
+        start: slotStart,
+        end: slotEnd
+      })
       
       currentDate.setDate(currentDate.getDate() + 1)
     }
@@ -244,7 +242,11 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
           status: "blocked",
           appointment_type: "blocked",
           summary: "Bloqueio de agenda",
-          notes: `${formData.reason ? `Motivo: ${formData.reason}. ` : ""}Horário bloqueado até ${slotEndFormatted}.`,
+          notes: `${formData.reason ? `Motivo: ${formData.reason}. ` : ""}${blockType === "fullday" ? "Dia inteiro bloqueado" : `Horário bloqueado até ${slotEndFormatted}`}.`,
+          ...(blockType === "fullday" && { 
+            full_day: true,
+            duration_minutes: 1440 
+          }),
           ...(myEmail && { my_email: myEmail })
         }
 
@@ -273,7 +275,7 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
       
       // Reset form on success
       if (successCount > 0) {
-        setBlockType("specific")
+        setBlockType("fullday")
         setFormData({
           professional_profile_id: "",
           interval_minutes: 30,
@@ -342,21 +344,21 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
                 className="flex flex-col space-y-2 mt-2"
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="specific" id="specific" />
-                  <Label htmlFor="specific" className="text-sm font-normal">
-                    Período específico
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="fullday" id="fullday" />
                   <Label htmlFor="fullday" className="text-sm font-normal">
                     Dia inteiro
                   </Label>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="specific" id="specific" />
+                  <Label htmlFor="specific" className="text-sm font-normal">
+                    Período específico
+                  </Label>
+                </div>
               </RadioGroup>
               {blockType === "fullday" && (
                 <p className="text-xs text-muted-foreground mt-2">
-                  Enviamos blocos de 60 min para manter o dia ocupado no calendário.
+                  Criará um único bloco de dia inteiro para cada data selecionada.
                 </p>
               )}
             </div>

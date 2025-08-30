@@ -185,15 +185,15 @@ export default function AgendamentosPage() {
     }
   }, [selectedProfessionalForImport, credentials, profileLinks])
 
-  // Get appointments for a specific date
+  // Get appointments for a specific date (excluding blocked appointments)
   const getAppointmentsForDate = (date: Date) => {
     return appointments.filter(apt => {
       const aptDate = new Date(apt.appointment_date)
-      return aptDate.toDateString() === date.toDateString()
+      return aptDate.toDateString() === date.toDateString() && apt.appointment_type !== 'blocked'
     })
   }
 
-  // Get appointments for selected date
+  // Get appointments for selected date (excluding blocked appointments)
   const selectedDateAppointments = selectedDate ? getAppointmentsForDate(selectedDate) : []
 
   const getStatusColor = (status: string) => {
