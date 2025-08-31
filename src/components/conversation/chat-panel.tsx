@@ -104,7 +104,10 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
         </div>
         
         {onEdit && (
-          <Button variant="ghost" size="sm" onClick={onEdit}>
+          <Button variant="ghost" size="sm" onClick={() => {
+            console.log('Edit button clicked', { onEdit });
+            onEdit();
+          }}>
             <Edit className="h-4 w-4" />
           </Button>
         )}

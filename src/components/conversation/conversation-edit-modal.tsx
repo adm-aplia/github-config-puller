@@ -36,6 +36,7 @@ export function ConversationEditModal({
 
   // Sync form data when conversation changes
   useEffect(() => {
+    console.log('ConversationEditModal useEffect', { open, conversation });
     if (open && conversation) {
       setFormData({
         contact_name: conversation.contact_name || "",

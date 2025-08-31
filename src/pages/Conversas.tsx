@@ -243,10 +243,11 @@ export default function ConversasPage() {
             contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
             contactPhone={selectedConversationData.contact_phone}
             onBack={handleBack}
-            onEdit={() => {
-              setConversationBeingEdited(selectedConversationData);
-              setIsEditModalOpen(true);
-            }}
+                            onEdit={() => {
+                              console.log('Mobile edit called', { selectedConversationData, isEditModalOpen });
+                              setConversationBeingEdited(selectedConversationData);
+                              setIsEditModalOpen(true);
+                            }}
           />
         </div>
       </DashboardLayout>
@@ -457,6 +458,7 @@ export default function ConversasPage() {
                     contactPhone={selectedConversationData.contact_phone}
                     onBack={handleBack}
                     onEdit={() => {
+                      console.log('Desktop edit called', { selectedConversationData, isEditModalOpen });
                       setConversationBeingEdited(selectedConversationData);
                       setIsEditModalOpen(true);
                     }}
