@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Send, ArrowLeft, Phone, MoreVertical, Edit } from "lucide-react"
+import { Send, ArrowLeft, Phone, MoreVertical, Edit, Trash2 } from "lucide-react"
 import { useMessages } from "@/hooks/use-messages"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
@@ -14,9 +14,10 @@ interface ChatPanelProps {
   contactPhone: string
   onBack?: () => void
   onEdit?: () => void
+  onDelete?: () => void
 }
 
-export function ChatPanel({ conversationId, contactName, contactPhone, onBack, onEdit }: ChatPanelProps) {
+export function ChatPanel({ conversationId, contactName, contactPhone, onBack, onEdit, onDelete }: ChatPanelProps) {
   const { messages, loading, fetchMessages, sendMessage } = useMessages()
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
@@ -123,6 +124,18 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="z-50 bg-background">
+            {onEdit && (
+              <DropdownMenuItem onClick={onEdit}>
+                <Edit className="mr-2 h-4 w-4" />
+                Editar contato
+              </DropdownMenuItem>
+            )}
+            {onDelete && (
+              <DropdownMenuItem onClick={onDelete} className="text-destructive">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Excluir conversa
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={copyPhoneNumber}>
               <Phone className="mr-2 h-4 w-4" />
               Copiar número

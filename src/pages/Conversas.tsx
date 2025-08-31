@@ -101,6 +101,13 @@ export default function ConversasPage() {
   const handleEditSaved = () => {
     setIsEditModalOpen(false);
     setConversationBeingEdited(null);
+    // Update selectedConversationData with the updated conversation
+    if (selectedConversationId && conversationBeingEdited) {
+      const updatedConversation = conversations.find(c => c.id === selectedConversationId);
+      if (updatedConversation) {
+        setSelectedConversationData(updatedConversation);
+      }
+    }
   };
 
   const handleBack = () => {
@@ -243,11 +250,11 @@ export default function ConversasPage() {
             contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
             contactPhone={selectedConversationData.contact_phone}
             onBack={handleBack}
-                            onEdit={() => {
-                              console.log('Mobile edit called', { selectedConversationData, isEditModalOpen });
-                              setConversationBeingEdited(selectedConversationData);
-                              setIsEditModalOpen(true);
-                            }}
+            onEdit={() => {
+              setConversationBeingEdited(selectedConversationData);
+              setIsEditModalOpen(true);
+            }}
+            onDelete={() => handleDeleteClick(selectedConversationData)}
           />
         </div>
       </DashboardLayout>
@@ -458,10 +465,10 @@ export default function ConversasPage() {
                     contactPhone={selectedConversationData.contact_phone}
                     onBack={handleBack}
                     onEdit={() => {
-                      console.log('Desktop edit called', { selectedConversationData, isEditModalOpen });
                       setConversationBeingEdited(selectedConversationData);
                       setIsEditModalOpen(true);
                     }}
+                    onDelete={() => handleDeleteClick(selectedConversationData)}
                   />
                 ) : (
                   <div className="flex-1 flex items-center justify-center bg-muted/10">
