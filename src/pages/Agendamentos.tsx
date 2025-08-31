@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useAuth } from "@/components/auth-provider"
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
@@ -842,168 +843,179 @@ export default function AgendamentosPage() {
               </CardContent>
             </Card>
 
-            {/* Appointments List */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Agendamentos do Dia
-                </CardTitle>
-                <CardDescription>
-                  {selectedDate ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "Selecione uma data"}
-                  {selectedDateAppointments.length > 0 && (
-                    <span className="ml-2 text-sm font-medium">
-                      ({selectedDateAppointments.length} agendamento{selectedDateAppointments.length > 1 ? 's' : ''})
-                    </span>
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-4">
-                {appointmentsLoading ? (
-                  <div className="flex justify-center py-8">
-                    <RefreshCw className="h-6 w-6 animate-spin" />
-                  </div>
-                ) : selectedDateAppointments.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Nenhum agendamento encontrado</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Não há agendamentos para {selectedDate ? format(selectedDate, "dd 'de' MMMM", { locale: ptBR }) : "esta data"}.
-                    </p>
-                    <Button size="sm" className="flex items-center gap-2">
-                      <Plus className="h-4 w-4" />
-                      Novo Agendamento
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {/* Block notifications */}
-                    {selectedDateBlocked.length > 0 && (
-                      <div className="space-y-2">
-                        {selectedDateBlocked.map((blockedApt, index) => {
-                          const blockedDate = new Date(blockedApt.appointment_date)
-                          const timeString = blockedDate.toLocaleTimeString('pt-BR', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })
-                          const isDayBlock = blockedApt.duration_minutes && blockedApt.duration_minutes >= 24 * 60
-                          
-                          return (
-                            <div key={`blocked-${index}`} className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full" />
-                                <span className="text-sm font-medium text-orange-800">
-                                  Bloqueio: {isDayBlock ? 'Dia inteiro' : timeString}
-                                </span>
+            {/* Daily Appointments and Blocks */}
+            <div className="space-y-4">
+              {/* Regular Appointments */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Agendamentos do Dia
+                    {selectedDate && (
+                      <span className="text-sm font-normal text-muted-foreground ml-2">
+                        ({format(selectedDate, "dd/MM/yyyy", { locale: ptBR })})
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[300px]">
+                    {appointmentsLoading ? (
+                      <div className="flex justify-center py-8">
+                        <RefreshCw className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : selectedDateAppointments.filter(apt => apt.appointment_type !== 'blocked').length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">
+                        Nenhum agendamento para esta data
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {selectedDateAppointments
+                          .filter(apt => apt.appointment_type !== 'blocked')
+                          .map((appointment) => (
+                          <div
+                            key={appointment.id}
+                            className="p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">
+                                    {appointment.patient_name}
+                                  </span>
+                                  <Badge variant={getStatusBadge(appointment.status).variant}>
+                                    {getStatusBadge(appointment.status).label}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  <div>⏰ {format(new Date(appointment.appointment_date), "HH:mm")}</div>
+                                  {appointment.duration_minutes && (
+                                    <div>Duração: {appointment.duration_minutes} min</div>
+                                  )}
+                                  {appointment.professional_profile_id && (
+                                    <div>
+                                      👨‍⚕️ {profiles.find(p => p.id === appointment.professional_profile_id)?.fullname || 'Profissional não encontrado'}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                              {blockedApt.notes && (
-                                <p className="text-sm text-orange-700 mt-1 ml-4">
-                                  {blockedApt.notes}
-                                </p>
-                              )}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => {
+                                    setSelectedAppointment(appointment)
+                                    setViewModalOpen(true)
+                                  }}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    Visualizar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => {
+                                    setSelectedAppointment(appointment)
+                                    setEditModalOpen(true)
+                                  }}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => {
+                                    setSelectedAppointment(appointment)
+                                    setRescheduleModalOpen(true)
+                                  }}>
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    Reagendar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => handleUpdateStatus(appointment.id, 'confirmed')}>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Confirmar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleUpdateStatus(appointment.id, 'cancelled')}>
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Cancelar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteAppointment(appointment.id)}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
-                          )
-                        })}
+                          </div>
+                        ))}
                       </div>
                     )}
-                    
-                    {selectedDateAppointments.map((appointment, index) => {
-                      const statusBadge = getStatusBadge(appointment.status)
-                      const appointmentDate = new Date(appointment.appointment_date)
-                      const timeString = appointmentDate.toLocaleTimeString('pt-BR', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })
-                      
-                      return (
-                        <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-2 h-8 ${getStatusColor(appointment.status)} rounded-full`}></div>
-                            <div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+
+              {/* Blocked Times */}
+              <Card className="border-orange-200 bg-orange-50/50 dark:border-orange-800 dark:bg-orange-950/20">
+                <CardHeader>
+                  <CardTitle className="text-orange-700 dark:text-orange-300 flex items-center gap-2">
+                    <span>🚫</span>
+                    Bloqueios do Dia
+                    {selectedDate && (
+                      <span className="text-sm font-normal text-muted-foreground ml-2">
+                        ({format(selectedDate, "dd/MM/yyyy", { locale: ptBR })})
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[200px]">
+                    {selectedDateBlocked.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-4">
+                        Nenhum bloqueio para esta data
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {selectedDateBlocked.map((blocked) => (
+                          <div
+                            key={blocked.id}
+                            className="p-3 border border-orange-200 dark:border-orange-800 rounded-lg bg-white/50 dark:bg-orange-950/30"
+                          >
+                            <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium">{appointment.patient_name}</span>
-                                <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
-                              </div>
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                                <span className="flex items-center gap-1">
-                                  <Clock4 className="h-3 w-3" />
-                                  {timeString}
+                                <span className="font-medium text-orange-800 dark:text-orange-200">
+                                  Horário Bloqueado
                                 </span>
-                                <span>{appointment.appointment_type || 'Consulta'}</span>
+                              </div>
+                              <div className="text-sm text-orange-700 dark:text-orange-300">
+                                <div>⏰ {format(new Date(blocked.appointment_date), "HH:mm")}</div>
+                                {blocked.duration_minutes ? (
+                                  blocked.duration_minutes >= 24 * 60 ? (
+                                    <div>Dia inteiro</div>
+                                  ) : (
+                                    <div>Duração: {blocked.duration_minutes} min</div>
+                                  )
+                                ) : (
+                                  <div>Horário específico</div>
+                                )}
+                                {blocked.professional_profile_id && (
+                                  <div>
+                                    👨‍⚕️ {profiles.find(p => p.id === blocked.professional_profile_id)?.fullname || 'Profissional não encontrado'}
+                                  </div>
+                                )}
+                                {blocked.notes && (
+                                  <div className="mt-1">📝 {blocked.notes}</div>
+                                )}
                               </div>
                             </div>
                           </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="min-w-[180px] z-50 bg-background border shadow-lg">
-                              <DropdownMenuItem 
-                                className="flex items-center gap-2 cursor-pointer whitespace-nowrap"
-                                onClick={() => {
-                                  setSelectedAppointment(appointment)
-                                  setViewModalOpen(true)
-                                }}
-                              >
-                                <Eye className="h-4 w-4" />
-                                Visualizar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="flex items-center gap-2 cursor-pointer whitespace-nowrap"
-                                onClick={() => {
-                                  setSelectedAppointment(appointment)
-                                  setEditModalOpen(true)
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                                Editar
-                              </DropdownMenuItem>
-                              {appointment.status !== 'confirmed' && (
-                                <DropdownMenuItem 
-                                  className="flex items-center gap-2 cursor-pointer whitespace-nowrap"
-                                  onClick={() => handleUpdateStatus(appointment.id, 'confirmed')}
-                                >
-                                  <UserCheck className="h-4 w-4" />
-                                  Confirmar
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem 
-                                className="flex items-center gap-2 cursor-pointer whitespace-nowrap"
-                                onClick={() => {
-                                  setSelectedAppointment(appointment)
-                                  setRescheduleModalOpen(true)
-                                }}
-                              >
-                                <Repeat className="h-4 w-4" />
-                                Remarcar
-                              </DropdownMenuItem>
-                              {appointment.status !== 'cancelled' && (
-                                <DropdownMenuItem 
-                                  className="flex items-center gap-2 text-destructive cursor-pointer whitespace-nowrap"
-                                  onClick={() => handleUpdateStatus(appointment.id, 'cancelled')}
-                                >
-                                  <UserX className="h-4 w-4" />
-                                  Cancelar
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem 
-                                className="flex items-center gap-2 text-destructive cursor-pointer whitespace-nowrap"
-                                onClick={() => handleDeleteAppointment(appointment.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
