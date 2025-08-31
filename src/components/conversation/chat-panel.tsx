@@ -20,8 +20,12 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
   const { messages, loading, fetchMessages, sendMessage } = useMessages()
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
   useEffect(() => {
     if (conversationId) {
@@ -29,10 +33,10 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
     }
   }, [conversationId])
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages load or change
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    if (messages.length > 0) {
+      setTimeout(() => scrollToBottom(), 100)
     }
   }, [messages])
 
@@ -132,7 +136,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {loading && messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
@@ -171,6 +175,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
               </div>
             ))
           )}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
