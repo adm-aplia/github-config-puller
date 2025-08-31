@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Send, ArrowLeft, Phone, MoreVertical } from "lucide-react"
+import { Send, ArrowLeft, Phone, MoreVertical, Edit } from "lucide-react"
 import { useMessages } from "@/hooks/use-messages"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
@@ -12,10 +12,11 @@ interface ChatPanelProps {
   conversationId: string
   contactName: string
   contactPhone: string
-  onBack?: () => void // For mobile
+  onBack?: () => void
+  onEdit?: () => void
 }
 
-export function ChatPanel({ conversationId, contactName, contactPhone, onBack }: ChatPanelProps) {
+export function ChatPanel({ conversationId, contactName, contactPhone, onBack, onEdit }: ChatPanelProps) {
   const { messages, loading, fetchMessages, sendMessage } = useMessages()
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
@@ -86,7 +87,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack }:
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b bg-muted/30">
         {onBack && (
-          <Button variant="ghost" size="sm" onClick={onBack} className="md:hidden">
+          <Button variant="ghost" size="sm" onClick={onBack}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
         )}
@@ -102,13 +103,19 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack }:
           <p className="text-sm text-muted-foreground">{contactPhone}</p>
         </div>
         
+        {onEdit && (
+          <Button variant="ghost" size="sm" onClick={onEdit}>
+            <Edit className="h-4 w-4" />
+          </Button>
+        )}
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="z-50 bg-background">
             <DropdownMenuItem onClick={copyPhoneNumber}>
               <Phone className="mr-2 h-4 w-4" />
               Copiar número

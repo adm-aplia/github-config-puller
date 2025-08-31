@@ -240,6 +240,57 @@ export const useConversations = () => {
     }
   };
 
+  const deleteConversations = async (ids: string[]) => {
+    try {
+      // Delete associated conversation summaries first
+      const { error: summariesError } = await supabase
+        .from('conversation_summaries')
+        .delete()
+        .in('conversation_id', ids);
+
+      if (summariesError) {
+        console.error('Error deleting conversation summaries:', summariesError);
+        // Continue with deletion even if summaries deletion fails
+      }
+
+      // Delete associated messages
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .delete()
+        .in('conversation_id', ids);
+
+      if (messagesError) {
+        console.error('Error deleting messages:', messagesError);
+        // Continue with conversation deletion even if messages deletion fails
+      }
+
+      // Delete the conversations
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .in('id', ids);
+
+      if (error) throw error;
+
+      setConversations(prev => prev.filter(conversation => !ids.includes(conversation.id)));
+
+      toast({
+        title: 'Conversas excluídas',
+        description: `${ids.length} conversas foram excluídas com sucesso.`,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting conversations:', error);
+      toast({
+        title: 'Erro ao excluir conversas',
+        description: 'Não foi possível excluir as conversas selecionadas.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchConversations();
   }, []);
@@ -250,6 +301,7 @@ export const useConversations = () => {
     createConversation,
     updateConversation,
     deleteConversation,
+    deleteConversations,
     refetch: fetchConversations,
   };
 };

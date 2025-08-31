@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Search, Filter, MessageSquare, Clock, Bot, MoreVertical, Edit, Trash2 } from "lucide-react"
+import { Search, Filter, MessageSquare, Clock, Bot, MoreVertical, Edit, Trash2, Check, X } from "lucide-react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useConversations, Conversation } from "@/hooks/use-conversations"
 import { useConversationSummaries, ConversationSummary } from "@/hooks/use-conversation-summaries"
@@ -15,11 +15,12 @@ import { ConversationFiltersModal, ConversationFilters } from "@/components/conv
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useState, useEffect, useMemo } from "react"
 
 
 export default function ConversasPage() {
-  const { conversations, loading, updateConversation, deleteConversation } = useConversations();
+  const { conversations, loading, updateConversation, deleteConversation, deleteConversations } = useConversations();
   const { fetchSummary, loading: summaryLoading } = useConversationSummaries();
   const [selectedSummary, setSelectedSummary] = useState<ConversationSummary | null>(null);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
@@ -48,6 +49,11 @@ export default function ConversasPage() {
     messageCountRange: [0, 100]
   });
 
+  // Bulk selection states
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = useState(false);
+
   const handleSummaryClick = async (conversationId: string, contactName: string) => {
     setSelectedContactName(contactName);
     setIsSummaryModalOpen(true);
@@ -56,9 +62,13 @@ export default function ConversasPage() {
   };
 
   const handleConversationClick = (conversation: Conversation) => {
-    setSelectedConversationId(conversation.id);
-    setSelectedConversationData(conversation);
-    setShowMobileChat(true); // For mobile
+    if (selectionMode) {
+      handleToggleSelection(conversation.id);
+    } else {
+      setSelectedConversationId(conversation.id);
+      setSelectedConversationData(conversation);
+      setShowMobileChat(true); // For mobile
+    }
   };
 
   const handleEditClick = (conversation: Conversation) => {
@@ -93,8 +103,53 @@ export default function ConversasPage() {
     setConversationBeingEdited(null);
   };
 
-  const handleMobileBack = () => {
+  const handleBack = () => {
+    setSelectedConversationId(null);
+    setSelectedConversationData(null);
     setShowMobileChat(false);
+  };
+
+  const handleToggleSelection = (id: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === filteredConversations.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredConversations.map(c => c.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    const success = await deleteConversations(ids);
+    
+    if (success) {
+      // Close chat panel if the deleted conversation was open
+      if (selectedConversationId && ids.includes(selectedConversationId)) {
+        handleBack();
+      }
+      
+      // Clear selection and exit selection mode
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+    }
+    
+    setIsBulkDeleteConfirmOpen(false);
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
   };
 
   const formatTimestamp = (dateString: string) => {
@@ -187,7 +242,11 @@ export default function ConversasPage() {
             conversationId={selectedConversationId!}
             contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
             contactPhone={selectedConversationData.contact_phone}
-            onBack={handleMobileBack}
+            onBack={handleBack}
+            onEdit={() => {
+              setConversationBeingEdited(selectedConversationData);
+              setIsEditModalOpen(true);
+            }}
           />
         </div>
       </DashboardLayout>
@@ -196,9 +255,9 @@ export default function ConversasPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-6 py-8">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="container mx-auto px-6 py-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Conversas</h1>
               <p className="text-muted-foreground">Gerencie todas as conversas dos seus assistentes</p>
@@ -206,30 +265,69 @@ export default function ConversasPage() {
           </div>
 
           {/* WhatsApp-style layout */}
-          <div className="h-[calc(100vh-12rem)] border rounded-lg overflow-hidden bg-background">
+          <div className="h-[calc(100vh-9rem)] border rounded-lg overflow-hidden bg-background">
             <div className="flex h-full">
               {/* Conversation List - Left Panel */}
               <div className={`w-full md:w-[360px] border-r bg-muted/20 flex flex-col ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
                 {/* Search and Filters Header */}
                 <div className="p-4 border-b bg-background">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                      <Input 
-                        placeholder="Buscar conversas..." 
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
+                  {selectionMode ? (
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" onClick={exitSelectionMode}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                        <span className="text-sm font-medium">
+                          {selectedIds.size} selecionada{selectedIds.size !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={handleSelectAll}
+                        >
+                          <Check className="h-4 w-4 mr-1" />
+                          {selectedIds.size === filteredConversations.length ? 'Desmarcar' : 'Selecionar'} todas
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => setIsBulkDeleteConfirmOpen(true)}
+                          disabled={selectedIds.size === 0}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Excluir selecionadas
+                        </Button>
+                      </div>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setFiltersModalOpen(true)}
-                    >
-                      <Filter className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  ) : (
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                        <Input 
+                          placeholder="Buscar conversas..." 
+                          className="pl-10"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setFiltersModalOpen(true)}
+                      >
+                        <Filter className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectionMode(true)}
+                      >
+                        Selecionar
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Conversations List */}
@@ -254,6 +352,16 @@ export default function ConversasPage() {
                           onClick={() => handleConversationClick(conversation)}
                         >
                           <div className="flex items-start gap-3">
+                            {selectionMode && (
+                              <div className="pt-2">
+                                <Checkbox
+                                  checked={selectedIds.has(conversation.id)}
+                                  onCheckedChange={() => handleToggleSelection(conversation.id)}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                            )}
+                            
                             <Avatar className="h-12 w-12 flex-shrink-0">
                               <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                                 {(conversation.contact_name || conversation.contact_phone).charAt(0).toUpperCase()}
@@ -281,53 +389,55 @@ export default function ConversasPage() {
                                   {conversation.last_message}
                                 </p>
                                 
-                                <div className="flex items-center gap-1 ml-2">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleSummaryClick(conversation.id, conversation.contact_name || conversation.contact_phone);
-                                    }}
-                                    className="h-6 w-6 p-0"
-                                  >
-                                    <Bot className="h-3 w-3" />
-                                  </Button>
-                                  
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="h-6 w-6 p-0"
-                                      >
-                                        <MoreVertical className="h-3 w-3" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-32">
-                                      <DropdownMenuItem
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleEditClick(conversation);
-                                        }}
-                                      >
-                                        <Edit className="mr-2 h-3 w-3" />
-                                        Editar
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDeleteClick(conversation);
-                                        }}
-                                        className="text-destructive"
-                                      >
-                                        <Trash2 className="mr-2 h-3 w-3" />
-                                        Excluir
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
+                                {!selectionMode && (
+                                  <div className="flex items-center gap-1 ml-2">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSummaryClick(conversation.id, conversation.contact_name || conversation.contact_phone);
+                                      }}
+                                      className="h-6 w-6 p-0"
+                                    >
+                                      <Bot className="h-3 w-3" />
+                                    </Button>
+                                    
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="h-6 w-6 p-0"
+                                        >
+                                          <MoreVertical className="h-3 w-3" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end" className="w-32 z-50 bg-background">
+                                        <DropdownMenuItem
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditClick(conversation);
+                                          }}
+                                        >
+                                          <Edit className="mr-2 h-3 w-3" />
+                                          Editar
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteClick(conversation);
+                                          }}
+                                          className="text-destructive"
+                                        >
+                                          <Trash2 className="mr-2 h-3 w-3" />
+                                          Excluir
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -345,6 +455,11 @@ export default function ConversasPage() {
                     conversationId={selectedConversationId}
                     contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
                     contactPhone={selectedConversationData.contact_phone}
+                    onBack={handleBack}
+                    onEdit={() => {
+                      setConversationBeingEdited(selectedConversationData);
+                      setIsEditModalOpen(true);
+                    }}
                   />
                 ) : (
                   <div className="flex-1 flex items-center justify-center bg-muted/10">
@@ -407,6 +522,27 @@ export default function ConversasPage() {
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={isBulkDeleteConfirmOpen} onOpenChange={setIsBulkDeleteConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir conversas selecionadas</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta ação não pode ser desfeita. Isto irá excluir permanentemente {selectedIds.size} conversa{selectedIds.size !== 1 ? 's' : ''}, 
+                todas as mensagens e resumos associados.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleBulkDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Excluir {selectedIds.size} conversa{selectedIds.size !== 1 ? 's' : ''}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
