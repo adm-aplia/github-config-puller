@@ -240,6 +240,11 @@ export default function ConversasPage() {
     );
   }
 
+  // Reset modal state on component mount
+  useEffect(() => {
+    setIsEditModalOpen(false);
+  }, []);
+
   // Auto-select first conversation when conversations load
   useEffect(() => {
     if (filteredConversations.length > 0 && !selectedConversationId) {
@@ -468,7 +473,7 @@ export default function ConversasPage() {
                 
                 {/* Mobile chat overlay */}
                 {showMobileChat && selectedConversationData && (
-                  <div className="md:hidden fixed inset-0 z-50 bg-background">
+                  <div className="md:hidden fixed inset-0 z-40 bg-background">
                     <ChatPanel
                       conversationId={selectedConversationId!}
                       contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
