@@ -108,15 +108,6 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
           <p className="text-sm text-muted-foreground">{contactPhone}</p>
         </div>
         
-        {onEdit && (
-          <Button variant="ghost" size="sm" onClick={() => {
-            console.log('Edit button clicked', { onEdit });
-            onEdit();
-          }}>
-            <Edit className="h-4 w-4" />
-          </Button>
-        )}
-        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm">
@@ -166,7 +157,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
                 className={`flex ${message.sender_type === 'agent' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[70%] p-3 rounded-lg shadow-sm ${
+                  className={`max-w-[70%] p-3 rounded-2xl shadow-sm ${
                     message.sender_type === 'agent'
                       ? 'bg-primary text-primary-foreground ml-auto'
                       : 'bg-muted'
