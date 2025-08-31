@@ -988,15 +988,17 @@ export default function AgendamentosPage() {
                                 </span>
                               </div>
                               <div className="text-sm text-muted-foreground">
-                                <div>⏰ {format(new Date(blocked.appointment_date), "HH:mm")}</div>
-                                {blocked.duration_minutes ? (
-                                  blocked.duration_minutes >= 24 * 60 ? (
-                                    <div>Dia inteiro</div>
-                                  ) : (
-                                    <div>Duração: {blocked.duration_minutes} min</div>
-                                  )
+                                {blocked.duration_minutes >= 1440 || blocked.notes?.includes("Dia inteiro bloqueado") ? (
+                                  <div>🔒 Dia inteiro bloqueado</div>
                                 ) : (
-                                  <div>Horário específico</div>
+                                  <>
+                                    <div>⏰ {format(new Date(blocked.appointment_date), "HH:mm")}</div>
+                                    {blocked.duration_minutes ? (
+                                      <div>Duração: {blocked.duration_minutes} min</div>
+                                    ) : (
+                                      <div>Horário específico</div>
+                                    )}
+                                  </>
                                 )}
                                 {blocked.professional_profile_id && (
                                   <div>
