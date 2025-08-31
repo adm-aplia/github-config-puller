@@ -295,7 +295,7 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
           status: "blocked",
           appointment_type: "blocked",
           summary: "Bloqueio de agenda",
-          notes: `${formData.reason ? formData.reason : ""}${isRecurring ? ` (Recorrência: ${recurrenceType === "daily" ? "Diária" : "Semanal"})` : ""}`,
+          notes: `${formData.reason ? `Motivo: ${formData.reason}. ` : ""}${blockType === "fullday" ? "Dia inteiro bloqueado" : `Horário bloqueado de ${format(slot.start, "HH:mm")} até ${slotEndFormatted}`}${isRecurring ? ` (Recorrência: ${recurrenceType === "daily" ? "Diária" : "Semanal"})` : ""}.`,
           ...(blockType === "fullday" && { 
             full_day: true,
             duration_minutes: 1440 

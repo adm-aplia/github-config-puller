@@ -39,7 +39,7 @@ import {
   HelpCircle
 } from "lucide-react"
 import { useState, useEffect } from "react"
-import { format, addMinutes } from "date-fns"
+import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Appointment } from "@/hooks/use-appointments"
 import { AppointmentViewModal } from "@/components/appointments/appointment-view-modal"
@@ -994,10 +994,7 @@ export default function AgendamentosPage() {
                                   <>
                                     <div>⏰ {format(new Date(blocked.appointment_date), "HH:mm")}</div>
                                     {blocked.duration_minutes ? (
-                                      <>
-                                        <div>Até: {format(addMinutes(new Date(blocked.appointment_date), blocked.duration_minutes), "HH:mm")}</div>
-                                        <div>Duração: {blocked.duration_minutes} min</div>
-                                      </>
+                                      <div>Duração: {blocked.duration_minutes} min</div>
                                     ) : (
                                       <div>Horário específico</div>
                                     )}
@@ -1009,7 +1006,7 @@ export default function AgendamentosPage() {
                                   </div>
                                 )}
                                 {blocked.notes && (
-                                  <div className="mt-1">📝 {blocked.notes.replace(/Horário bloqueado de \d{2}:\d{2} até \d{2}:\d{2}\.?\s*/, '').replace(/Dia inteiro bloqueado\.?\s*/, '').replace(/^\s*Motivo:\s*/, '')}</div>
+                                  <div className="mt-1">📝 {blocked.notes}</div>
                                 )}
                               </div>
                             </div>
