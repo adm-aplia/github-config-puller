@@ -361,14 +361,19 @@ export default function AgendamentosPage() {
       return motivoMatch[1].trim()
     }
     
-    // If no "Motivo:" pattern, return the full notes but remove time ranges
-    return notes
+    // Filter out old automatic phrases - don't show anything if it's just automatic text
+    const filteredNotes = notes
       .replace(/Horário bloqueado de \d{2}:\d{2} até \d{2}:\d{2}/, '')
+      .replace(/Horário bloqueado até \d{2}:\d{2}/, '')
       .replace(/Dia inteiro bloqueado/, '')
+      .replace(/Bloqueio de período específico/, '')
       .replace(/\(Recorrência: [^)]+\)/, '')
       .replace(/\s+/g, ' ')
       .trim()
       .replace(/^[.,\s]+|[.,\s]+$/g, '') // Remove leading/trailing punctuation
+    
+    // Don't show empty or very short meaningless text
+    return filteredNotes.length > 2 ? filteredNotes : ""
   }
 
   // Get appointments for selected date (excluding blocked appointments)
