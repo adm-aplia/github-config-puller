@@ -553,7 +553,7 @@ export default function AgendamentosPage() {
           </div>
         )}
         {hasBlocked && (
-          <div className="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-full" title="Dia com bloqueios" />
+          <div className="absolute top-0 right-0 w-2 h-2 bg-gray-500 rounded-full" title="Dia com bloqueios" />
         )}
       </div>
     )
@@ -957,7 +957,7 @@ export default function AgendamentosPage() {
               </Card>
 
               {/* Blocked Times */}
-              <Card className="border-orange-200 bg-orange-50/50 dark:border-orange-800 dark:bg-orange-950/20">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     Bloqueios do Dia ({selectedDateBlocked.length})
@@ -979,15 +979,15 @@ export default function AgendamentosPage() {
                         {selectedDateBlocked.map((blocked) => (
                           <div
                             key={blocked.id}
-                            className="p-3 border border-orange-200 dark:border-orange-800 rounded-lg bg-white/50 dark:bg-orange-950/30"
+                            className="p-3 border border-border rounded-lg bg-muted/30"
                           >
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium text-orange-800 dark:text-orange-200">
+                                <span className="font-medium text-foreground">
                                   Horário Bloqueado
                                 </span>
                               </div>
-                              <div className="text-sm text-orange-700 dark:text-orange-300">
+                              <div className="text-sm text-muted-foreground">
                                 <div>⏰ {format(new Date(blocked.appointment_date), "HH:mm")}</div>
                                 {blocked.duration_minutes ? (
                                   blocked.duration_minutes >= 24 * 60 ? (
