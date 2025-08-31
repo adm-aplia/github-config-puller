@@ -255,7 +255,11 @@ export default function AgendamentosPage() {
   }, [selectedProfessionalForImport, credentials, profileLinks])
 
   // Helper function to check if appointment is blocked
-  const isBlocked = (apt: Appointment) => apt.appointment_type === 'blocked'
+  const isBlocked = (apt: Appointment) => {
+    return apt.appointment_type === 'blocked' || 
+           apt.status === 'blocked' || 
+           (apt.patient_name && apt.patient_name.toLowerCase().includes('bloqueado'))
+  }
 
   // Appointments for calendar view - only apply professional filter, not period filter
   const appointmentsForCalendar = () => {
@@ -843,36 +847,34 @@ export default function AgendamentosPage() {
               </CardContent>
             </Card>
 
-            {/* Daily Appointments and Blocks */}
-            <div className="space-y-4">
+            {/* Daily Appointments and Blocks - Side by Side Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Regular Appointments */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="h-5 w-5" />
-                    Agendamentos do Dia
+                    Agendamentos do Dia ({selectedDateAppointments.length})
                     {selectedDate && (
                       <span className="text-sm font-normal text-muted-foreground ml-2">
-                        ({format(selectedDate, "dd/MM/yyyy", { locale: ptBR })})
+                        {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
                       </span>
                     )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-[300px]">
+                  <ScrollArea className="h-[400px]">
                     {appointmentsLoading ? (
                       <div className="flex justify-center py-8">
                         <RefreshCw className="h-6 w-6 animate-spin" />
                       </div>
-                    ) : selectedDateAppointments.filter(apt => apt.appointment_type !== 'blocked').length === 0 ? (
+                    ) : selectedDateAppointments.length === 0 ? (
                       <p className="text-muted-foreground text-center py-8">
                         Nenhum agendamento para esta data
                       </p>
                     ) : (
                       <div className="space-y-3">
-                        {selectedDateAppointments
-                          .filter(apt => apt.appointment_type !== 'blocked')
-                          .map((appointment) => (
+                        {selectedDateAppointments.map((appointment) => (
                           <div
                             key={appointment.id}
                             className="p-3 border rounded-lg hover:bg-accent/50 transition-colors"
@@ -960,22 +962,22 @@ export default function AgendamentosPage() {
                 <CardHeader>
                   <CardTitle className="text-orange-700 dark:text-orange-300 flex items-center gap-2">
                     <span>🚫</span>
-                    Bloqueios do Dia
+                    Bloqueios do Dia ({selectedDateBlocked.length})
                     {selectedDate && (
                       <span className="text-sm font-normal text-muted-foreground ml-2">
-                        ({format(selectedDate, "dd/MM/yyyy", { locale: ptBR })})
+                        {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
                       </span>
                     )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-[200px]">
+                  <ScrollArea className="h-[400px]">
                     {selectedDateBlocked.length === 0 ? (
-                      <p className="text-muted-foreground text-center py-4">
+                      <p className="text-muted-foreground text-center py-8">
                         Nenhum bloqueio para esta data
                       </p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {selectedDateBlocked.map((blocked) => (
                           <div
                             key={blocked.id}
