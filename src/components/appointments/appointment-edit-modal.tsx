@@ -8,8 +8,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon, Clock } from "lucide-react"
 import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Appointment } from "@/hooks/use-appointments"
 import { cn } from "@/lib/utils"
 
@@ -22,21 +21,35 @@ interface AppointmentEditModalProps {
 
 export function AppointmentEditModal({ appointment, open, onOpenChange, onSave }: AppointmentEditModalProps) {
   const [loading, setLoading] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    appointment ? new Date(appointment.appointment_date) : undefined
-  )
-  const [selectedTime, setSelectedTime] = useState(
-    appointment ? format(new Date(appointment.appointment_date), "HH:mm") : "09:00"
-  )
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>()
+  const [selectedTime, setSelectedTime] = useState("09:00")
   const [formData, setFormData] = useState({
-    patient_name: appointment?.patient_name || "",
-    patient_phone: appointment?.patient_phone || "",
-    patient_email: appointment?.patient_email || "",
-    appointment_type: appointment?.appointment_type || "",
-    duration_minutes: appointment?.duration_minutes || 60,
-    status: appointment?.status || "pending",
-    notes: appointment?.notes || ""
+    patient_name: "",
+    patient_phone: "",
+    patient_email: "",
+    appointment_type: "",
+    duration_minutes: 60,
+    status: "pending",
+    notes: ""
   })
+
+  // Sync states when modal opens or appointment changes
+  useEffect(() => {
+    if (open && appointment) {
+      const appointmentDate = new Date(appointment.appointment_date)
+      setSelectedDate(appointmentDate)
+      setSelectedTime(format(appointmentDate, "HH:mm"))
+      setFormData({
+        patient_name: appointment.patient_name || "",
+        patient_phone: appointment.patient_phone || "",
+        patient_email: appointment.patient_email || "",
+        appointment_type: appointment.appointment_type || "",
+        duration_minutes: appointment.duration_minutes || 60,
+        status: appointment.status || "pending",
+        notes: appointment.notes || ""
+      })
+    }
+  }, [open, appointment?.id])
 
   if (!appointment) return null
 
@@ -133,6 +146,7 @@ export function AppointmentEditModal({ appointment, open, onOpenChange, onSave }
                     onSelect={setSelectedDate}
                     disabled={(date) => date < new Date()}
                     initialFocus
+                    className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
               </Popover>
@@ -171,6 +185,7 @@ export function AppointmentEditModal({ appointment, open, onOpenChange, onSave }
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="scheduled">Agendado</SelectItem>
                   <SelectItem value="confirmed">Confirmado</SelectItem>
                   <SelectItem value="completed">Concluído</SelectItem>
                   <SelectItem value="cancelled">Cancelado</SelectItem>
