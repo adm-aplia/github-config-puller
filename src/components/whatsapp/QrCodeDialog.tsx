@@ -64,35 +64,54 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanc
           // Fetch instance info to get phone number and sync with profile
           if (instanceSlug) {
             try {
+              // First enforce webhook for this newly connected instance
+              await supabase.functions.invoke('evolution-manager', {
+                body: { action: 'enforce_webhook', instanceName: instanceSlug }
+              });
+              
+              // Then fetch instance info
               const { data: infoData } = await supabase.functions.invoke('evolution-manager', {
                 body: { action: 'fetch_instance_info', instanceName: instanceSlug }
               });
               
-              if (infoData?.success && infoData.phone_number) {
-                // Normalize phone number and update the WhatsApp instance
-                const normalizedPhone = infoData.phone_number.replace(/\D/g, '');
+              if (infoData?.success) {
+                const updateData: any = { 
+                  status: 'connected',
+                  last_connected_at: new Date().toISOString(),
+                  webhook_url: 'https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/aplia'
+                };
+                
+                if (infoData.phone_number) {
+                  const normalizedPhone = infoData.phone_number.replace(/\D/g, '');
+                  updateData.phone_number = normalizedPhone;
+                  
+                  // If this instance has a linked profile, update the profile's phone number
+                  const { data: instanceData } = await supabase
+                    .from('whatsapp_instances')
+                    .select('professional_profile_id')
+                    .eq('id', instanceId)
+                    .single();
+                  
+                  if (instanceData?.professional_profile_id) {
+                    await supabase
+                      .from('professional_profiles')
+                      .update({ phonenumber: normalizedPhone })
+                      .eq('id', instanceData.professional_profile_id);
+                  }
+                }
+                
+                if (infoData.profile_picture_url) {
+                  updateData.profile_picture_url = infoData.profile_picture_url;
+                }
+                
+                if (infoData.display_name) {
+                  updateData.display_name = infoData.display_name;
+                }
+                
                 await supabase
                   .from('whatsapp_instances')
-                  .update({
-                    phone_number: normalizedPhone,
-                    profile_picture_url: infoData.profile_picture_url,
-                    display_name: infoData.display_name
-                  })
+                  .update(updateData)
                   .eq('id', instanceId);
-                
-                // If this instance has a linked profile, update the profile's phone number
-                const { data: instanceData } = await supabase
-                  .from('whatsapp_instances')
-                  .select('professional_profile_id')
-                  .eq('id', instanceId)
-                  .single();
-                
-                if (instanceData?.professional_profile_id) {
-                  await supabase
-                    .from('professional_profiles')
-                    .update({ phonenumber: normalizedPhone })
-                    .eq('id', instanceData.professional_profile_id);
-                }
               }
             } catch (error) {
               console.error('[QrCodeDialog] Failed to fetch instance info:', error);

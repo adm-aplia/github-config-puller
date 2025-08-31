@@ -152,7 +152,7 @@ export const useWhatsAppInstances = () => {
         evolution_instance_key: payload.evolutionInstanceKey,
         groups_ignore: true,
         webhook_enabled: payload.webhookEnabled ?? true,
-        webhook_url: 'https://vmqxzkukyfxxgxekkdem.functions.supabase.co/evolution-webhook?token=aplia-webhook-2024',
+        webhook_url: 'https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/aplia',
         integration_provider: 'evolution',
       };
 

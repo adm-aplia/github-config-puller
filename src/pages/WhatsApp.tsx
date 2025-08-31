@@ -187,6 +187,25 @@ export default function WhatsAppPage() {
 
   const handleSyncInstance = async (instance: any) => {
     try {
+      // First enforce webhook configuration for N8N with messages_upsert only
+      console.log('Enforcing webhook configuration for instance:', instance.instance_name);
+      const { data: webhookData } = await supabase.functions.invoke('evolution-manager', {
+        body: {
+          action: 'enforce_webhook',
+          instanceName: instance.instance_name,
+        },
+      });
+      
+      if (webhookData?.success) {
+        console.log('Webhook enforced successfully:', webhookData);
+        // Update webhook_url in database to N8N URL
+        await supabase
+          .from('whatsapp_instances')
+          .update({ webhook_url: 'https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/aplia' })
+          .eq('id', instance.id);
+      }
+
+      // Then fetch instance info
       const { data } = await supabase.functions.invoke('evolution-manager', {
         body: {
           action: 'fetch_instance_info',
