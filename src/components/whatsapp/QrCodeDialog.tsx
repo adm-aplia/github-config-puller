@@ -41,90 +41,75 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanc
   }, [qrCode]);
 
   useEffect(() => {
-    if (!open || !instanceId) return;
-    
-    // More frequent polling when QR dialog is open (every 5 seconds)
+    if (!open || !instanceId || !instanceSlug) return;
+
     const interval = setInterval(async () => {
       try {
-        // Check DB for status and potential QR updates
-        const { data } = await supabase
+        // 1) se o QR do DB mudou, atualiza a imagem (mantém seu comportamento atual)
+        const { data: dbData } = await supabase
           .from('whatsapp_instances')
           .select('status, qr_code')
           .eq('id', instanceId)
           .single();
 
-        if (data?.qr_code && data.qr_code !== qrCode) {
-          const dataUrl = data.qr_code.startsWith('data:image') ? data.qr_code : await QRCode.toDataURL(data.qr_code);
+        if (dbData?.qr_code && dbData.qr_code !== qrCode) {
+          const dataUrl = dbData.qr_code.startsWith('data:image')
+            ? dbData.qr_code
+            : await QRCode.toDataURL(dbData.qr_code);
           setQrImage(dataUrl);
         }
 
-        if (data?.status === 'connected') {
-          console.log('[QrCodeDialog] Instance connected, fetching instance info');
-          
-          // Fetch instance info to get phone number and sync with profile
-          if (instanceSlug) {
-            try {
-              // First enforce webhook for this newly connected instance
-              await supabase.functions.invoke('evolution-manager', {
-                body: { action: 'enforce_webhook', instanceName: instanceSlug }
-              });
-              
-              // Then fetch instance info
-              const { data: infoData } = await supabase.functions.invoke('evolution-manager', {
-                body: { action: 'fetch_instance_info', instanceName: instanceSlug }
-              });
-              
-              if (infoData?.success) {
-                const updateData: any = { 
-                  status: 'connected',
-                  last_connected_at: new Date().toISOString(),
-                  webhook_url: 'https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/aplia'
-                };
-                
-                if (infoData.phone_number) {
-                  const normalizedPhone = infoData.phone_number.replace(/\D/g, '');
-                  updateData.phone_number = normalizedPhone;
-                  
-                  // If this instance has a linked profile, update the profile's phone number
-                  const { data: instanceData } = await supabase
-                    .from('whatsapp_instances')
-                    .select('professional_profile_id')
-                    .eq('id', instanceId)
-                    .single();
-                  
-                  if (instanceData?.professional_profile_id) {
-                    await supabase
-                      .from('professional_profiles')
-                      .update({ phonenumber: normalizedPhone })
-                      .eq('id', instanceData.professional_profile_id);
-                  }
-                }
-                
-                if (infoData.profile_picture_url) {
-                  updateData.profile_picture_url = infoData.profile_picture_url;
-                }
-                
-                if (infoData.display_name) {
-                  updateData.display_name = infoData.display_name;
-                }
-                
-                await supabase
-                  .from('whatsapp_instances')
-                  .update(updateData)
-                  .eq('id', instanceId);
-              }
-            } catch (error) {
-              console.error('[QrCodeDialog] Failed to fetch instance info:', error);
+        // 2) independente do status no DB, consultar a Evolution diretamente
+        const { data: infoData } = await supabase.functions.invoke('evolution-manager', {
+          body: { action: 'fetch_instance_info', instanceName: instanceSlug }
+        });
+
+        if (infoData?.success && (infoData.isConnected || infoData.phone_number)) {
+          const updateData: any = {
+            status: infoData.isConnected ? 'connected' : 'qr_pending',
+            last_connected_at: infoData.isConnected ? new Date().toISOString() : null,
+            webhook_url: 'https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/aplia'
+          };
+
+          if (infoData.phone_number) {
+            const normalizedPhone = infoData.phone_number.replace(/\D/g, '');
+            updateData.phone_number = normalizedPhone;
+
+            // atualizar perfil vinculado (se houver)
+            const { data: instRow } = await supabase
+              .from('whatsapp_instances')
+              .select('professional_profile_id')
+              .eq('id', instanceId)
+              .single();
+
+            if (instRow?.professional_profile_id) {
+              await supabase
+                .from('professional_profiles')
+                .update({ phonenumber: normalizedPhone })
+                .eq('id', instRow.professional_profile_id);
             }
           }
-          
+
+          if (infoData.profile_picture_url) {
+            updateData.profile_picture_url = infoData.profile_picture_url;
+          }
+          if (infoData.display_name) {
+            updateData.display_name = infoData.display_name;
+          }
+
+          await supabase
+            .from('whatsapp_instances')
+            .update(updateData)
+            .eq('id', instanceId);
+
           onConnected?.();
           onOpenChange(false);
         }
+
       } catch (e) {
         console.error('[QrCodeDialog] polling error', e);
       }
-    }, 5000); // 5 seconds when dialog is open
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [open, instanceId, instanceSlug, qrCode, onConnected, onOpenChange]);

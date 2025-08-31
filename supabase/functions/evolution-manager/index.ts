@@ -114,8 +114,8 @@ serve(async (req: Request) => {
       const webhookBody = {
         enabled: true,
         url: WEBHOOK_URL,
-        webhookByEvents: true,
-        webhookBase64: true,
+        webhook_by_events: true,  // snake_case
+        webhook_base64: true,     // snake_case
         events: ["MESSAGES_UPSERT"],
       };
 
@@ -185,138 +185,78 @@ serve(async (req: Request) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      
+
       console.log("[evolution-manager] Fetching instance info:", providedInstanceName);
-      
+
       try {
-        // First prioritize /instance/owner endpoint for better data
-        let phoneNumber = null;
-        let profilePictureUrl = null;
-        let displayName = null;
+        const BASE_URL = Deno.env.get("EVOLUTION_API_URL")!;
+        const API_KEY = Deno.env.get("EVOLUTION_API_KEY")!;
+
+        let phoneNumber: string | null = null;
+        let profilePictureUrl: string | null = null;
+        let displayName: string | null = null;
         let isConnected = false;
 
+        // 1) Estado de conexão (fonte da verdade)
         try {
-          const ownerRes = await fetch(`${BASE_URL}/instance/owner/${providedInstanceName}`, {
+          const connectionRes = await fetch(`${BASE_URL}/instance/connectionState/${providedInstanceName}`, {
             method: "GET",
-            headers: { "apikey": API_KEY },
+            headers: { apikey: API_KEY },
           });
-          
-          if (ownerRes.ok) {
-            const ownerData = await ownerRes.json().catch(() => ({}));
-            console.log("[evolution-manager] owner data:", ownerData);
-            
-            phoneNumber = ownerData?.number || ownerData?.phone || null;
-            displayName = ownerData?.name || ownerData?.pushName || null;
-            profilePictureUrl = ownerData?.profilePictureUrl || ownerData?.picture || null;
-            isConnected = true; // If owner endpoint succeeds, instance is connected
-            
-            if (phoneNumber) {
-              phoneNumber = phoneNumber.replace(/\D/g, '');
-            }
+          if (connectionRes.ok) {
+            const j = await connectionRes.json().catch(() => ({}));
+            const state = j?.instance?.state;
+            isConnected = ["open", "connected", "CONNECTED", "online"].includes(state);
+            console.log("[evolution-manager] connection state:", state, "=>", isConnected);
           }
-        } catch (ownerError) {
-          console.log("[evolution-manager] Owner endpoint failed:", ownerError);
+        } catch (e) {
+          console.log("[evolution-manager] connectionState error:", e);
         }
 
-        // If owner endpoint failed, try connection state check
-        if (!isConnected) {
-          try {
-            const connectionRes = await fetch(`${BASE_URL}/instance/connectionState/${providedInstanceName}`, {
-              method: "GET",
-              headers: { "apikey": API_KEY },
-            });
-            
-            if (connectionRes.ok) {
-              const connectionData = await connectionRes.json().catch(() => ({}));
-              const state = connectionData?.instance?.state;
-              isConnected = ['open', 'connected', 'CONNECTED', 'online'].includes(state);
-              console.log("[evolution-manager] Connection state:", state, "isConnected:", isConnected);
+        // 2) Dados da instância (array + campos em item.instance.*)
+        try {
+          const fiRes = await fetch(
+            `${BASE_URL}/instance/fetchInstances?instanceName=${providedInstanceName}`,
+            { method: "GET", headers: { apikey: API_KEY } }
+          );
+          if (fiRes.ok) {
+            const arr = await fiRes.json().catch(() => []);
+            const first = Array.isArray(arr) ? arr[0] : arr;
+            const inst = first?.instance ?? first;
+
+            const ownerJid = inst?.owner ?? null; // ex: 55...@s.whatsapp.net
+            if (ownerJid) {
+              phoneNumber = ownerJid.replace(/\D/g, "");
             }
-          } catch (connError) {
-            console.log("[evolution-manager] Connection check failed:", connError);
+
+            displayName = inst?.profileName ?? displayName;
+            profilePictureUrl = inst?.profilePictureUrl ?? profilePictureUrl;
+
+            if (!isConnected && inst?.status) {
+              isConnected = ["open", "connected", "CONNECTED", "online"].includes(inst.status);
+            }
           }
+        } catch (e) {
+          console.log("[evolution-manager] fetchInstances error:", e);
         }
-        
-        // If connected but no data from owner, try profile endpoints
-        if (isConnected && !phoneNumber) {
+
+        // 3) Foto de perfil – se ainda não veio, buscar diretamente pelo número (quando houver)
+        if (!profilePictureUrl && phoneNumber) {
           try {
-            const profileRes = await fetch(`${BASE_URL}/chat/whatsappProfile/${providedInstanceName}`, {
-              method: "GET",
-              headers: { "apikey": API_KEY },
+            const picRes = await fetch(`${BASE_URL}/chat/fetchProfilePictureUrl/${providedInstanceName}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", apikey: API_KEY },
+              body: JSON.stringify({ number: phoneNumber }),
             });
-            
-            if (profileRes.ok) {
-              const profileData = await profileRes.json().catch(() => ({}));
-              console.log("[evolution-manager] profile data:", profileData);
-              
-              phoneNumber = profileData?.wuid?.split('@')[0] || 
-                           profileData?.phone || 
-                           profileData?.number || 
-                           profileData?.id?.user?.split('@')[0] || 
-                           profileData?.jid?.split('@')[0] ||
-                           null;
-              
-              if (phoneNumber) {
-                phoneNumber = phoneNumber.replace(/\D/g, '');
-              }
-              
-              profilePictureUrl = profilePictureUrl || profileData?.picture || profileData?.profilePictureUrl || null;
-              displayName = displayName || profileData?.name || profileData?.pushName || null;
+            if (picRes.ok) {
+              const picJ = await picRes.json().catch(() => ({}));
+              profilePictureUrl = picJ?.profilePictureUrl || picJ?.picture || null;
             }
-          } catch (profileError) {
-            console.log("[evolution-manager] Profile fetch failed, trying findProfile:", profileError);
-            
-            try {
-              const altProfileRes = await fetch(`${BASE_URL}/chat/findProfile/${providedInstanceName}`, {
-                method: "GET",
-                headers: { "apikey": API_KEY },
-              });
-              
-              if (altProfileRes.ok) {
-                const altProfileData = await altProfileRes.json().catch(() => ({}));
-                phoneNumber = altProfileData?.wuid?.split('@')[0] || 
-                             altProfileData?.phone || 
-                             altProfileData?.number || 
-                             altProfileData?.id?.user?.split('@')[0] || 
-                             altProfileData?.jid?.split('@')[0] ||
-                             null;
-                profilePictureUrl = profilePictureUrl || altProfileData?.profilePictureUrl || altProfileData?.picture || null;
-                displayName = displayName || altProfileData?.name || altProfileData?.pushName || null;
-                
-                if (phoneNumber) {
-                  phoneNumber = phoneNumber.replace(/\D/g, '');
-                }
-              }
-            } catch (altError) {
-              console.log("[evolution-manager] findProfile also failed:", altError);
-            }
+          } catch (e) {
+            console.log("[evolution-manager] fetchProfilePictureUrl error:", e);
           }
         }
 
-        // Final fallback: try fetchInstances
-        if (!phoneNumber && !displayName) {
-          try {
-            console.log("[evolution-manager] Final fallback: fetchInstances");
-            const fallbackRes = await fetch(`${BASE_URL}/instance/fetchInstances?instanceName=${providedInstanceName}`, {
-              method: "GET",
-              headers: { "apikey": API_KEY },
-            });
-            
-            if (fallbackRes.ok) {
-              const fallbackData = await fallbackRes.json().catch(() => ({}));
-              phoneNumber = fallbackData?.number || fallbackData?.wid || fallbackData?.ownerJid || fallbackData?.owner || null;
-              displayName = displayName || fallbackData?.displayName || fallbackData?.name || null;
-              profilePictureUrl = profilePictureUrl || fallbackData?.profilePictureUrl || null;
-              
-              if (phoneNumber) {
-                phoneNumber = phoneNumber.replace(/\D/g, '');
-              }
-            }
-          } catch (fallbackError) {
-            console.log("[evolution-manager] fetchInstances fallback failed:", fallbackError);
-          }
-        }
-        
         return new Response(JSON.stringify({
           phone_number: phoneNumber,
           profile_picture_url: profilePictureUrl,
@@ -327,9 +267,10 @@ serve(async (req: Request) => {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+
       } catch (error) {
         console.error("[evolution-manager] fetch_instance_info error:", error);
-        return new Response(JSON.stringify({ 
+        return new Response(JSON.stringify({
           phone_number: null,
           profile_picture_url: null,
           display_name: null,
@@ -337,7 +278,7 @@ serve(async (req: Request) => {
           success: false,
           error: "Failed to fetch instance info"
         }), {
-          status: 200, // Don't fail the request, just return empty data
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -368,8 +309,8 @@ serve(async (req: Request) => {
       syncFullHistory: false,
       webhook: {
         url: WEBHOOK_URL,
-        byEvents: true,
-        base64: true,
+        webhook_by_events: true,  // snake_case
+        webhook_base64: true,     // snake_case
         events: ["MESSAGES_UPSERT"],
       },
     };
@@ -410,8 +351,8 @@ serve(async (req: Request) => {
     const webhookBody = {
       enabled: true,
       url: WEBHOOK_URL,
-      webhookByEvents: true,
-      webhookBase64: true,
+      webhook_by_events: true,  // snake_case
+      webhook_base64: true,     // snake_case
       events: ["MESSAGES_UPSERT"],
     };
 
@@ -432,8 +373,8 @@ serve(async (req: Request) => {
       const altWebhookBody = {
         enabled: true,
         url: WEBHOOK_URL,
-        byEvents: true,
-        base64: true,
+        webhook_by_events: true,
+        webhook_base64: true,
         events: ["MESSAGES_UPSERT"],
       } as Record<string, unknown>;
       const retryRes = await fetch(`${BASE_URL}/webhook/set/${instanceName}`, {
