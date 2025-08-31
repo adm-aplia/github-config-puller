@@ -191,7 +191,18 @@ export const useConversations = () => {
 
   const deleteConversation = async (id: string) => {
     try {
-      // Delete associated messages first
+      // Delete associated conversation summaries first
+      const { error: summariesError } = await supabase
+        .from('conversation_summaries')
+        .delete()
+        .eq('conversation_id', id);
+
+      if (summariesError) {
+        console.error('Error deleting conversation summaries:', summariesError);
+        // Continue with deletion even if summaries deletion fails
+      }
+
+      // Delete associated messages
       const { error: messagesError } = await supabase
         .from('messages')
         .delete()
@@ -214,7 +225,7 @@ export const useConversations = () => {
 
       toast({
         title: 'Conversa excluída',
-        description: 'Conversa e suas mensagens foram excluídas com sucesso.',
+        description: 'Conversa, mensagens e resumos foram excluídos com sucesso.',
       });
 
       return true;

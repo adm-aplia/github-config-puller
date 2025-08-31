@@ -2,19 +2,22 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Filter, MessageSquare, Clock, Bot } from "lucide-react"
+import { Search, Filter, MessageSquare, Clock, Bot, MoreVertical, Edit, Trash2 } from "lucide-react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
-import { useConversations } from "@/hooks/use-conversations"
+import { useConversations, Conversation } from "@/hooks/use-conversations"
 import { useConversationSummaries, ConversationSummary } from "@/hooks/use-conversation-summaries"
 import { SummaryModal } from "@/components/conversation/summary-modal"
 import { ChatModal } from "@/components/conversation/chat-modal"
+import { ConversationEditModal } from "@/components/conversation/conversation-edit-modal"
 import { ConversationFiltersModal, ConversationFilters } from "@/components/conversations/conversation-filters-modal"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useState, useEffect, useMemo } from "react"
 
 
 export default function ConversasPage() {
-  const { conversations, loading } = useConversations();
+  const { conversations, loading, updateConversation, deleteConversation } = useConversations();
   const { fetchSummary, loading: summaryLoading } = useConversationSummaries();
   const [selectedSummary, setSelectedSummary] = useState<ConversationSummary | null>(null);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
@@ -23,6 +26,14 @@ export default function ConversasPage() {
   // Chat modal states
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
+  
+  // Edit modal states
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [conversationBeingEdited, setConversationBeingEdited] = useState<Conversation | null>(null);
+  
+  // Delete confirmation states
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
   
   // Search and filters states
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,6 +55,37 @@ export default function ConversasPage() {
   const handleConversationClick = (conversation: any) => {
     setSelectedConversation(conversation);
     setIsChatModalOpen(true);
+  };
+
+  const handleEditClick = (conversation: Conversation) => {
+    setConversationBeingEdited(conversation);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (conversation: Conversation) => {
+    setConversationToDelete(conversation);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!conversationToDelete) return;
+    
+    const success = await deleteConversation(conversationToDelete.id);
+    if (success) {
+      // Close chat modal if the deleted conversation was open
+      if (selectedConversation?.id === conversationToDelete.id) {
+        setIsChatModalOpen(false);
+        setSelectedConversation(null);
+      }
+    }
+    
+    setIsDeleteConfirmOpen(false);
+    setConversationToDelete(null);
+  };
+
+  const handleEditSaved = () => {
+    setIsEditModalOpen(false);
+    setConversationBeingEdited(null);
   };
 
   const formatTimestamp = (dateString: string) => {
@@ -208,18 +250,54 @@ export default function ConversasPage() {
                         <div className="text-xs text-muted-foreground mb-2">
                           {conversation.message_count || 0} mensagens
                         </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSummaryClick(conversation.id, conversation.contact_name || conversation.contact_phone);
-                          }}
-                          className="text-xs"
-                        >
-                          <Bot className="h-3 w-3 mr-1" />
-                          Resumo feito pela IA
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSummaryClick(conversation.id, conversation.contact_name || conversation.contact_phone);
+                            }}
+                            className="text-xs"
+                          >
+                            <Bot className="h-3 w-3 mr-1" />
+                            Resumo IA
+                          </Button>
+                          
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-8 w-8 p-0"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditClick(conversation);
+                                }}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteClick(conversation);
+                                }}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -258,6 +336,35 @@ export default function ConversasPage() {
           onFiltersChange={setFilters}
           onApplyFilters={applyFilters}
         />
+
+        <ConversationEditModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          conversation={conversationBeingEdited}
+          onSaved={handleEditSaved}
+          onUpdate={updateConversation}
+        />
+
+        <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir conversa</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta ação não pode ser desfeita. Isto irá excluir permanentemente a conversa, 
+                todas as mensagens e resumos associados.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteConfirm}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   )
