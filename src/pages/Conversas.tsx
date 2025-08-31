@@ -1,13 +1,15 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Search, Filter, MessageSquare, Clock, Bot, MoreVertical, Edit, Trash2 } from "lucide-react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useConversations, Conversation } from "@/hooks/use-conversations"
 import { useConversationSummaries, ConversationSummary } from "@/hooks/use-conversation-summaries"
 import { SummaryModal } from "@/components/conversation/summary-modal"
-import { ChatModal } from "@/components/conversation/chat-modal"
+import { ChatPanel } from "@/components/conversation/chat-panel"
 import { ConversationEditModal } from "@/components/conversation/conversation-edit-modal"
 import { ConversationFiltersModal, ConversationFilters } from "@/components/conversations/conversation-filters-modal"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -23,9 +25,10 @@ export default function ConversasPage() {
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [selectedContactName, setSelectedContactName] = useState<string>("");
   
-  // Chat modal states
-  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
-  const [selectedConversation, setSelectedConversation] = useState<any>(null);
+  // Selected conversation for chat panel
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [selectedConversationData, setSelectedConversationData] = useState<Conversation | null>(null);
+  const [showMobileChat, setShowMobileChat] = useState(false);
   
   // Edit modal states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -52,9 +55,10 @@ export default function ConversasPage() {
     setSelectedSummary(summary);
   };
 
-  const handleConversationClick = (conversation: any) => {
-    setSelectedConversation(conversation);
-    setIsChatModalOpen(true);
+  const handleConversationClick = (conversation: Conversation) => {
+    setSelectedConversationId(conversation.id);
+    setSelectedConversationData(conversation);
+    setShowMobileChat(true); // For mobile
   };
 
   const handleEditClick = (conversation: Conversation) => {
@@ -72,10 +76,11 @@ export default function ConversasPage() {
     
     const success = await deleteConversation(conversationToDelete.id);
     if (success) {
-      // Close chat modal if the deleted conversation was open
-      if (selectedConversation?.id === conversationToDelete.id) {
-        setIsChatModalOpen(false);
-        setSelectedConversation(null);
+      // Close chat panel if the deleted conversation was open
+      if (selectedConversationId === conversationToDelete.id) {
+        setSelectedConversationId(null);
+        setSelectedConversationData(null);
+        setShowMobileChat(false);
       }
     }
     
@@ -86,6 +91,10 @@ export default function ConversasPage() {
   const handleEditSaved = () => {
     setIsEditModalOpen(false);
     setConversationBeingEdited(null);
+  };
+
+  const handleMobileBack = () => {
+    setShowMobileChat(false);
   };
 
   const formatTimestamp = (dateString: string) => {
@@ -169,6 +178,22 @@ export default function ConversasPage() {
     );
   }
 
+  // Mobile view - show only chat when conversation is selected
+  if (showMobileChat && selectedConversationData) {
+    return (
+      <DashboardLayout>
+        <div className="h-[calc(100vh-4rem)]">
+          <ChatPanel
+            conversationId={selectedConversationId!}
+            contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
+            contactPhone={selectedConversationData.contact_phone}
+            onBack={handleMobileBack}
+          />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="container mx-auto px-6 py-8">
@@ -178,133 +203,165 @@ export default function ConversasPage() {
               <h1 className="text-3xl font-bold tracking-tight">Conversas</h1>
               <p className="text-muted-foreground">Gerencie todas as conversas dos seus assistentes</p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input 
-                  placeholder="Buscar conversas..." 
-                  className="pl-10 w-64"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setFiltersModalOpen(true)}
-              >
-                <Filter className="h-4 w-4 mr-2" />
-                Filtros
-              </Button>
-            </div>
           </div>
 
-          {filteredConversations.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">
-                {searchTerm.trim() || filters.professionalIds.length > 0 
-                  ? "Nenhuma conversa encontrada com os filtros aplicados" 
-                  : "Nenhuma conversa encontrada"
-                }
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {filteredConversations.map((conversation) => (
-                <Card 
-                  key={conversation.id} 
-                  className="hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => handleConversationClick(conversation)}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-4 flex-1">
-                        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                          <MessageSquare className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="mb-1">
-                            <h3 className="font-semibold text-foreground">
-                              {conversation.contact_name || conversation.contact_phone}
-                            </h3>
-                          </div>
-                          
-                          {conversation.profile_name && (
-                            <p className="text-sm text-muted-foreground font-medium mb-2">
-                              {conversation.profile_name}
-                            </p>
-                          )}
-                          
-                          <p className="text-sm text-foreground line-clamp-2">
-                            {conversation.last_message}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col items-end gap-2 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {conversation.last_message_at ? formatTimestamp(conversation.last_message_at) : 'N/A'}
-                        </div>
-                        <div className="text-xs text-muted-foreground mb-2">
-                          {conversation.message_count || 0} mensagens
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSummaryClick(conversation.id, conversation.contact_name || conversation.contact_phone);
-                            }}
-                            className="text-xs"
-                          >
-                            <Bot className="h-3 w-3 mr-1" />
-                            Resumo IA
-                          </Button>
-                          
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => e.stopPropagation()}
-                                className="h-8 w-8 p-0"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-40">
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditClick(conversation);
-                                }}
-                              >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteClick(conversation);
-                                }}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
+          {/* WhatsApp-style layout */}
+          <div className="h-[calc(100vh-12rem)] border rounded-lg overflow-hidden bg-background">
+            <div className="flex h-full">
+              {/* Conversation List - Left Panel */}
+              <div className={`w-full md:w-[360px] border-r bg-muted/20 flex flex-col ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
+                {/* Search and Filters Header */}
+                <div className="p-4 border-b bg-background">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Input 
+                        placeholder="Buscar conversas..." 
+                        className="pl-10"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setFiltersModalOpen(true)}
+                    >
+                      <Filter className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Conversations List */}
+                <ScrollArea className="flex-1">
+                  {filteredConversations.length === 0 ? (
+                    <div className="text-center py-12 px-4">
+                      <p className="text-muted-foreground text-sm">
+                        {searchTerm.trim() || filters.professionalIds.length > 0 
+                          ? "Nenhuma conversa encontrada" 
+                          : "Nenhuma conversa ainda"
+                        }
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {filteredConversations.map((conversation) => (
+                        <div 
+                          key={conversation.id} 
+                          className={`p-4 hover:bg-muted/50 cursor-pointer transition-colors ${
+                            selectedConversationId === conversation.id ? 'bg-muted' : ''
+                          }`}
+                          onClick={() => handleConversationClick(conversation)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Avatar className="h-12 w-12 flex-shrink-0">
+                              <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                                {(conversation.contact_name || conversation.contact_phone).charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <h3 className="font-medium text-sm truncate">
+                                  {conversation.contact_name || conversation.contact_phone}
+                                </h3>
+                                <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
+                                  {conversation.last_message_at ? formatTimestamp(conversation.last_message_at) : 'N/A'}
+                                </span>
+                              </div>
+                              
+                              {conversation.profile_name && (
+                                <p className="text-xs text-muted-foreground mb-1 truncate">
+                                  {conversation.profile_name}
+                                </p>
+                              )}
+                              
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm text-muted-foreground truncate flex-1">
+                                  {conversation.last_message}
+                                </p>
+                                
+                                <div className="flex items-center gap-1 ml-2">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSummaryClick(conversation.id, conversation.contact_name || conversation.contact_phone);
+                                    }}
+                                    className="h-6 w-6 p-0"
+                                  >
+                                    <Bot className="h-3 w-3" />
+                                  </Button>
+                                  
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="h-6 w-6 p-0"
+                                      >
+                                        <MoreVertical className="h-3 w-3" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-32">
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleEditClick(conversation);
+                                        }}
+                                      >
+                                        <Edit className="mr-2 h-3 w-3" />
+                                        Editar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteClick(conversation);
+                                        }}
+                                        className="text-destructive"
+                                      >
+                                        <Trash2 className="mr-2 h-3 w-3" />
+                                        Excluir
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+
+              {/* Chat Panel - Right Panel */}
+              <div className="flex-1 flex flex-col">
+                {selectedConversationId && selectedConversationData ? (
+                  <ChatPanel
+                    conversationId={selectedConversationId}
+                    contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
+                    contactPhone={selectedConversationData.contact_phone}
+                  />
+                ) : (
+                  <div className="flex-1 flex items-center justify-center bg-muted/10">
+                    <div className="text-center">
+                      <MessageSquare className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                        Selecione uma conversa
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Escolha uma conversa da lista para começar a visualizar as mensagens
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          </div>
         </div>
 
         <SummaryModal
@@ -316,17 +373,6 @@ export default function ConversasPage() {
           summary={selectedSummary}
           loading={summaryLoading}
           contactName={selectedContactName}
-        />
-
-        <ChatModal
-          isOpen={isChatModalOpen}
-          onClose={() => {
-            setIsChatModalOpen(false);
-            setSelectedConversation(null);
-          }}
-          conversationId={selectedConversation?.id || ""}
-          contactName={selectedConversation?.contact_name || selectedConversation?.contact_phone || ""}
-          contactPhone={selectedConversation?.contact_phone || ""}
         />
 
         <ConversationFiltersModal
