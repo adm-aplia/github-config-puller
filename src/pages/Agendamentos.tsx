@@ -221,14 +221,12 @@ export default function AgendamentosPage() {
     }
   }, [selectedProfessionalForImport, credentials, profileLinks])
 
-  // Appointments for day view - shows ALL appointments for selected day regardless of period filters
-  const appointmentsForDayView = () => {
-    let filtered = [...appointments]
+  // Helper function to check if appointment is blocked
+  const isBlocked = (apt: Appointment) => apt.appointment_type === 'blocked'
 
-    // Apply only status, professional, and appointment type filters (NOT date range)
-    if (filters.status.length > 0) {
-      filtered = filtered.filter(apt => filters.status.includes(apt.status))
-    }
+  // Appointments for calendar view - only apply professional filter, not period filter
+  const appointmentsForCalendar = () => {
+    let filtered = [...appointments]
 
     // Apply professional filter from professional selector
     if (selectedProfessional !== "all") {
@@ -237,15 +235,17 @@ export default function AgendamentosPage() {
       )
     }
 
-    if (filters.professionalIds.length > 0) {
-      filtered = filtered.filter(apt => 
-        apt.professional_profile_id && filters.professionalIds.includes(apt.professional_profile_id)
-      )
-    }
+    return filtered
+  }
 
-    if (filters.appointmentType !== "all") {
+  // Appointments for day view - shows ALL non-blocked appointments for selected day regardless of period filters
+  const appointmentsForDayView = () => {
+    let filtered = [...appointments]
+
+    // Apply professional filter from professional selector
+    if (selectedProfessional !== "all") {
       filtered = filtered.filter(apt => 
-        apt.appointment_type === filters.appointmentType
+        apt.professional_profile_id === selectedProfessional
       )
     }
 
@@ -254,25 +254,25 @@ export default function AgendamentosPage() {
 
   // Get appointments for a specific date (excluding blocked appointments) - for calendar view
   const getAppointmentsForDate = (date: Date) => {
-    return filteredAppointments.filter(apt => {
+    return appointmentsForCalendar().filter(apt => {
       const aptDate = new Date(apt.appointment_date)
-      return aptDate.toDateString() === date.toDateString() && apt.appointment_type !== 'blocked'
+      return aptDate.toDateString() === date.toDateString() && !isBlocked(apt)
     })
   }
 
   // Get blocked appointments for a specific date - for calendar view
   const getBlockedAppointmentsForDate = (date: Date) => {
-    return filteredAppointments.filter(apt => {
+    return appointmentsForCalendar().filter(apt => {
       const aptDate = new Date(apt.appointment_date)
-      return aptDate.toDateString() === date.toDateString() && apt.appointment_type === 'blocked'
+      return aptDate.toDateString() === date.toDateString() && isBlocked(apt)
     })
   }
 
-  // Get appointments for selected date in day view (ALL appointments, including blocked)
+  // Get appointments for selected date in day view (non-blocked only)
   const getAppointmentsForSelectedDateDayView = (date: Date) => {
     return appointmentsForDayView().filter(apt => {
       const aptDate = new Date(apt.appointment_date)
-      return aptDate.toDateString() === date.toDateString() && apt.appointment_type !== 'blocked'
+      return aptDate.toDateString() === date.toDateString() && !isBlocked(apt)
     })
   }
 
@@ -280,7 +280,7 @@ export default function AgendamentosPage() {
   const getBlockedForSelectedDateDayView = (date: Date) => {
     return appointmentsForDayView().filter(apt => {
       const aptDate = new Date(apt.appointment_date)
-      return aptDate.toDateString() === date.toDateString() && apt.appointment_type === 'blocked'
+      return aptDate.toDateString() === date.toDateString() && isBlocked(apt)
     })
   }
 
