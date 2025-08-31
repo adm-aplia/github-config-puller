@@ -54,6 +54,11 @@ export default function ConversasPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = useState(false);
 
+  // Reset modal state on component mount
+  useEffect(() => {
+    setIsEditModalOpen(false);
+  }, []);
+
   const handleSummaryClick = async (conversationId: string, contactName: string) => {
     setSelectedContactName(contactName);
     setIsSummaryModalOpen(true);
@@ -239,11 +244,6 @@ export default function ConversasPage() {
       </DashboardLayout>
     );
   }
-
-  // Reset modal state on component mount
-  useEffect(() => {
-    setIsEditModalOpen(false);
-  }, []);
 
   // Auto-select first conversation when conversations load
   useEffect(() => {
