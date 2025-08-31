@@ -382,8 +382,8 @@ export default function AgendamentosPage() {
   // Get blocked appointments for selected date
   const selectedDateBlocked = selectedDate ? getBlockedForSelectedDateDayView(selectedDate) : []
 
-  // Calculate stats from appointments in the last 30 days
-  const stats = calculateStats(getAppointmentsForStats())
+  // Calculate stats from filtered appointments (respects period selection)
+  const stats = calculateStats(filteredAppointments)
 
   // Get formatted date range for display
   const getFormattedDateRange = () => {
