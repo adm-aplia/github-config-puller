@@ -159,15 +159,30 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
                 />
               </svg>
               
-              {/* X-axis labels - only show dates that have text */}
-              <div className="absolute bottom-0 w-full flex justify-between px-2">
-                {chartData.map((item, index) => (
-                  item.date && (
-                    <span key={index} className="text-xs font-medium text-muted-foreground">
-                      {item.date}
-                    </span>
-                  )
-                ))}
+              {/* X-axis labels - dynamically show 6-8 labels to prevent overlap */}
+              <div className="absolute bottom-0 w-full px-2">
+                {(() => {
+                  const labelsToShow = chartData.filter(item => item.date)
+                  const maxLabels = chartData.length > 20 ? 6 : chartData.length > 10 ? 8 : labelsToShow.length
+                  const step = Math.max(1, Math.floor(labelsToShow.length / maxLabels))
+                  
+                  return labelsToShow.map((item, labelIndex) => {
+                    if (labelIndex % step !== 0 && labelIndex !== labelsToShow.length - 1) return null
+                    
+                    const dataIndex = chartData.findIndex(d => d.date === item.date)
+                    const position = (dataIndex / (chartData.length - 1)) * 100
+                    
+                    return (
+                      <span 
+                        key={dataIndex} 
+                        className="absolute text-[10px] font-medium text-muted-foreground whitespace-nowrap transform -translate-x-1/2"
+                        style={{ left: `${position}%` }}
+                      >
+                        {item.date}
+                      </span>
+                    )
+                  })
+                })()}
               </div>
             </div>
           </div>
