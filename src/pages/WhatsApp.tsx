@@ -356,19 +356,24 @@ export default function WhatsAppPage() {
                           <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-2">
-                          <div className="font-medium">{instance.display_name || instance.instance_name}</div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:opacity-100"
-                            onClick={() => handleEditName(instance)}
-                          >
-                            <Pen className="h-3 w-3 text-gray-500" />
-                          </Button>
-                        </div>
-                      </div>
+                       <div className="flex flex-col gap-1">
+                         <div className="flex items-center gap-2">
+                           <div className="font-medium">{instance.display_name || instance.instance_name}</div>
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:opacity-100"
+                             onClick={() => handleEditName(instance)}
+                           >
+                             <Pen className="h-3 w-3 text-gray-500" />
+                           </Button>
+                         </div>
+                         {instance.profile_name && (
+                           <div className="text-xs text-gray-600">
+                             WhatsApp: {instance.profile_name}
+                           </div>
+                         )}
+                       </div>
                     </div>
 
                     {/* Número */}
@@ -387,17 +392,17 @@ export default function WhatsAppPage() {
                       )}
                     </div>
 
-                    {/* Perfil Vinculado */}
-                    <div className="text-sm">
-                      {instance.profile_name ? (
-                        <div>
-                          <div className="font-medium">{instance.profile_name}</div>
-                          <div className="text-xs text-muted-foreground">Perfil vinculado</div>
-                        </div>
-                      ) : (
-                        <span className="text-gray-500">Nenhum perfil</span>
-                      )}
-                    </div>
+                     {/* Perfil Vinculado */}
+                     <div className="text-sm">
+                       {instance.professional_profile_name ? (
+                         <div>
+                           <div className="font-medium">{instance.professional_profile_name}</div>
+                           <div className="text-xs text-muted-foreground">Perfil vinculado</div>
+                         </div>
+                       ) : (
+                         <span className="text-gray-500">Nenhum perfil</span>
+                       )}
+                     </div>
 
                     {/* Status */}
                     <div>

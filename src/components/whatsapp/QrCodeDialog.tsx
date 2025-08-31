@@ -45,7 +45,7 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanc
 
     const interval = setInterval(async () => {
       try {
-        // 1) se o QR do DB mudou, atualiza a imagem (mantém seu comportamento atual)
+        // mantém comportamento de atualizar QR do DB
         const { data: dbData } = await supabase
           .from('whatsapp_instances')
           .select('status, qr_code')
@@ -59,23 +59,25 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanc
           setQrImage(dataUrl);
         }
 
-        // 2) independente do status no DB, consultar a Evolution diretamente
-        const { data: infoData } = await supabase.functions.invoke('evolution-manager', {
+        // consulta Evolution diretamente
+        const { data: info } = await supabase.functions.invoke('evolution-manager', {
           body: { action: 'fetch_instance_info', instanceName: instanceSlug }
         });
 
-        if (infoData?.success && (infoData.isConnected || infoData.phone_number)) {
-          const updateData: any = {
-            status: infoData.isConnected ? 'connected' : 'qr_pending',
-            last_connected_at: infoData.isConnected ? new Date().toISOString() : null,
+        if (info?.success && (info.isConnected || info.phone_number)) {
+          const update: any = {
             webhook_url: 'https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/aplia'
           };
 
-          if (infoData.phone_number) {
-            const normalizedPhone = infoData.phone_number.replace(/\D/g, '');
-            updateData.phone_number = normalizedPhone;
+          if (info.isConnected) {
+            update.status = 'connected';
+            update.last_connected_at = new Date().toISOString();
+          }
+          if (info.phone_number) {
+            const n = info.phone_number.replace(/\D/g, '');
+            update.phone_number = n;
 
-            // atualizar perfil vinculado (se houver)
+            // refletir no perfil vinculado
             const { data: instRow } = await supabase
               .from('whatsapp_instances')
               .select('professional_profile_id')
@@ -85,27 +87,17 @@ export function QrCodeDialog({ open, onOpenChange, instanceName, qrCode, instanc
             if (instRow?.professional_profile_id) {
               await supabase
                 .from('professional_profiles')
-                .update({ phonenumber: normalizedPhone })
+                .update({ phonenumber: n })
                 .eq('id', instRow.professional_profile_id);
             }
           }
+          if (info.profile_picture_url) update.profile_picture_url = info.profile_picture_url;
+          if (info.display_name) update.profile_name = info.display_name; // Use profile_name for real WhatsApp name
 
-          if (infoData.profile_picture_url) {
-            updateData.profile_picture_url = infoData.profile_picture_url;
-          }
-          if (infoData.display_name) {
-            updateData.display_name = infoData.display_name;
-          }
-
-          await supabase
-            .from('whatsapp_instances')
-            .update(updateData)
-            .eq('id', instanceId);
-
+          await supabase.from('whatsapp_instances').update(update).eq('id', instanceId);
           onConnected?.();
           onOpenChange(false);
         }
-
       } catch (e) {
         console.error('[QrCodeDialog] polling error', e);
       }

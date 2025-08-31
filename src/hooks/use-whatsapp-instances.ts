@@ -11,14 +11,15 @@ export interface WhatsAppInstance {
   phone_number?: string;
   status: 'connected' | 'qr_pending' | 'disconnected';
   professional_profile_id?: string;
-  profile_name?: string;
+  profile_name?: string; // Real WhatsApp account name from Evolution
+  professional_profile_name?: string; // Professional profile fullname
   profile_picture_url?: string;
   last_connected_at?: string;
   created_at: string;
   updated_at: string;
   // Campos adicionais da integração Evolution
   qr_code?: string;
-  display_name?: string;
+  display_name?: string; // User's custom alias
   evolution_instance_id?: string;
   evolution_instance_key?: string;
   webhook_enabled?: boolean;
@@ -60,7 +61,7 @@ export const useWhatsAppInstances = () => {
             const profile = profiles.find(p => p.id === instance.professional_profile_id);
             return {
               ...instance,
-              profile_name: profile?.fullname,
+              professional_profile_name: profile?.fullname,
               profile_specialty: profile?.specialty
             };
           });

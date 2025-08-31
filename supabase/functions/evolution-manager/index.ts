@@ -186,8 +186,6 @@ serve(async (req: Request) => {
         });
       }
 
-      console.log("[evolution-manager] Fetching instance info:", providedInstanceName);
-
       try {
         const BASE_URL = Deno.env.get("EVOLUTION_API_URL")!;
         const API_KEY = Deno.env.get("EVOLUTION_API_KEY")!;
@@ -197,37 +195,39 @@ serve(async (req: Request) => {
         let displayName: string | null = null;
         let isConnected = false;
 
-        // 1) Estado de conexão (fonte da verdade)
+        // 1) Estado de conexão (fonte de verdade)
         try {
-          const connectionRes = await fetch(`${BASE_URL}/instance/connectionState/${providedInstanceName}`, {
-            method: "GET",
+          const r = await fetch(`${BASE_URL}/instance/connectionState/${providedInstanceName}`, {
             headers: { apikey: API_KEY },
           });
-          if (connectionRes.ok) {
-            const j = await connectionRes.json().catch(() => ({}));
+          if (r.ok) {
+            const j = await r.json().catch(() => ({}));
             const state = j?.instance?.state;
             isConnected = ["open", "connected", "CONNECTED", "online"].includes(state);
-            console.log("[evolution-manager] connection state:", state, "=>", isConnected);
           }
-        } catch (e) {
-          console.log("[evolution-manager] connectionState error:", e);
-        }
+        } catch (_) {}
 
-        // 2) Dados da instância (array + campos em item.instance.*)
+        // 2) fetchInstances -> array + item.instance.*
         try {
-          const fiRes = await fetch(
-            `${BASE_URL}/instance/fetchInstances?instanceName=${providedInstanceName}`,
-            { method: "GET", headers: { apikey: API_KEY } }
-          );
-          if (fiRes.ok) {
-            const arr = await fiRes.json().catch(() => []);
+          const r = await fetch(`${BASE_URL}/instance/fetchInstances?instanceName=${providedInstanceName}`, {
+            headers: { apikey: API_KEY },
+          });
+          if (r.ok) {
+            const arr = await r.json().catch(() => []);
             const first = Array.isArray(arr) ? arr[0] : arr;
             const inst = first?.instance ?? first;
 
-            const ownerJid = inst?.owner ?? null; // ex: 55...@s.whatsapp.net
-            if (ownerJid) {
-              phoneNumber = ownerJid.replace(/\D/g, "");
-            }
+            const ownerJid = inst?.owner ?? inst?.ownerJid ?? null; // ex: 55...@s.whatsapp.net
+            const wid = inst?.wid ?? null;
+
+            // número por prioridades: number -> ownerJid -> wid -> owner
+            phoneNumber =
+              inst?.number
+              ?? (ownerJid?.split?.("@")?.[0] ?? null)
+              ?? (wid?.split?.("@")?.[0] ?? null)
+              ?? (inst?.owner ?? null);
+
+            if (phoneNumber) phoneNumber = phoneNumber.replace(/\D/g, "");
 
             displayName = inst?.profileName ?? displayName;
             profilePictureUrl = inst?.profilePictureUrl ?? profilePictureUrl;
@@ -236,25 +236,21 @@ serve(async (req: Request) => {
               isConnected = ["open", "connected", "CONNECTED", "online"].includes(inst.status);
             }
           }
-        } catch (e) {
-          console.log("[evolution-manager] fetchInstances error:", e);
-        }
+        } catch (_) {}
 
-        // 3) Foto de perfil – se ainda não veio, buscar diretamente pelo número (quando houver)
+        // 3) Foto direta por número (se ainda não veio e já temos número)
         if (!profilePictureUrl && phoneNumber) {
           try {
-            const picRes = await fetch(`${BASE_URL}/chat/fetchProfilePictureUrl/${providedInstanceName}`, {
+            const r = await fetch(`${BASE_URL}/chat/fetchProfilePictureUrl/${providedInstanceName}`, {
               method: "POST",
               headers: { "Content-Type": "application/json", apikey: API_KEY },
               body: JSON.stringify({ number: phoneNumber }),
             });
-            if (picRes.ok) {
-              const picJ = await picRes.json().catch(() => ({}));
-              profilePictureUrl = picJ?.profilePictureUrl || picJ?.picture || null;
+            if (r.ok) {
+              const j = await r.json().catch(() => ({}));
+              profilePictureUrl = j?.profilePictureUrl || j?.picture || null;
             }
-          } catch (e) {
-            console.log("[evolution-manager] fetchProfilePictureUrl error:", e);
-          }
+          } catch (_) {}
         }
 
         return new Response(JSON.stringify({
@@ -262,21 +258,19 @@ serve(async (req: Request) => {
           profile_picture_url: profilePictureUrl,
           display_name: displayName,
           isConnected,
-          success: true
+          success: true,
         }), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
-
       } catch (error) {
-        console.error("[evolution-manager] fetch_instance_info error:", error);
         return new Response(JSON.stringify({
           phone_number: null,
           profile_picture_url: null,
           display_name: null,
           isConnected: false,
           success: false,
-          error: "Failed to fetch instance info"
+          error: "Failed to fetch instance info",
         }), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
