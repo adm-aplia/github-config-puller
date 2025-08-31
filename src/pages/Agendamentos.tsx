@@ -853,7 +853,6 @@ export default function AgendamentosPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
                     Agendamentos do Dia ({selectedDateAppointments.length})
                     {selectedDate && (
                       <span className="text-sm font-normal text-muted-foreground ml-2">
@@ -960,8 +959,7 @@ export default function AgendamentosPage() {
               {/* Blocked Times */}
               <Card className="border-orange-200 bg-orange-50/50 dark:border-orange-800 dark:bg-orange-950/20">
                 <CardHeader>
-                  <CardTitle className="text-orange-700 dark:text-orange-300 flex items-center gap-2">
-                    <span>🚫</span>
+                  <CardTitle className="flex items-center gap-2">
                     Bloqueios do Dia ({selectedDateBlocked.length})
                     {selectedDate && (
                       <span className="text-sm font-normal text-muted-foreground ml-2">
