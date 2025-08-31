@@ -221,6 +221,19 @@ export default function ConversasPage() {
     return filtered;
   }, [conversations, searchTerm, filters]);
 
+  // Auto-select first conversation when conversations load
+  useEffect(() => {
+    if (filteredConversations.length > 0 && !selectedConversationId) {
+      const firstConversation = filteredConversations[0];
+      setSelectedConversationId(firstConversation.id);
+      setSelectedConversationData(firstConversation);
+    } else if (filteredConversations.length === 0) {
+      setSelectedConversationId(null);
+      setSelectedConversationData(null);
+      setShowMobileChat(false);
+    }
+  }, [filteredConversations, selectedConversationId]);
+
   const applyFilters = () => {
     // Filters are applied automatically via useMemo
   };
@@ -245,18 +258,6 @@ export default function ConversasPage() {
     );
   }
 
-  // Auto-select first conversation when conversations load
-  useEffect(() => {
-    if (filteredConversations.length > 0 && !selectedConversationId) {
-      const firstConversation = filteredConversations[0];
-      setSelectedConversationId(firstConversation.id);
-      setSelectedConversationData(firstConversation);
-    } else if (filteredConversations.length === 0) {
-      setSelectedConversationId(null);
-      setSelectedConversationData(null);
-      setShowMobileChat(false);
-    }
-  }, [filteredConversations, selectedConversationId]);
 
   return (
     <DashboardLayout>
