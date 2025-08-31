@@ -271,11 +271,12 @@ export default function ConversasPage() {
           </div>
 
           {/* WhatsApp-style layout */}
-          <div className="h-[calc(100vh-9rem)] border rounded-lg overflow-hidden bg-background">
-            <div className="flex h-full">
-              {/* Conversation List - Left Panel */}
-              <div className={`w-full md:w-[360px] border-r bg-muted/20 flex flex-col ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
-                {/* Search and Filters Header */}
+          <Card className="h-[calc(100vh-12rem)] overflow-hidden">
+            <CardContent className="p-0 h-full">
+              <div className="flex h-full min-h-0">
+                {/* Conversation List - Left Panel */}
+                <div className={`w-full md:w-[360px] border-r bg-muted/20 flex flex-col min-h-0 ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
+                  {/* Search and Filters Header */}
                 <div className="p-4 border-b bg-background">
                   {selectionMode ? (
                     <div className="flex items-center justify-between gap-2 mb-3">
@@ -489,8 +490,9 @@ export default function ConversasPage() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <SummaryModal
