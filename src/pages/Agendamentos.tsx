@@ -64,7 +64,7 @@ import { cn } from "@/lib/utils"
 
 export default function AgendamentosPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
-  const [viewPeriod, setViewPeriod] = useState("today")
+  const [viewPeriod, setViewPeriod] = useState("last30days")
   const [selectedProfessional, setSelectedProfessional] = useState("all")
   const [isGoogleEventsDialogOpen, setIsGoogleEventsDialogOpen] = useState(false)
   const [selectedProfessionalForImport, setSelectedProfessionalForImport] = useState<string>("")
@@ -76,7 +76,39 @@ export default function AgendamentosPage() {
   const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment } = useAppointments()
   const { credentials, profileLinks, loading: googleLoading, connectGoogleAccount } = useGoogleIntegrations()
   const { toast } = useToast()
-  // Calcular estatísticas dinamicamente baseadas nos dados filtrados (excluindo bloqueios)
+
+  // Helper function to get last 30 days range
+  const getLast30DaysRange = () => {
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const last30Days = new Date(today)
+    last30Days.setDate(today.getDate() - 29)
+    return { from: last30Days, to: today }
+  }
+
+  // Get appointments for statistics (always last 30 days, respecting professional filter)
+  const getAppointmentsForStats = () => {
+    let filtered = [...appointments]
+    
+    // Apply 30-day period filter
+    const periodRange = getLast30DaysRange()
+    filtered = filtered.filter(apt => {
+      const aptDate = new Date(apt.appointment_date)
+      const aptDateOnly = new Date(aptDate.getFullYear(), aptDate.getMonth(), aptDate.getDate())
+      return aptDateOnly >= periodRange.from && aptDateOnly <= periodRange.to
+    })
+
+    // Apply professional filter from professional selector
+    if (selectedProfessional !== "all") {
+      filtered = filtered.filter(apt => 
+        apt.professional_profile_id === selectedProfessional
+      )
+    }
+
+    return filtered
+  }
+
+  // Calcular estatísticas dinamicamente baseadas nos dados dos últimos 30 dias (excluindo bloqueios)
   const calculateStats = (appointments: Appointment[]) => {
     const realAppointments = appointments.filter(apt => apt.appointment_type !== 'blocked')
     const total = realAppointments.length
@@ -290,8 +322,8 @@ export default function AgendamentosPage() {
   // Get blocked appointments for selected date
   const selectedDateBlocked = selectedDate ? getBlockedForSelectedDateDayView(selectedDate) : []
 
-  // Calculate stats from filtered appointments
-  const stats = calculateStats(filteredAppointments)
+  // Calculate stats from appointments in the last 30 days
+  const stats = calculateStats(getAppointmentsForStats())
 
   // Get formatted date range for display
   const getFormattedDateRange = () => {
@@ -578,12 +610,12 @@ export default function AgendamentosPage() {
                 <p className="text-sm text-muted-foreground">Acompanhe o desempenho dos seus agendamentos</p>
               </div>
               <div className="flex items-center gap-2">
-                <Tabs value={viewPeriod} onValueChange={setViewPeriod}>
-                  <TabsList>
-                    <TabsTrigger value="today">Hoje</TabsTrigger>
-                    <TabsTrigger value="last7days">Últimos 7 dias</TabsTrigger>
-                    <TabsTrigger value="last30days">Últimos 30 dias</TabsTrigger>
-                  </TabsList>
+                      <Tabs value={viewPeriod} onValueChange={setViewPeriod}>
+                        <TabsList>
+                          <TabsTrigger value="today">Hoje</TabsTrigger>
+                          <TabsTrigger value="last7days">Últimos 7 dias</TabsTrigger>
+                          <TabsTrigger value="last30days">Últimos 30 dias</TabsTrigger>
+                        </TabsList>
                 </Tabs>
               </div>
             </div>
