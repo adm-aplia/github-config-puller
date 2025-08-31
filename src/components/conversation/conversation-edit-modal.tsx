@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -41,7 +42,7 @@ export function ConversationEditModal({
       setFormData({
         contact_name: conversation.contact_name || "",
         contact_phone: conversation.contact_phone || "",
-        agent_id: conversation.agent_id || ""
+        agent_id: conversation.agent_id || "none"
       })
     }
   }, [open, conversation])
@@ -54,7 +55,7 @@ export function ConversationEditModal({
       const updateData: Partial<Conversation> = {
         contact_name: formData.contact_name.trim() || null,
         contact_phone: formData.contact_phone.trim(),
-        agent_id: formData.agent_id || null
+        agent_id: formData.agent_id === "none" ? null : formData.agent_id || null
       }
 
       const success = await onUpdate(conversation.id, updateData)
@@ -118,7 +119,7 @@ export function ConversationEditModal({
                 <SelectValue placeholder="Selecione um assistente" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum assistente</SelectItem>
+                <SelectItem value="none">Nenhum assistente</SelectItem>
                 {profiles.map((profile) => (
                   <SelectItem key={profile.id} value={profile.id}>
                     {profile.fullname}
