@@ -240,26 +240,18 @@ export default function ConversasPage() {
     );
   }
 
-  // Mobile view - show only chat when conversation is selected
-  if (showMobileChat && selectedConversationData) {
-    return (
-      <DashboardLayout>
-        <div className="h-[calc(100vh-4rem)]">
-          <ChatPanel
-            conversationId={selectedConversationId!}
-            contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
-            contactPhone={selectedConversationData.contact_phone}
-            onBack={handleBack}
-            onEdit={() => {
-              setConversationBeingEdited(selectedConversationData);
-              setIsEditModalOpen(true);
-            }}
-            onDelete={() => handleDeleteClick(selectedConversationData)}
-          />
-        </div>
-      </DashboardLayout>
-    );
-  }
+  // Auto-select first conversation when conversations load
+  useEffect(() => {
+    if (filteredConversations.length > 0 && !selectedConversationId) {
+      const firstConversation = filteredConversations[0];
+      setSelectedConversationId(firstConversation.id);
+      setSelectedConversationData(firstConversation);
+    } else if (filteredConversations.length === 0) {
+      setSelectedConversationId(null);
+      setSelectedConversationData(null);
+      setShowMobileChat(false);
+    }
+  }, [filteredConversations, selectedConversationId]);
 
   return (
     <DashboardLayout>
@@ -458,29 +450,36 @@ export default function ConversasPage() {
 
               {/* Chat Panel - Right Panel */}
               <div className="flex-1 flex flex-col">
-                {selectedConversationId && selectedConversationData ? (
-                  <ChatPanel
-                    conversationId={selectedConversationId}
-                    contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
-                    contactPhone={selectedConversationData.contact_phone}
-                    onBack={handleBack}
-                    onEdit={() => {
-                      setConversationBeingEdited(selectedConversationData);
-                      setIsEditModalOpen(true);
-                    }}
-                    onDelete={() => handleDeleteClick(selectedConversationData)}
-                  />
-                ) : (
-                  <div className="flex-1 flex items-center justify-center bg-muted/10">
-                    <div className="text-center">
-                      <MessageSquare className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                        Selecione uma conversa
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Escolha uma conversa da lista para começar a visualizar as mensagens
-                      </p>
-                    </div>
+                {selectedConversationId && selectedConversationData && (
+                  <div className={`flex-1 ${showMobileChat && 'md:block hidden'}`}>
+                    <ChatPanel
+                      conversationId={selectedConversationId}
+                      contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
+                      contactPhone={selectedConversationData.contact_phone}
+                      onBack={handleBack}
+                      onEdit={() => {
+                        setConversationBeingEdited(selectedConversationData);
+                        setIsEditModalOpen(true);
+                      }}
+                      onDelete={() => handleDeleteClick(selectedConversationData)}
+                    />
+                  </div>
+                )}
+                
+                {/* Mobile chat overlay */}
+                {showMobileChat && selectedConversationData && (
+                  <div className="md:hidden fixed inset-0 z-50 bg-background">
+                    <ChatPanel
+                      conversationId={selectedConversationId!}
+                      contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
+                      contactPhone={selectedConversationData.contact_phone}
+                      onBack={handleBack}
+                      onEdit={() => {
+                        setConversationBeingEdited(selectedConversationData);
+                        setIsEditModalOpen(true);
+                      }}
+                      onDelete={() => handleDeleteClick(selectedConversationData)}
+                    />
                   </div>
                 )}
               </div>
