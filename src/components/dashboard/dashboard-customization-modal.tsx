@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -30,7 +30,7 @@ const defaultConfig: DashboardConfig = {
   showMetrics: true,
   showChart: true,
   showRecentConversations: true,
-  chartPeriod: "7days",
+  chartPeriod: "7",
   metricCards: {
     conversations: true,
     appointments: true,
@@ -79,6 +79,9 @@ export function DashboardCustomizationModal({ open, onOpenChange }: DashboardCus
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Personalizar Dashboard</DialogTitle>
+          <DialogDescription>
+            Configure a visibilidade e o período padrão do dashboard.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
@@ -214,10 +217,10 @@ export function DashboardCustomizationModal({ open, onOpenChange }: DashboardCus
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="7days">Últimos 7 dias</SelectItem>
-                    <SelectItem value="15days">Últimos 15 dias</SelectItem>
-                    <SelectItem value="30days">Últimos 30 dias</SelectItem>
-                    <SelectItem value="90days">Últimos 90 dias</SelectItem>
+                    <SelectItem value="7">Últimos 7 dias</SelectItem>
+                    <SelectItem value="15">Últimos 15 dias</SelectItem>
+                    <SelectItem value="30">Últimos 30 dias</SelectItem>
+                    <SelectItem value="90">Últimos 90 dias</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -10,19 +10,81 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { DashboardCustomizationModal } from "@/components/dashboard/dashboard-customization-modal"
 import { useDashboardStats } from "@/hooks/use-dashboard-stats"
 
+interface DashboardConfig {
+  showMetrics: boolean
+  showChart: boolean
+  showRecentConversations: boolean
+  chartPeriod: "7" | "15" | "30" | "90"
+  metricCards: {
+    conversations: boolean
+    appointments: boolean
+    assistants: boolean
+    instances: boolean
+  }
+}
+
+const defaultConfig: DashboardConfig = {
+  showMetrics: true,
+  showChart: true,
+  showRecentConversations: true,
+  chartPeriod: "7",
+  metricCards: {
+    conversations: true,
+    appointments: true,
+    assistants: true,
+    instances: true,
+  },
+}
+
 export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const [customizationOpen, setCustomizationOpen] = useState(false)
+  const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(defaultConfig)
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { stats, chartData, loading: statsLoading, refetch } = useDashboardStats()
+  
+  // Map chart period to days and label
+  const chartDays = parseInt(dashboardConfig.chartPeriod) as 7 | 15 | 30 | 90
+  const periodLabel = `${dashboardConfig.chartPeriod} dias`
+  
+  const { stats, chartData, loading: statsLoading, refetch } = useDashboardStats(chartDays)
 
   useEffect(() => {
     if (!user) {
       navigate('/')
     }
   }, [user, navigate])
+
+  // Load dashboard config from localStorage
+  useEffect(() => {
+    const savedConfig = localStorage.getItem('dashboard-config')
+    if (savedConfig) {
+      try {
+        const parsedConfig = JSON.parse(savedConfig)
+        setDashboardConfig({ ...defaultConfig, ...parsedConfig })
+      } catch (error) {
+        console.error('Error parsing dashboard config:', error)
+      }
+    }
+  }, [])
+
+  // Reload config when modal closes (after save)
+  const handleCustomizationOpenChange = (open: boolean) => {
+    setCustomizationOpen(open)
+    if (!open) {
+      // Reload config from localStorage when modal closes
+      const savedConfig = localStorage.getItem('dashboard-config')
+      if (savedConfig) {
+        try {
+          const parsedConfig = JSON.parse(savedConfig)
+          setDashboardConfig({ ...defaultConfig, ...parsedConfig })
+        } catch (error) {
+          console.error('Error parsing dashboard config:', error)
+        }
+      }
+    }
+  }
 
   const refreshDashboard = async () => {
     setLoading(true)
@@ -84,19 +146,31 @@ export default function DashboardPage() {
         </header>
 
         <div className="space-y-8">
-          <DashboardMetrics stats={stats} loading={statsLoading} />
+          {dashboardConfig.showMetrics && (
+            <DashboardMetrics 
+              stats={stats} 
+              loading={statsLoading} 
+              visibleCards={dashboardConfig.metricCards}
+            />
+          )}
 
           {/* Charts and Activity */}
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
-            <ConversationChart chartData={chartData} loading={statsLoading} />
-            <RecentConversations />
+            {dashboardConfig.showChart && (
+              <ConversationChart 
+                chartData={chartData} 
+                loading={statsLoading} 
+                periodLabel={periodLabel}
+              />
+            )}
+            {dashboardConfig.showRecentConversations && <RecentConversations />}
           </div>
         </div>
       </div>
 
       <DashboardCustomizationModal
         open={customizationOpen}
-        onOpenChange={setCustomizationOpen}
+        onOpenChange={handleCustomizationOpenChange}
       />
     </DashboardLayout>
   )

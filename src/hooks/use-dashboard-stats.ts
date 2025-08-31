@@ -17,7 +17,7 @@ export interface ChartData {
   conversations: number;
 }
 
-export const useDashboardStats = () => {
+export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,14 +91,14 @@ export const useDashboardStats = () => {
         setStats(fallbackStats);
       }
 
-      // Buscar dados para o gráfico (últimos 7 dias)
-      const last7Days = Array.from({ length: 7 }, (_, i) => {
+      // Buscar dados para o gráfico (últimos N dias)
+      const lastNDays = Array.from({ length: chartDays }, (_, i) => {
         const date = new Date();
-        date.setDate(date.getDate() - (6 - i));
+        date.setDate(date.getDate() - (chartDays - 1 - i));
         return date;
       });
 
-      const chartDataPromises = last7Days.map(async (date) => {
+      const chartDataPromises = lastNDays.map(async (date) => {
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
         
@@ -145,7 +145,7 @@ export const useDashboardStats = () => {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [chartDays]);
 
   return {
     stats,

@@ -94,9 +94,10 @@ function createSmoothPath(points: {x: number, y: number}[]) {
 interface ConversationChartProps {
   chartData: ChartData[]
   loading: boolean
+  periodLabel?: string
 }
 
-export function ConversationChart({ chartData, loading }: ConversationChartProps) {
+export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }: ConversationChartProps) {
   if (loading) {
     return (
       <Card className="col-span-1 lg:col-span-4">
@@ -117,7 +118,7 @@ export function ConversationChart({ chartData, loading }: ConversationChartProps
     <Card className="col-span-1 lg:col-span-4">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
         <div>
-          <CardTitle className="text-lg font-semibold">Conversas dos Últimos 7 Dias</CardTitle>
+          <CardTitle className="text-lg font-semibold">Conversas dos Últimos {periodLabel}</CardTitle>
           <CardDescription className="mt-2">
             Evolução das conversas por dia
           </CardDescription>

@@ -30,9 +30,23 @@ function MetricCard({ title, value, description, icon: Icon, trend }: MetricCard
 interface DashboardMetricsProps {
   stats: DashboardStats | null
   loading: boolean
+  visibleCards?: {
+    conversations: boolean
+    appointments: boolean
+    assistants: boolean
+    instances: boolean
+  }
 }
 
-export function DashboardMetrics({ stats, loading }: DashboardMetricsProps) {
+export function DashboardMetrics({ stats, loading, visibleCards }: DashboardMetricsProps) {
+  const defaultVisibleCards = {
+    conversations: true,
+    appointments: true,
+    assistants: true,
+    instances: true,
+  }
+  
+  const cards = visibleCards || defaultVisibleCards
   if (loading) {
     return (
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -52,32 +66,68 @@ export function DashboardMetrics({ stats, loading }: DashboardMetricsProps) {
     )
   }
 
-  return (
-    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+  const metricsToShow = []
+  
+  if (cards.conversations) {
+    metricsToShow.push(
       <MetricCard
+        key="conversations"
         title="Conversas Ativas"
         value={stats?.conversas_ativas || 0}
         description="conversas em andamento"
         icon={MessageSquare}
       />
+    )
+  }
+  
+  if (cards.appointments) {
+    metricsToShow.push(
       <MetricCard
+        key="appointments"
         title="Agendamentos"
         value={stats?.agendamentos_mes || 0}
         description="neste mês"
         icon={Calendar}
       />
+    )
+  }
+  
+  if (cards.assistants) {
+    metricsToShow.push(
       <MetricCard
+        key="assistants"
         title="Assistentes"
         value={stats?.total_assistentes || 0}
         description="perfis configurados"
         icon={Users}
       />
+    )
+  }
+  
+  if (cards.instances) {
+    metricsToShow.push(
       <MetricCard
+        key="instances"
         title="Instâncias WhatsApp"
         value={`${stats?.instancias_ativas || 0}/${stats?.total_instancias || 0}`}
         description="ativas / total"
         icon={Activity}
       />
+    )
+  }
+
+  if (metricsToShow.length === 0) {
+    return null
+  }
+
+  const gridCols = metricsToShow.length === 1 ? "grid-cols-1" : 
+                   metricsToShow.length === 2 ? "grid-cols-1 sm:grid-cols-2" :
+                   metricsToShow.length === 3 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" :
+                   "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+
+  return (
+    <div className={`grid gap-6 ${gridCols}`}>
+      {metricsToShow}
     </div>
   )
 }
