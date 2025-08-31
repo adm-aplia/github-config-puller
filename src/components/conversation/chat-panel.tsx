@@ -88,7 +88,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
   }
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full min-h-0 bg-background">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b bg-muted/30">
         {onBack && (
@@ -140,7 +140,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 min-h-0 p-4">
         <div className="space-y-4">
           {loading && messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">

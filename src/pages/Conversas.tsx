@@ -456,9 +456,9 @@ export default function ConversasPage() {
               </div>
 
               {/* Chat Panel - Right Panel */}
-              <div className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 {selectedConversationId && selectedConversationData && (
-                  <div className={`flex-1 ${showMobileChat && 'md:block hidden'}`}>
+                  <div className={`flex-1 min-h-0 overflow-hidden ${showMobileChat && 'md:block hidden'}`}>
                     <ChatPanel
                       conversationId={selectedConversationId}
                       contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
@@ -475,7 +475,7 @@ export default function ConversasPage() {
                 
                 {/* Mobile chat overlay */}
                 {showMobileChat && selectedConversationData && (
-                  <div className="md:hidden fixed inset-0 z-40 bg-background">
+                  <div className="md:hidden fixed inset-0 z-40 bg-background overflow-hidden">
                     <ChatPanel
                       conversationId={selectedConversationId!}
                       contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
