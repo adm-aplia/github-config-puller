@@ -321,6 +321,56 @@ export default function AgendamentosPage() {
     })
   }
 
+  // Helper function to format block display
+  const formatBlockDisplay = (apt: Appointment) => {
+    const durationMinutes = apt.duration_minutes || 0
+    
+    // Parse appointment_date (handle UTC format with "+00")
+    let startDate: Date
+    if (apt.appointment_date.includes('+00')) {
+      // Convert UTC to local time
+      startDate = new Date(apt.appointment_date.replace(' ', 'T'))
+    } else {
+      startDate = new Date(apt.appointment_date)
+    }
+    
+    // For full day blocks (1440 minutes = 24 hours)
+    if (durationMinutes === 1440) {
+      return "🔒 Dia inteiro bloqueado"
+    }
+    
+    // For specific period blocks, calculate end time
+    if (durationMinutes > 0) {
+      const endDate = new Date(startDate.getTime() + (durationMinutes * 60 * 1000))
+      const startTime = format(startDate, 'HH:mm')
+      const endTime = format(endDate, 'HH:mm')
+      return `⏰ ${startTime} — ${endTime}`
+    }
+    
+    // Fallback for blocks without duration
+    return `⏰ ${format(startDate, 'HH:mm')}`
+  }
+
+  // Helper function to extract reason from notes
+  const extractReasonFromNotes = (notes: string) => {
+    if (!notes) return ""
+    
+    // Look for "Motivo: " pattern
+    const motivoMatch = notes.match(/Motivo:\s*([^.]+)/)
+    if (motivoMatch) {
+      return motivoMatch[1].trim()
+    }
+    
+    // If no "Motivo:" pattern, return the full notes but remove time ranges
+    return notes
+      .replace(/Horário bloqueado de \d{2}:\d{2} até \d{2}:\d{2}/, '')
+      .replace(/Dia inteiro bloqueado/, '')
+      .replace(/\(Recorrência: [^)]+\)/, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/^[.,\s]+|[.,\s]+$/g, '') // Remove leading/trailing punctuation
+  }
+
   // Get appointments for selected date (excluding blocked appointments)
   const selectedDateAppointments = selectedDate ? getAppointmentsForSelectedDateDayView(selectedDate) : []
   
@@ -987,28 +1037,17 @@ export default function AgendamentosPage() {
                                   Horário Bloqueado
                                 </span>
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                {blocked.duration_minutes >= 1440 || blocked.notes?.includes("Dia inteiro bloqueado") ? (
-                                  <div>🔒 Dia inteiro bloqueado</div>
-                                ) : (
-                                  <>
-                                    <div>⏰ {format(new Date(blocked.appointment_date), "HH:mm")}</div>
-                                    {blocked.duration_minutes ? (
-                                      <div>Duração: {blocked.duration_minutes} min</div>
-                                    ) : (
-                                      <div>Horário específico</div>
-                                    )}
-                                  </>
-                                )}
-                                {blocked.professional_profile_id && (
-                                  <div>
-                                    👨‍⚕️ {profiles.find(p => p.id === blocked.professional_profile_id)?.fullname || 'Profissional não encontrado'}
-                                  </div>
-                                )}
-                                {blocked.notes && (
-                                  <div className="mt-1">📝 {blocked.notes}</div>
-                                )}
-                              </div>
+                               <div className="text-sm text-muted-foreground">
+                                 <div>{formatBlockDisplay(blocked)}</div>
+                                 {blocked.professional_profile_id && (
+                                   <div>
+                                     👨‍⚕️ {profiles.find(p => p.id === blocked.professional_profile_id)?.fullname || 'Profissional não encontrado'}
+                                   </div>
+                                 )}
+                                 {blocked.notes && extractReasonFromNotes(blocked.notes) && (
+                                   <div className="mt-1">Motivo: {extractReasonFromNotes(blocked.notes)}</div>
+                                 )}
+                               </div>
                             </div>
                           </div>
                         ))}
