@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Phone, Plus, Settings, Smartphone, Signal, User, UserPlus, QrCode, EllipsisVertical, Pen, UserCheck, UserX, Trash2, RefreshCw } from "lucide-react"
+import { Plus, Settings, Smartphone, Signal, User, UserPlus, QrCode, EllipsisVertical, Pen, UserCheck, UserX, Trash2, RefreshCw } from "lucide-react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useWhatsAppInstances } from "@/hooks/use-whatsapp-instances"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -377,14 +377,11 @@ export default function WhatsAppPage() {
                     </div>
 
                     {/* Número */}
-                    <div className="flex items-center gap-2">
+                    <div>
                       {instance.phone_number ? (
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-green-600" />
-                          <span className="font-mono text-sm">
-                            {formatPhoneNumber(instance.phone_number)}
-                          </span>
-                        </div>
+                        <span className="font-mono text-sm">
+                          {formatPhoneNumber(instance.phone_number)}
+                        </span>
                       ) : (
                         <span className="text-muted-foreground text-sm">
                           Número não disponível
