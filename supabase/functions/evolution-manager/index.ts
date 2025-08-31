@@ -100,6 +100,57 @@ serve(async (req: Request) => {
       });
     }
 
+    if (action === "delete_instance") {
+      if (!providedInstanceName) {
+        return new Response(JSON.stringify({ error: "Missing instanceName" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      console.log("[evolution-manager] Deleting instance:", providedInstanceName);
+      
+      // First try to logout/disconnect
+      const logoutRes = await fetch(`${BASE_URL}/instance/logout/${providedInstanceName}`, {
+        method: "DELETE",
+        headers: { "apikey": API_KEY },
+      });
+      
+      console.log("[evolution-manager] logout status:", logoutRes.status);
+      
+      // Then try to delete the instance entirely
+      const deleteRes = await fetch(`${BASE_URL}/instance/delete/${providedInstanceName}`, {
+        method: "DELETE",
+        headers: { "apikey": API_KEY },
+      });
+      
+      console.log("[evolution-manager] delete status:", deleteRes.status);
+      
+      // If DELETE doesn't work, try POST (some versions use POST for delete)
+      let finalDeleteRes = deleteRes;
+      if (!deleteRes.ok && deleteRes.status !== 404) {
+        const postDeleteRes = await fetch(`${BASE_URL}/instance/delete/${providedInstanceName}`, {
+          method: "POST",
+          headers: { "apikey": API_KEY },
+        });
+        console.log("[evolution-manager] post delete status:", postDeleteRes.status);
+        finalDeleteRes = postDeleteRes;
+      }
+      
+      // Consider 404 as success (instance already removed)
+      const success = finalDeleteRes.ok || finalDeleteRes.status === 404;
+      
+      return new Response(JSON.stringify({ 
+        success,
+        logoutStatus: logoutRes.status,
+        deleteStatus: finalDeleteRes.status,
+        removed: success
+      }), {
+        status: success ? 200 : 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "enforce_webhook") {
       if (!providedInstanceName) {
         return new Response(JSON.stringify({ error: "Missing instanceName" }), {

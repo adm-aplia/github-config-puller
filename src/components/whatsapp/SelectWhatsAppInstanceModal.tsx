@@ -13,7 +13,7 @@ interface SelectWhatsAppInstanceModalProps {
   profileId: string
   onLinkInstance: (instanceId: string, profileId: string) => Promise<boolean>
   onCreateNewInstance: () => void
-  onUnlinkInstance?: (profileId: string) => Promise<boolean>
+  onUnlinkInstance?: (instanceId: string) => Promise<boolean>
   loading?: boolean
 }
 
@@ -49,8 +49,8 @@ export function SelectWhatsAppInstanceModal({
     onOpenChange(false)
   }
 
-  // Find instance linked to this profile
-  const linkedInstance = instances.find(instance => 
+  // Find instances linked to this profile
+  const linkedInstances = instances.filter(instance => 
     instance.professional_profile_id === profileId
   )
   
@@ -58,15 +58,19 @@ export function SelectWhatsAppInstanceModal({
   const availableInstances = instances.filter(instance => 
     instance.professional_profile_id !== profileId
   )
-  const handleUnlink = async () => {
+  
+  const handleUnlink = async (instanceId: string) => {
     if (!onUnlinkInstance) return
     
     setUnlinking(true)
-    const success = await onUnlinkInstance(profileId)
+    const success = await onUnlinkInstance(instanceId)
     setUnlinking(false)
     
     if (success) {
-      onOpenChange(false)
+      // Don't close modal if there are still other linked instances
+      if (linkedInstances.length <= 1) {
+        onOpenChange(false)
+      }
     }
   }
 
@@ -112,37 +116,44 @@ export function SelectWhatsAppInstanceModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {linkedInstance && (
+          {linkedInstances.length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground">Instância atual:</h4>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm mb-2">
-                        {linkedInstance.display_name || linkedInstance.instance_name}
-                      </p>
-
-                      {linkedInstance.phone_number && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
-                          <Phone className="h-3 w-3" />
-                          <span>{linkedInstance.phone_number}</span>
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Instâncias vinculadas ({linkedInstances.length}):
+              </h4>
+              {linkedInstances.map((instance) => (
+                <Card key={instance.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <p className="font-medium text-sm">
+                            {instance.display_name || instance.instance_name}
+                          </p>
+                          {getStatusBadge(instance.status)}
                         </div>
-                      )}
+
+                        {instance.phone_number && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                            <Phone className="h-3 w-3" />
+                            <span>{instance.phone_number}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleUnlink}
-                      disabled={unlinking}
-                    >
-                      {unlinking ? 'Desvinculando...' : 'Desvincular'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUnlink(instance.id)}
+                        disabled={unlinking}
+                      >
+                        {unlinking ? 'Desvinculando...' : 'Desvincular'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
 
@@ -195,7 +206,7 @@ export function SelectWhatsAppInstanceModal({
                 </Card>
               ))}
             </div>
-          ) : !linkedInstance ? (
+          ) : linkedInstances.length === 0 ? (
             <div className="text-center py-6">
               <MessageCircle className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
               <h4 className="font-medium mb-2">Nenhuma instância disponível</h4>
@@ -205,7 +216,7 @@ export function SelectWhatsAppInstanceModal({
             </div>
           ) : null}
 
-          {(!linkedInstance || availableInstances.length > 0) && (
+          {(linkedInstances.length === 0 || availableInstances.length > 0) && (
             <div className="pt-4 border-t">
               <Button
                 variant="outline"
@@ -214,7 +225,7 @@ export function SelectWhatsAppInstanceModal({
                 disabled={linking || unlinking}
               >
                 <Plus className="h-4 w-4" />
-                {linkedInstance ? 'Criar nova instância' : 'Criar instância'}
+                {linkedInstances.length > 0 ? 'Criar nova instância' : 'Criar instância'}
               </Button>
             </div>
           )}
@@ -226,7 +237,7 @@ export function SelectWhatsAppInstanceModal({
             onClick={() => handleOpenChange(false)}
             disabled={linking || unlinking}
           >
-            {linkedInstance ? 'Fechar' : 'Cancelar'}
+            {linkedInstances.length > 0 ? 'Fechar' : 'Cancelar'}
           </Button>
           {availableInstances.length > 0 && (
             <Button 

@@ -133,18 +133,14 @@ export default function PerfilsPage() {
     setShowCreateInstanceModal(true)
   }
 
-  const handleUnlinkWhatsAppInstance = async (profileId: string) => {
-    // Find the linked instance and remove its profile association
-    const linkedInstance = instances.find(inst => inst.professional_profile_id === profileId)
-    if (linkedInstance) {
-      const success = await updateInstance(linkedInstance.id, { professional_profile_id: null })
-      if (success) {
-        refetchInstances()
-        refetch()
-      }
-      return success
+  const handleUnlinkWhatsAppInstance = async (instanceId: string) => {
+    // Remove profile association from the specific instance
+    const success = await updateInstance(instanceId, { professional_profile_id: null })
+    if (success) {
+      refetchInstances()
+      refetch()
     }
-    return false
+    return success
   }
 
   const handleUnlinkGoogleAccount = async (profileId: string) => {
@@ -169,9 +165,14 @@ export default function PerfilsPage() {
   }
 
   // Helper functions to check connection status
-  const getWhatsAppStatus = (profileId: string) => {
-    const instance = instances.find(inst => inst.professional_profile_id === profileId)
-    return instance ? instance.status : null
+  const getWhatsAppInfo = (profileId: string) => {
+    const linkedInstances = instances.filter(inst => inst.professional_profile_id === profileId)
+    const hasConnected = linkedInstances.some(inst => inst.status === 'connected')
+    return {
+      count: linkedInstances.length,
+      hasConnected,
+      instances: linkedInstances
+    }
   }
 
   const getGoogleStatus = (profileId: string) => {
@@ -292,23 +293,32 @@ export default function PerfilsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                       {profiles.map((profile) => {
-                         const whatsappStatus = getWhatsAppStatus(profile.id)
-                         const googleConnected = getGoogleStatus(profile.id)
-                         
-                         return (
-                         <TableRow key={profile.id}>
-                           <TableCell className="font-medium">{profile.fullname}</TableCell>
-                           <TableCell>{profile.specialty}</TableCell>
-                           <TableCell>
-                             {whatsappStatus === 'connected' ? (
-                               <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20">
-                                 Conectado
-                               </Badge>
-                             ) : (
-                               <span className="text-foreground">Não conectado</span>
-                             )}
-                           </TableCell>
+                     {profiles.map((profile) => {
+                          const whatsappInfo = getWhatsAppInfo(profile.id)
+                          const googleConnected = getGoogleStatus(profile.id)
+                          
+                          return (
+                          <TableRow key={profile.id}>
+                            <TableCell className="font-medium">{profile.fullname}</TableCell>
+                            <TableCell>{profile.specialty}</TableCell>
+                            <TableCell>
+                              {whatsappInfo.count > 0 ? (
+                                <Badge 
+                                  variant="default" 
+                                  className={whatsappInfo.hasConnected 
+                                    ? "bg-green-600/10 text-green-700 border-green-600/20"
+                                    : "bg-amber-600/10 text-amber-700 border-amber-600/20"
+                                  }
+                                >
+                                  {whatsappInfo.count === 1 
+                                    ? "1 número"
+                                    : `${whatsappInfo.count} números`
+                                  }
+                                </Badge>
+                              ) : (
+                                <span className="text-foreground">Não conectado</span>
+                              )}
+                            </TableCell>
                            <TableCell>
                              {googleConnected ? (
                                <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20">
@@ -332,17 +342,17 @@ export default function PerfilsPage() {
                                  <SquarePen className="h-4 w-4" />
                                  Editar
                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className={`gap-1 hover:bg-muted hover:text-foreground ${
-                                    whatsappStatus === 'connected' ? 'text-green-600' : ''
-                                  }`}
-                                  onClick={() => handleWhatsAppClick(profile.id)}
-                                >
-                                  <MessageCircle className="h-4 w-4" />
-                                  WhatsApp
-                                </Button>
+                                 <Button 
+                                   variant="ghost" 
+                                   size="sm" 
+                                   className={`gap-1 hover:bg-muted hover:text-foreground ${
+                                     whatsappInfo.hasConnected ? 'text-green-600' : ''
+                                   }`}
+                                   onClick={() => handleWhatsAppClick(profile.id)}
+                                 >
+                                   <MessageCircle className="h-4 w-4" />
+                                   WhatsApp
+                                 </Button>
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 

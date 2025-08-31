@@ -258,6 +258,30 @@ export const useWhatsAppInstances = () => {
 
   const deleteInstance = async (id: string) => {
     try {
+      // First get the instance details to attempt Evolution deletion
+      const instance = instances.find(inst => inst.id === id);
+      if (instance?.instance_name) {
+        try {
+          console.log('[useWhatsAppInstances] Attempting to delete from Evolution:', instance.instance_name);
+          const evoRes = await supabase.functions.invoke('evolution-manager', {
+            body: {
+              action: 'delete_instance',
+              instanceName: instance.instance_name,
+            },
+          });
+          
+          if (evoRes.data?.success) {
+            console.log('[useWhatsAppInstances] Evolution deletion successful');
+          } else {
+            console.warn('[useWhatsAppInstances] Evolution deletion failed, but continuing with database deletion');
+          }
+        } catch (evoError) {
+          console.warn('[useWhatsAppInstances] Evolution deletion error:', evoError);
+          // Continue with database deletion even if Evolution fails
+        }
+      }
+
+      // Delete from database
       const { error } = await supabase
         .from('whatsapp_instances')
         .delete()
@@ -269,7 +293,9 @@ export const useWhatsAppInstances = () => {
 
       toast({
         title: 'Instância excluída',
-        description: 'Instância do WhatsApp excluída com sucesso.',
+        description: instance?.instance_name 
+          ? `Instância ${instance.instance_name} excluída do sistema e Evolution.`
+          : 'Instância do WhatsApp excluída com sucesso.',
       });
 
       return true;
