@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
+import { useNavigate } from "react-router-dom"
 
 interface Conversation {
   id: string
@@ -26,6 +27,7 @@ export function RecentConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchRecentConversations()
@@ -154,7 +156,11 @@ export function RecentConversations() {
             </div>
           ) : (
             conversations.map((conversation) => (
-              <div key={conversation.id} className="flex items-start space-x-4">
+              <div 
+                key={conversation.id} 
+                className="flex items-start space-x-4 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                onClick={() => navigate(`/dashboard/conversas?conversation=${conversation.id}`)}
+              >
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-muted">
                     {(conversation.contact_name || conversation.contact_phone).charAt(0).toUpperCase()}

@@ -17,11 +17,13 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Skeleton } from "@/components/ui/skeleton"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useState, useEffect, useMemo } from "react"
+import { useSearchParams } from "react-router-dom"
 
 
 export default function ConversasPage() {
   const { conversations, loading, updateConversation, deleteConversation, deleteConversations } = useConversations();
   const { fetchSummary, loading: summaryLoading } = useConversationSummaries();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedSummary, setSelectedSummary] = useState<ConversationSummary | null>(null);
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
   const [selectedContactName, setSelectedContactName] = useState<string>("");
@@ -220,6 +222,21 @@ export default function ConversasPage() {
 
     return filtered;
   }, [conversations, searchTerm, filters]);
+
+  // Handle URL parameter for direct conversation navigation
+  useEffect(() => {
+    const conversationIdFromUrl = searchParams.get('conversation');
+    if (conversationIdFromUrl && conversations.length > 0) {
+      const conversation = conversations.find(c => c.id === conversationIdFromUrl);
+      if (conversation) {
+        setSelectedConversationId(conversation.id);
+        setSelectedConversationData(conversation);
+        setShowMobileChat(true);
+        // Clear the URL parameter after selecting
+        setSearchParams({});
+      }
+    }
+  }, [searchParams, conversations, setSearchParams]);
 
   // Auto-select first conversation when conversations load
   useEffect(() => {
