@@ -61,6 +61,39 @@ export const useMessages = () => {
         .update({ last_message_at: new Date().toISOString() })
         .eq('id', conversationId);
 
+      // Send webhook notification for agent messages
+      if (senderType === 'agent') {
+        try {
+          // Fetch conversation data for webhook
+          const { data: conversationData } = await supabase
+            .from('conversations')
+            .select('agent_id, contact_name, contact_phone, user_id')
+            .eq('id', conversationId)
+            .single();
+
+          if (conversationData) {
+            const webhookPayload = {
+              mensagem: content,
+              agente_id: conversationData.agent_id || null,
+              nome_do_lead: conversationData.contact_name || conversationData.contact_phone || "",
+              user_id: conversationData.user_id || null
+            };
+
+            // Send webhook (fire-and-forget, don't await)
+            fetch("https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/apliachatinterno", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(webhookPayload),
+              mode: "no-cors"
+            }).catch(error => {
+              console.error('Webhook error:', error);
+            });
+          }
+        } catch (webhookError) {
+          console.error('Error preparing webhook data:', webhookError);
+        }
+      }
+
       setMessages(prev => [...prev, data as Message]);
       return data;
     } catch (error) {
