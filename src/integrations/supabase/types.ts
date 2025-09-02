@@ -159,30 +159,6 @@ export type Database = {
           },
         ]
       }
-      chats: {
-        Row: {
-          created_at: string
-          day_counter: string | null
-          id: number
-          phone: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          day_counter?: string | null
-          id?: number
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          day_counter?: string | null
-          id?: number
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       clientes: {
         Row: {
           asaas_card_token: string | null
@@ -380,7 +356,7 @@ export type Database = {
             foreignKeyName: "conversations_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "professional_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -391,30 +367,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      dados_cliente: {
-        Row: {
-          atendimento_ia: string | null
-          created_at: string
-          id: number
-          nomewpp: string | null
-          telefone: string | null
-        }
-        Insert: {
-          atendimento_ia?: string | null
-          created_at?: string
-          id?: number
-          nomewpp?: string | null
-          telefone?: string | null
-        }
-        Update: {
-          atendimento_ia?: string | null
-          created_at?: string
-          id?: number
-          nomewpp?: string | null
-          telefone?: string | null
-        }
-        Relationships: []
       }
       google_credentials: {
         Row: {
@@ -725,57 +677,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
-        Row: {
-          appointment_response: string | null
-          created_at: string | null
-          description: string | null
-          emergency_response: string | null
-          escalation_criteria: string | null
-          followup_response: string | null
-          id: string
-          instance_ids: string[] | null
-          medical_advice_policy: string | null
-          name: string
-          personal_info_policy: string | null
-          specialty: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          appointment_response?: string | null
-          created_at?: string | null
-          description?: string | null
-          emergency_response?: string | null
-          escalation_criteria?: string | null
-          followup_response?: string | null
-          id?: string
-          instance_ids?: string[] | null
-          medical_advice_policy?: string | null
-          name: string
-          personal_info_policy?: string | null
-          specialty?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          appointment_response?: string | null
-          created_at?: string | null
-          description?: string | null
-          emergency_response?: string | null
-          escalation_criteria?: string | null
-          followup_response?: string | null
-          id?: string
-          instance_ids?: string[] | null
-          medical_advice_policy?: string | null
-          name?: string
-          personal_info_policy?: string | null
-          specialty?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       prompts: {
         Row: {
           created_at: string | null
@@ -987,14 +888,7 @@ export type Database = {
       }
       get_dashboard_stats: {
         Args: { user_id_param: string }
-        Returns: {
-          active_conversations: number
-          total_appointments: number
-          total_conversations: number
-          total_instances: number
-          total_messages: number
-          total_profiles: number
-        }[]
+        Returns: Json
       }
       get_real_user_usage_summary: {
         Args: { p_user_id?: string }
