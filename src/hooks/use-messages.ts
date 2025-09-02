@@ -101,6 +101,46 @@ export const useMessages = () => {
     }
   };
 
+  // Set up Realtime subscription for messages
+  useEffect(() => {
+    let channel: any = null;
+
+    if (messages.length > 0) {
+      const conversationId = messages[0]?.conversation_id;
+      if (conversationId) {
+        channel = supabase
+          .channel(`messages-${conversationId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'messages',
+              filter: `conversation_id=eq.${conversationId}`
+            },
+            (payload) => {
+              console.log('New message received:', payload);
+              const newMessage = payload.new as Message;
+              setMessages(prev => {
+                // Check if message already exists to avoid duplicates
+                if (prev.some(msg => msg.id === newMessage.id)) {
+                  return prev;
+                }
+                return [...prev, newMessage];
+              });
+            }
+          )
+          .subscribe();
+      }
+    }
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [messages.length > 0 ? messages[0]?.conversation_id : null]);
+
   return {
     messages,
     loading,

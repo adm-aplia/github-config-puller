@@ -293,6 +293,47 @@ export const useConversations = () => {
 
   useEffect(() => {
     fetchConversations();
+
+    // Set up Realtime subscription for conversations
+    const conversationsChannel = supabase
+      .channel('conversations-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations'
+        },
+        (payload) => {
+          console.log('Conversation change detected:', payload);
+          // Refetch conversations on any change
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    // Set up Realtime subscription for messages (to update last_message)
+    const messagesChannel = supabase
+      .channel('messages-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
+        (payload) => {
+          console.log('New message detected:', payload);
+          // Refetch conversations to update last_message and message_count
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(conversationsChannel);
+      supabase.removeChannel(messagesChannel);
+    };
   }, []);
 
   return {
