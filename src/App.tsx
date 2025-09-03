@@ -8,6 +8,7 @@ import EmailVerification from "@/components/email-verification";
 import { useEmailVerification } from "@/hooks/use-email-verification";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { SidebarProvider } from "@/hooks/use-sidebar";
+import { ThemeProvider } from "@/hooks/use-theme";
 import Index from "./pages/Index";
 import LoginPage from "./pages/Login";
 import CadastroPage from "./pages/Cadastro";
@@ -66,7 +67,9 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <AppContent />
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
