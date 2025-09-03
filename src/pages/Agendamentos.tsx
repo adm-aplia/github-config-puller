@@ -113,19 +113,15 @@ export default function AgendamentosPage() {
   const calculateStats = (appointments: Appointment[]) => {
     const realAppointments = appointments.filter(apt => apt.appointment_type !== 'blocked')
     const total = realAppointments.length
-    const scheduled = realAppointments.filter(apt => apt.status === 'scheduled').length
     const confirmed = realAppointments.filter(apt => apt.status === 'confirmed').length
-    const completed = realAppointments.filter(apt => apt.status === 'completed').length
     const cancelled = realAppointments.filter(apt => apt.status === 'cancelled').length
     const rescheduled = realAppointments.filter(apt => apt.status === 'rescheduled').length
 
     return [
       { title: "Total de Agendamentos", value: total.toString(), icon: CalendarIcon, color: "default" },
-      { title: "Agendados", value: scheduled.toString(), percentage: total > 0 ? `${Math.round((scheduled/total)*100)}%` : "0%", icon: Clock, color: "secondary" },
       { title: "Confirmados", value: confirmed.toString(), percentage: total > 0 ? `${Math.round((confirmed/total)*100)}%` : "0%", icon: CheckCircle, color: "default" },
-      { title: "Concluídos", value: completed.toString(), percentage: total > 0 ? `${Math.round((completed/total)*100)}%` : "0%", icon: CheckCircle, color: "default" },
-      { title: "Cancelados", value: cancelled.toString(), percentage: total > 0 ? `${Math.round((cancelled/total)*100)}%` : "0%", icon: XCircle, color: "destructive" },
       { title: "Remarcados", value: rescheduled.toString(), percentage: total > 0 ? `${Math.round((rescheduled/total)*100)}%` : "0%", icon: RotateCcw, color: "default" },
+      { title: "Cancelados", value: cancelled.toString(), percentage: total > 0 ? `${Math.round((cancelled/total)*100)}%` : "0%", icon: XCircle, color: "destructive" },
     ]
   }
 

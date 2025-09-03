@@ -886,6 +886,10 @@ export type Database = {
         Args: { p_user_id?: string }
         Returns: undefined
       }
+      get_appointment_status_counts: {
+        Args: { p_from: string; p_professional_id?: string; p_to: string }
+        Returns: Json
+      }
       get_dashboard_stats: {
         Args: { user_id_param: string }
         Returns: Json
