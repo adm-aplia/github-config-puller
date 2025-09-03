@@ -22,6 +22,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Preload logos for instant theme switching -->
+    <link rel="preload" href="/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png" as="image" type="image/png">
+    <link rel="preload" href="/lovable-uploads/e9a17318-593a-428d-b166-e4f8be819529.png" as="image" type="image/png">
+    <link rel="preload" href="/lovable-uploads/940f8f03-f853-4fdf-ab6f-2a3b5c24ae05.png" as="image" type="image/png">
+    
+    <!-- Theme initialization script to prevent flicker -->
+    <script>
+      (function() {
+        const stored = localStorage.getItem('theme');
+        if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
   </head>
 
   <body>

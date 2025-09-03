@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useLayoutEffect } from "react"
 
 export function useTheme() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -10,7 +10,7 @@ export function useTheme() {
     return 'light'
   })
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     localStorage.setItem('theme', theme)
     document.documentElement.classList.toggle('dark', theme === 'dark')
   }, [theme])

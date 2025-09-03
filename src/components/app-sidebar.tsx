@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react"
+import { useTheme } from "@/hooks/use-theme"
 const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
 const apliaLogoIcon = "/lovable-uploads/940f8f03-f853-4fdf-ab6f-2a3b5c24ae05.png"
 // Logo para modo escuro (assumindo que é a mesma imagem mas com tratamento CSS)
@@ -60,29 +61,12 @@ export function AppSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const currentPath = location.pathname
-  const [isDark, setIsDark] = useState(false)
+  const { theme } = useTheme()
   const [userEmail, setUserEmail] = useState<string>('')
   const [userName, setUserName] = useState<string>('')
   const { toast } = useToast()
   const { subscription } = useSubscription()
 
-  useEffect(() => {
-    // Detectar tema atual
-    const checkTheme = () => {
-      setIsDark(document.documentElement.classList.contains('dark'))
-    }
-    
-    checkTheme()
-    
-    // Observer para mudanças de tema
-    const observer = new MutationObserver(checkTheme)
-    observer.observe(document.documentElement, { 
-      attributes: true, 
-      attributeFilter: ['class'] 
-    })
-    
-    return () => observer.disconnect()
-  }, [])
 
   useEffect(() => {
     // Buscar dados do usuário e do perfil
@@ -160,15 +144,19 @@ export function AppSidebar() {
             <div className="flex items-center gap-1">
               {state !== "collapsed" ? (
                 <img 
-                  src={isDark ? apliaLogoFullDark : apliaLogoFull} 
+                  src={theme === 'dark' ? apliaLogoFullDark : apliaLogoFull} 
                   alt="Aplia" 
                   className="h-8 w-auto"
+                  decoding="async"
+                  loading="eager"
                 />
               ) : (
                 <img 
-                  src={isDark ? apliaLogoIconDark : apliaLogoIcon} 
+                  src={theme === 'dark' ? apliaLogoIconDark : apliaLogoIcon} 
                   alt="Aplia" 
                   className="h-8 w-8"
+                  decoding="async"
+                  loading="eager"
                 />
               )}
             </div>
