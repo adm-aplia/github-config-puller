@@ -320,6 +320,7 @@ export type Database = {
       conversations: {
         Row: {
           agent_id: string | null
+          contact_avatar_url: string | null
           contact_name: string | null
           contact_phone: string
           created_at: string | null
@@ -331,6 +332,7 @@ export type Database = {
         }
         Insert: {
           agent_id?: string | null
+          contact_avatar_url?: string | null
           contact_name?: string | null
           contact_phone: string
           created_at?: string | null
@@ -342,6 +344,7 @@ export type Database = {
         }
         Update: {
           agent_id?: string | null
+          contact_avatar_url?: string | null
           contact_name?: string | null
           contact_phone?: string
           created_at?: string | null

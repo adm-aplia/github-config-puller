@@ -8,6 +8,7 @@ export interface Conversation {
   user_id: string;
   contact_phone: string;
   contact_name?: string;
+  contact_avatar_url?: string;
   agent_id?: string;
   instance_id?: string;
   last_message_at?: string;
@@ -132,6 +133,7 @@ export const useConversations = () => {
           user_id: userData.user.id,
           contact_phone: conversationData.contact_phone || '',
           contact_name: conversationData.contact_name,
+          contact_avatar_url: conversationData.contact_avatar_url,
           agent_id: conversationData.agent_id,
           instance_id: conversationData.instance_id,
           last_message_at: new Date().toISOString()

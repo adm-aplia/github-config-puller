@@ -29,6 +29,7 @@ export function ConversationEditModal({
   const [formData, setFormData] = useState({
     contact_name: "",
     contact_phone: "",
+    contact_avatar_url: "",
     agent_id: ""
   })
   
@@ -42,6 +43,7 @@ export function ConversationEditModal({
       setFormData({
         contact_name: conversation.contact_name || "",
         contact_phone: conversation.contact_phone || "",
+        contact_avatar_url: conversation.contact_avatar_url || "",
         agent_id: conversation.agent_id || "none"
       })
     }
@@ -55,6 +57,7 @@ export function ConversationEditModal({
       const updateData: Partial<Conversation> = {
         contact_name: formData.contact_name.trim() || null,
         contact_phone: formData.contact_phone.trim(),
+        contact_avatar_url: formData.contact_avatar_url.trim() || null,
         agent_id: formData.agent_id === "none" ? null : formData.agent_id || null
       }
 
@@ -106,6 +109,17 @@ export function ConversationEditModal({
               onChange={(e) => setFormData(prev => ({ ...prev, contact_phone: e.target.value }))}
               placeholder="Digite o telefone"
               required
+            />
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="contact-avatar">URL da Foto</Label>
+            <Input
+              id="contact-avatar"
+              value={formData.contact_avatar_url}
+              onChange={(e) => setFormData(prev => ({ ...prev, contact_avatar_url: e.target.value }))}
+              placeholder="https://exemplo.com/foto.jpg"
+              type="url"
             />
           </div>
           

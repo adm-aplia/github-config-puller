@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Send, ArrowLeft, Phone, MoreVertical, Edit, Trash2 } from "lucide-react"
 import { useMessages } from "@/hooks/use-messages"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -14,12 +14,13 @@ interface ChatPanelProps {
   contactPhone: string
   lastActivity?: string
   conversationCreatedAt?: string
+  conversation: any
   onBack?: () => void
   onEdit?: () => void
   onDelete?: () => void
 }
 
-export function ChatPanel({ conversationId, contactName, contactPhone, lastActivity, conversationCreatedAt, onBack, onEdit, onDelete }: ChatPanelProps) {
+export function ChatPanel({ conversationId, contactName, contactPhone, lastActivity, conversationCreatedAt, conversation, onBack, onEdit, onDelete }: ChatPanelProps) {
   const { messages, loading, fetchMessages, sendMessage } = useMessages()
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
@@ -118,6 +119,9 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
         )}
         
         <Avatar className="h-10 w-10">
+          {conversation?.contact_avatar_url && (
+            <AvatarImage src={conversation.contact_avatar_url} alt={contactName} />
+          )}
           <AvatarFallback className="bg-primary text-primary-foreground">
             {contactName.charAt(0).toUpperCase()}
           </AvatarFallback>

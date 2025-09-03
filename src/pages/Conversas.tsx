@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Filter, MessageSquare, Clock, Bot, MoreVertical, Edit, Trash2, Check, X } from "lucide-react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useConversations, Conversation } from "@/hooks/use-conversations"
@@ -387,6 +387,9 @@ export default function ConversasPage() {
                             )}
                             
                             <Avatar className="h-12 w-12 flex-shrink-0">
+                              {conversation.contact_avatar_url && (
+                                <AvatarImage src={conversation.contact_avatar_url} alt={conversation.contact_name || conversation.contact_phone} />
+                              )}
                               <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                                 {(conversation.contact_name || conversation.contact_phone).charAt(0).toUpperCase()}
                               </AvatarFallback>
@@ -482,6 +485,7 @@ export default function ConversasPage() {
                       contactPhone={selectedConversationData.contact_phone}
                       lastActivity={selectedConversationData.last_message_at}
                       conversationCreatedAt={selectedConversationData.created_at}
+                      conversation={selectedConversationData}
                       onBack={handleBack}
                       onEdit={() => {
                         setConversationBeingEdited(selectedConversationData);
@@ -501,6 +505,7 @@ export default function ConversasPage() {
                       contactPhone={selectedConversationData.contact_phone}
                       lastActivity={selectedConversationData.last_message_at}
                       conversationCreatedAt={selectedConversationData.created_at}
+                      conversation={selectedConversationData}
                       onBack={handleBack}
                       onEdit={() => {
                         setConversationBeingEdited(selectedConversationData);

@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useMessages, Message } from "@/hooks/use-messages";
 import { useEffect, useState } from "react";
 import { Send, ArrowLeft, Phone, MoreVertical, X } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ChatModalProps {
@@ -17,9 +17,10 @@ interface ChatModalProps {
   contactPhone: string;
   lastActivity?: string;
   conversationCreatedAt?: string;
+  conversation: any;
 }
 
-export const ChatModal = ({ isOpen, onClose, conversationId, contactName, contactPhone, lastActivity, conversationCreatedAt }: ChatModalProps) => {
+export const ChatModal = ({ isOpen, onClose, conversationId, contactName, contactPhone, lastActivity, conversationCreatedAt, conversation }: ChatModalProps) => {
   const { messages, loading, fetchMessages, sendMessage } = useMessages();
   const [newMessage, setNewMessage] = useState("");
 
@@ -86,6 +87,9 @@ export const ChatModal = ({ isOpen, onClose, conversationId, contactName, contac
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <Avatar className="h-10 w-10">
+              {conversation?.contact_avatar_url && (
+                <AvatarImage src={conversation.contact_avatar_url} alt={contactName} />
+              )}
               <AvatarFallback className="bg-primary text-primary-foreground">
                 {getInitials(contactName)}
               </AvatarFallback>
