@@ -676,21 +676,21 @@ export default function AgendamentosPage() {
               </div>
             </div>
 
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
               {stats.map((stat, index) => (
-                <Card key={index}>
+                <Card key={index} className="border-border/50">
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
-                        <span className="text-sm text-muted-foreground">{stat.title}</span>
-                        <span className="text-xl font-bold">{stat.value}</span>
+                        <span className="text-xs text-muted-foreground truncate">{stat.title}</span>
+                        <span className="text-lg font-bold">{stat.value}</span>
                         {stat.percentage && (
-                          <Badge variant={stat.color as any} className="w-fit mt-1 text-xs">
+                          <Badge variant={stat.color as any} className="w-fit mt-1 text-xs px-1 py-0 h-4">
                             {stat.percentage}
                           </Badge>
                         )}
                       </div>
-                      <stat.icon className="h-5 w-5 text-muted-foreground" />
+                      <stat.icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </div>
                   </CardContent>
                 </Card>
