@@ -12,12 +12,14 @@ interface ChatPanelProps {
   conversationId: string
   contactName: string
   contactPhone: string
+  lastActivity?: string
+  conversationCreatedAt?: string
   onBack?: () => void
   onEdit?: () => void
   onDelete?: () => void
 }
 
-export function ChatPanel({ conversationId, contactName, contactPhone, onBack, onEdit, onDelete }: ChatPanelProps) {
+export function ChatPanel({ conversationId, contactName, contactPhone, lastActivity, conversationCreatedAt, onBack, onEdit, onDelete }: ChatPanelProps) {
   const { messages, loading, fetchMessages, sendMessage } = useMessages()
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
@@ -87,6 +89,24 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
     })
   }
 
+  const formatConversationTimestamp = (dateString?: string) => {
+    if (!dateString) return ''
+    
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (diffInDays === 0) {
+      return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    } else if (diffInDays === 1) {
+      return 'ontem'
+    } else if (diffInDays < 7) {
+      return `${diffInDays} dias atrás`
+    } else {
+      return date.toLocaleDateString('pt-BR')
+    }
+  }
+
   return (
     <div className="flex flex-col h-full min-h-0 bg-background">
       {/* Header */}
@@ -104,7 +124,14 @@ export function ChatPanel({ conversationId, contactName, contactPhone, onBack, o
         </Avatar>
         
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold truncate">{contactName}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold truncate">{contactName}</h3>
+            {(lastActivity || conversationCreatedAt) && (
+              <span className="text-xs text-muted-foreground flex-shrink-0">
+                • {formatConversationTimestamp(lastActivity || conversationCreatedAt)}
+              </span>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">{contactPhone}</p>
         </div>
         

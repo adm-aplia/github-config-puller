@@ -393,12 +393,12 @@ export default function ConversasPage() {
                             </Avatar>
                             
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2 mb-1">
                                 <h3 className="font-medium text-sm truncate">
                                   {conversation.contact_name || conversation.contact_phone}
                                 </h3>
-                                <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
-                                  {conversation.last_message_at ? formatTimestamp(conversation.last_message_at) : 'N/A'}
+                                <span className="text-xs text-muted-foreground flex-shrink-0">
+                                  • {conversation.last_message_at ? formatTimestamp(conversation.last_message_at) : formatTimestamp(conversation.created_at)}
                                 </span>
                               </div>
                               
@@ -480,6 +480,8 @@ export default function ConversasPage() {
                       conversationId={selectedConversationId}
                       contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
                       contactPhone={selectedConversationData.contact_phone}
+                      lastActivity={selectedConversationData.last_message_at}
+                      conversationCreatedAt={selectedConversationData.created_at}
                       onBack={handleBack}
                       onEdit={() => {
                         setConversationBeingEdited(selectedConversationData);
@@ -497,6 +499,8 @@ export default function ConversasPage() {
                       conversationId={selectedConversationId!}
                       contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
                       contactPhone={selectedConversationData.contact_phone}
+                      lastActivity={selectedConversationData.last_message_at}
+                      conversationCreatedAt={selectedConversationData.created_at}
                       onBack={handleBack}
                       onEdit={() => {
                         setConversationBeingEdited(selectedConversationData);
