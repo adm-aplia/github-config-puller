@@ -16,12 +16,16 @@ export type Database = {
     Tables: {
       appointments: {
         Row: {
+          all_day: boolean | null
           appointment_date: string
           appointment_type: string | null
           conversation_id: string | null
           created_at: string | null
           duration_minutes: number | null
+          google_calendar_id: string | null
           google_event_id: string | null
+          google_original_start_time: string | null
+          google_recurring_event_id: string | null
           id: string
           notes: string | null
           patient_email: string | null
@@ -29,16 +33,21 @@ export type Database = {
           patient_phone: string
           professional_profile_id: string | null
           status: string | null
+          timezone: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          all_day?: boolean | null
           appointment_date: string
           appointment_type?: string | null
           conversation_id?: string | null
           created_at?: string | null
           duration_minutes?: number | null
+          google_calendar_id?: string | null
           google_event_id?: string | null
+          google_original_start_time?: string | null
+          google_recurring_event_id?: string | null
           id?: string
           notes?: string | null
           patient_email?: string | null
@@ -46,16 +55,21 @@ export type Database = {
           patient_phone: string
           professional_profile_id?: string | null
           status?: string | null
+          timezone?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          all_day?: boolean | null
           appointment_date?: string
           appointment_type?: string | null
           conversation_id?: string | null
           created_at?: string | null
           duration_minutes?: number | null
+          google_calendar_id?: string | null
           google_event_id?: string | null
+          google_original_start_time?: string | null
+          google_recurring_event_id?: string | null
           id?: string
           notes?: string | null
           patient_email?: string | null
@@ -63,6 +77,7 @@ export type Database = {
           patient_phone?: string
           professional_profile_id?: string | null
           status?: string | null
+          timezone?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -370,6 +385,93 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      google_calendar_events: {
+        Row: {
+          all_day: boolean
+          attendees: Json
+          created_at: string
+          description: string | null
+          end_time: string
+          etag: string | null
+          event_type: string | null
+          google_calendar_id: string
+          google_event_id: string
+          ical_uid: string | null
+          id: string
+          is_recurring_instance: boolean
+          location: string | null
+          original_start_time: string | null
+          professional_profile_id: string | null
+          recurrence: string[] | null
+          recurring_event_id: string | null
+          reminders: Json
+          rrule: string | null
+          sequence: number
+          start_time: string
+          status: string
+          summary: string | null
+          timezone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          all_day?: boolean
+          attendees?: Json
+          created_at?: string
+          description?: string | null
+          end_time: string
+          etag?: string | null
+          event_type?: string | null
+          google_calendar_id: string
+          google_event_id: string
+          ical_uid?: string | null
+          id?: string
+          is_recurring_instance?: boolean
+          location?: string | null
+          original_start_time?: string | null
+          professional_profile_id?: string | null
+          recurrence?: string[] | null
+          recurring_event_id?: string | null
+          reminders?: Json
+          rrule?: string | null
+          sequence?: number
+          start_time: string
+          status?: string
+          summary?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          all_day?: boolean
+          attendees?: Json
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          etag?: string | null
+          event_type?: string | null
+          google_calendar_id?: string
+          google_event_id?: string
+          ical_uid?: string | null
+          id?: string
+          is_recurring_instance?: boolean
+          location?: string | null
+          original_start_time?: string | null
+          professional_profile_id?: string | null
+          recurrence?: string[] | null
+          recurring_event_id?: string | null
+          reminders?: Json
+          rrule?: string | null
+          sequence?: number
+          start_time?: string
+          status?: string
+          summary?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       google_credentials: {
         Row: {

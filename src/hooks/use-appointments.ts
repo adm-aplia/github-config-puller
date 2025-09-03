@@ -16,6 +16,11 @@ export interface Appointment {
   professional_profile_id?: string;
   conversation_id?: string;
   google_event_id?: string;
+  google_calendar_id?: string;
+  google_recurring_event_id?: string;
+  google_original_start_time?: string;
+  timezone?: string;
+  all_day?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -25,12 +30,23 @@ type GCalEvent = {
   summary?: string;
   description?: string;
   status?: string;
-  start?: string | { dateTime?: string; date?: string };
-  end?: string | { dateTime?: string; date?: string };
+  start?: string | { dateTime?: string; date?: string; timeZone?: string };
+  end?: string | { dateTime?: string; date?: string; timeZone?: string };
   location?: string;
   attendees?: Array<{ email?: string; responseStatus?: string }>;
   organizer?: string;
   htmlLink?: string;
+  recurrence?: string[];
+  recurringEventId?: string;
+  originalStartTime?: { dateTime?: string; date?: string; timeZone?: string };
+  sequence?: number;
+  iCalUID?: string;
+  etag?: string;
+  reminders?: {
+    useDefault?: boolean;
+    overrides?: Array<{ method?: string; minutes?: number }>;
+  };
+  eventType?: string;
 };
 
 function parseGoogleDate(dateInput?: string | { dateTime?: string; date?: string }): string | null {
@@ -117,7 +133,9 @@ export const useAppointments = () => {
 
       // Extract professionalProfileId from the webhook response
       const professionalProfileId = payload?.professionalProfileId || professionalId;
+      const googleCalendarId = payload?.googleCalendarId || 'primary';
       console.debug('[google-events] using professionalProfileId:', professionalProfileId);
+      console.debug('[google-events] using googleCalendarId:', googleCalendarId);
 
       // Handle multiple payload formats from N8N webhook
       const eventsData = payload?.response ? JSON.parse(payload.response) : payload;
@@ -130,128 +148,162 @@ export const useAppointments = () => {
         throw new Error('No events provided');
       }
 
+      // Process master events (with recurrence) first
+      const masterEvents = events.filter(event => event.recurrence && !event.recurringEventId);
+      const instanceEvents = events.filter(event => event.recurringEventId);
+      const singleEvents = events.filter(event => !event.recurrence && !event.recurringEventId);
+
+      let processedCount = 0;
+
+      // 1. Store master events in google_calendar_events
+      for (const event of masterEvents) {
+        if (!event.id) continue;
+
+        const startTime = parseGoogleDate(event.start);
+        const endTime = parseGoogleDate(event.end);
+        
+        if (!startTime || !endTime) continue;
+
+        const isAllDay = Boolean(typeof event.start === 'object' && 'date' in event.start);
+        const rrule = event.recurrence?.find(r => r.startsWith('RRULE:'))?.replace('RRULE:', '') || null;
+
+        const timezone = (typeof event.start === 'object' && event.start && 'timeZone' in event.start) 
+          ? event.start.timeZone || 'America/Sao_Paulo' 
+          : 'America/Sao_Paulo';
+
+        const masterEventData = {
+          user_id: userData.user.id,
+          professional_profile_id: professionalProfileId || null,
+          google_calendar_id: googleCalendarId,
+          google_event_id: event.id,
+          etag: event.etag || null,
+          ical_uid: event.iCalUID || null,
+          summary: event.summary || null,
+          description: event.description || null,
+          location: event.location || null,
+          start_time: startTime,
+          end_time: endTime,
+          timezone: timezone,
+          all_day: isAllDay,
+          recurrence: event.recurrence || [],
+          rrule: rrule,
+          is_recurring_instance: false,
+          status: event.status || 'confirmed',
+          attendees: event.attendees || [],
+          reminders: event.reminders || {},
+          sequence: event.sequence || 0,
+          event_type: event.eventType || null,
+        };
+
+        // Upsert master event
+        const { error: masterError } = await supabase
+          .from('google_calendar_events')
+          .upsert(masterEventData, {
+            onConflict: 'user_id,google_calendar_id,google_event_id',
+            ignoreDuplicates: false,
+          });
+
+        if (masterError) {
+          console.error('Error upserting master event:', masterError);
+          continue;
+        }
+
+        processedCount++;
+      }
+
+      // 2. Process instances and single events for appointments
+      const appointmentEvents = [...instanceEvents, ...singleEvents];
+      
       // Get existing Google event IDs to check for duplicates
-      const eventIds = events.filter(event => event?.id).map(event => event.id);
+      const eventIds = appointmentEvents.filter(event => event?.id).map(event => event.id);
       const { data: existingAppointments } = await supabase
         .from('appointments')
-        .select('google_event_id')
-        .in('google_event_id', eventIds)
+        .select('google_event_id, google_calendar_id')
         .eq('user_id', userData.user.id);
 
-      const existingEventIds = new Set(existingAppointments?.map(apt => apt.google_event_id) || []);
+      const existingEventMap = new Set(
+        existingAppointments?.map(apt => `${apt.google_calendar_id}-${apt.google_event_id}`) || []
+      );
 
-      const eventsToSend = events
-        .filter(event => event?.id) // Only process events with valid IDs
-        .filter(event => !existingEventIds.has(event.id)) // Skip existing events
+      const appointmentsToCreate = appointmentEvents
+        .filter(event => event?.id)
+        .filter(event => !existingEventMap.has(`${googleCalendarId}-${event.id}`))
         .map(event => {
-          console.debug('[mapping-event] Processing event:', event);
-          
           const startDate = parseGoogleDate(event.start);
           const endDate = parseGoogleDate(event.end);
           
-          console.debug('[mapping-event] Parsed dates:', { startDate, endDate });
+          if (!startDate) return null;
           
-          // Validar se a data de início é válida (obrigatória)
-          if (!startDate) {
-            console.error('[mapping-event] Missing or invalid start date for event:', event.id);
-            return null; // Será filtrado depois
-          }
-          
-          // Calculate duration from start/end times
-          let durationMinutes = 60; // default
-          if (startDate && endDate) {
-            const diffMs = new Date(endDate).getTime() - new Date(startDate).getTime();
-            durationMinutes = Math.round(diffMs / (1000 * 60));
-          }
+          const durationMinutes = startDate && endDate 
+            ? Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60))
+            : 60;
 
-          // Format date as required: "YYYY-MM-DD HH:mm:ss+00"
-          const date = new Date(startDate);
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          const hour = String(date.getHours()).padStart(2, '0');
-          const minute = String(date.getMinutes()).padStart(2, '0');
-          const formattedDate = `${year}-${month}-${day} ${hour}:${minute}:00+00`;
+          const isAllDay = Boolean(typeof event.start === 'object' && event.start && 'date' in event.start);
+          const timezone = (typeof event.start === 'object' && event.start && 'timeZone' in event.start) 
+            ? event.start.timeZone || 'America/Sao_Paulo' 
+            : 'America/Sao_Paulo';
 
-          const queryObj = {
-            action: "create",
+          return {
             user_id: userData.user.id,
-            agent_id: professionalProfileId || null,
-            patient_name: event.summary || 'Sem título',
-            patient_phone: "", // Google Calendar doesn't provide phone
-            patient_email: event.attendees?.[0]?.email || "",
-            appointment_date: formattedDate,
+            professional_profile_id: professionalProfileId || null,
+            patient_name: event.summary || 'Evento Google Calendar',
+            patient_phone: '', // Google Calendar doesn't provide phone
+            patient_email: event.attendees?.[0]?.email || '',
+            appointment_date: startDate,
+            duration_minutes: durationMinutes,
+            appointment_type: 'blocked', // Mark as blocked so it doesn't count in limits
             status: event.status === 'cancelled' ? 'cancelled' : 'confirmed',
-            summary: event.summary || 'Evento Google Calendar',
             notes: [
               event.description,
               event.location ? `Local: ${event.location}` : null,
-              `Duração: ${durationMinutes} minutos`,
-              `Google Event ID: ${event.id}`
+              `Evento do Google Calendar`,
+              `ID: ${event.id}`
             ].filter(Boolean).join('\n'),
-            google_event_id: event.id
+            google_event_id: event.id,
+            google_calendar_id: googleCalendarId,
+            google_recurring_event_id: event.recurringEventId || null,
+            google_original_start_time: event.originalStartTime ? parseGoogleDate(event.originalStartTime) : null,
+            timezone: timezone,
+            all_day: isAllDay,
           };
-          
-          console.debug('[mapping-event] Created queryObj:', queryObj);
-          return queryObj;
         })
-        .filter(Boolean); // Remove eventos com erro de parsing
+        .filter(Boolean);
 
-      const totalEvents = events.length;
-      const skippedEvents = totalEvents - eventsToSend.length;
+      if (appointmentsToCreate.length > 0) {
+        const { error: appointmentsError } = await supabase
+          .from('appointments')
+          .upsert(appointmentsToCreate, {
+            onConflict: 'user_id,google_calendar_id,google_event_id',
+            ignoreDuplicates: false,
+          });
 
-      if (eventsToSend.length === 0) {
-        toast({
-          title: 'Nenhum evento novo',
-          description: `${skippedEvents} evento(s) já existem no sistema.`,
-        });
-        return 0;
-      }
-
-      console.log('Events to send via webhook:', eventsToSend);
-
-      // Send each event via webhook individually
-      let successCount = 0;
-      let errorCount = 0;
-
-      for (let i = 0; i < eventsToSend.length; i++) {
-        try {
-          await sendAppointmentToWebhook(eventsToSend[i]);
-          successCount++;
-          console.log(`Successfully sent event ${i + 1}/${eventsToSend.length}`);
-        } catch (error) {
-          console.error(`Error sending event ${i + 1}:`, error);
-          errorCount++;
+        if (appointmentsError) {
+          console.error('Error creating appointments:', appointmentsError);
+        } else {
+          processedCount += appointmentsToCreate.length;
         }
       }
 
-      // Wait for backend processing, then refresh
+      // Refresh appointments
       setTimeout(() => {
         fetchAppointments();
-      }, 1500);
+      }, 1000);
+
+      const skippedEvents = events.length - processedCount;
       
-      // Show success message with details
-      if (successCount > 0) {
-        if (skippedEvents > 0) {
-          toast({
-            title: 'Eventos importados',
-            description: `${successCount} eventos enviados. ${skippedEvents} já existiam. ${errorCount > 0 ? `${errorCount} erro(s).` : ''}`,
-          });
-        } else {
-          toast({
-            title: 'Eventos importados',
-            description: `${successCount} evento(s) enviados para processamento.${errorCount > 0 ? ` ${errorCount} erro(s).` : ''}`,
-          });
-        }
+      if (processedCount > 0) {
+        toast({
+          title: 'Eventos sincronizados',
+          description: `${processedCount} evento(s) processados. ${skippedEvents > 0 ? `${skippedEvents} já existiam.` : ''}`,
+        });
       } else {
         toast({
-          title: 'Erro ao importar eventos',
-          description: 'Não foi possível enviar nenhum evento.',
-          variant: 'destructive',
+          title: 'Nenhum evento novo',
+          description: 'Todos os eventos já existem no sistema.',
         });
       }
       
-      return successCount;
+      return processedCount;
     } catch (error) {
       console.error('Error creating appointments from Google events:', error);
       toast({
