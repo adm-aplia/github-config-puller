@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { normalizePhoneNumber } from '@/lib/whatsapp';
 
 export interface Message {
   id: string;
@@ -76,6 +77,7 @@ export const useMessages = () => {
               mensagem: content,
               agente_id: conversationData.agent_id || null,
               nome_do_lead: conversationData.contact_name || conversationData.contact_phone || "",
+              numero_do_lead: normalizePhoneNumber(conversationData.contact_phone || ""),
               user_id: conversationData.user_id || null
             };
 
