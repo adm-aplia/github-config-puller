@@ -106,13 +106,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signInWithGoogle = async () => {
     setIsLoading(true)
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/dashboard`,
+          skipBrowserRedirect: true,
+          queryParams: {
+            prompt: 'consent',
+            access_type: 'offline'
+          }
         }
       })
-      return { error }
+      
+      if (error) return { error }
+      
+      if (data.url) {
+        // Tentar abrir em pop-up centralizado
+        const popup = window.open(
+          data.url,
+          'google-signin',
+          'width=500,height=600,left=' + 
+          (window.screen.width / 2 - 250) + 
+          ',top=' + 
+          (window.screen.height / 2 - 300)
+        )
+        
+        // Fallback se pop-up for bloqueado
+        if (!popup) {
+          window.location.href = data.url
+        }
+      }
+      
+      return { error: null }
     } finally {
       setIsLoading(false)
     }
