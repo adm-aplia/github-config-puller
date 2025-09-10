@@ -257,32 +257,57 @@ export default function AgendamentosPage() {
            (apt.patient_name && apt.patient_name.toLowerCase().includes('bloqueado'))
   }
 
-  // Appointments for calendar view - only apply professional filter, not period filter
-  const appointmentsForCalendar = () => {
-    let filtered = [...appointments]
+  // Helper function to apply appointment filters (excluding period filters)
+  const applyAppointmentFilters = (appointmentList: Appointment[]) => {
+    let filtered = [...appointmentList]
 
     // Apply professional filter from professional selector
     if (selectedProfessional !== "all") {
       filtered = filtered.filter(apt => 
         apt.professional_profile_id === selectedProfessional
+      )
+    }
+
+    // Apply modal filters (but not period filter)
+    if (filters.status.length > 0) {
+      filtered = filtered.filter(apt => filters.status.includes(apt.status))
+    }
+
+    if (filters.professionalIds.length > 0) {
+      filtered = filtered.filter(apt => 
+        apt.professional_profile_id && filters.professionalIds.includes(apt.professional_profile_id)
+      )
+    }
+
+    if (filters.dateFrom) {
+      filtered = filtered.filter(apt => 
+        new Date(apt.appointment_date) >= filters.dateFrom!
+      )
+    }
+
+    if (filters.dateTo) {
+      filtered = filtered.filter(apt => 
+        new Date(apt.appointment_date) <= filters.dateTo!
+      )
+    }
+
+    if (filters.appointmentType !== "all") {
+      filtered = filtered.filter(apt => 
+        apt.appointment_type === filters.appointmentType
       )
     }
 
     return filtered
   }
 
-  // Appointments for day view - shows ALL non-blocked appointments for selected day regardless of period filters
+  // Appointments for calendar view - apply all filters except period filter
+  const appointmentsForCalendar = () => {
+    return applyAppointmentFilters(appointments)
+  }
+
+  // Appointments for day view - apply all filters except period filter
   const appointmentsForDayView = () => {
-    let filtered = [...appointments]
-
-    // Apply professional filter from professional selector
-    if (selectedProfessional !== "all") {
-      filtered = filtered.filter(apt => 
-        apt.professional_profile_id === selectedProfessional
-      )
-    }
-
-    return filtered
+    return applyAppointmentFilters(appointments)
   }
 
   // Get appointments for a specific date (excluding blocked appointments) - for calendar view
