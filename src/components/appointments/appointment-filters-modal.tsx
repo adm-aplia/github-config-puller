@@ -31,11 +31,8 @@ interface AppointmentFiltersModalProps {
 
 const statusOptions = [
   { value: "confirmed", label: "Confirmado" },
-  { value: "scheduled", label: "Agendado" },
-  { value: "pending", label: "Pendente" },
-  { value: "completed", label: "Concluído" },
-  { value: "cancelled", label: "Cancelado" },
   { value: "rescheduled", label: "Remarcado" },
+  { value: "cancelled", label: "Cancelado" },
 ]
 
 const appointmentTypeOptions = [
@@ -126,6 +123,16 @@ export function AppointmentFiltersModal({
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
+                <Badge
+                  variant={localFilters.status.length === 0 ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() => setLocalFilters(prev => ({ ...prev, status: [] }))}
+                >
+                  Total
+                  {localFilters.status.length === 0 && (
+                    <X className="h-3 w-3 ml-1" />
+                  )}
+                </Badge>
                 {statusOptions.map((status) => (
                   <Badge
                     key={status.value}

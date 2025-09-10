@@ -29,7 +29,7 @@ export function AppointmentEditModal({ appointment, open, onOpenChange, onSave }
     patient_email: "",
     appointment_type: "",
     duration_minutes: 60,
-    status: "pending",
+    status: "confirmed",
     notes: ""
   })
 
@@ -45,7 +45,7 @@ export function AppointmentEditModal({ appointment, open, onOpenChange, onSave }
         patient_email: appointment.patient_email || "",
         appointment_type: appointment.appointment_type || "",
         duration_minutes: appointment.duration_minutes || 60,
-        status: appointment.status || "pending",
+        status: appointment.status || "confirmed",
         notes: appointment.notes || ""
       })
     }
@@ -184,10 +184,8 @@ export function AppointmentEditModal({ appointment, open, onOpenChange, onSave }
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="scheduled">Agendado</SelectItem>
                   <SelectItem value="confirmed">Confirmado</SelectItem>
-                  <SelectItem value="completed">Concluído</SelectItem>
+                  <SelectItem value="rescheduled">Remarcado</SelectItem>
                   <SelectItem value="cancelled">Cancelado</SelectItem>
                 </SelectContent>
               </Select>
