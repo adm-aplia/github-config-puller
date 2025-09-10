@@ -52,7 +52,7 @@ export function RecentConversations() {
         .eq('user_id', userData.user.id)
         .order('last_message_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
-        .limit(5)
+        .limit(4)
 
       if (conversationsError) throw conversationsError
 
