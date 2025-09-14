@@ -7,6 +7,24 @@ import { useToast } from "@/hooks/use-toast"
 import { Link } from "react-router-dom"
 import { useAuth } from "@/components/auth-provider"
 
+// Função para traduzir mensagens de erro do Supabase
+const translateAuthError = (errorMessage: string): string => {
+  const errorTranslations: Record<string, string> = {
+    "Invalid login credentials": "Credenciais de login inválidas",
+    "User not found": "Usuário não encontrado",
+    "Email not confirmed": "Email não confirmado",
+    "Invalid email": "Email inválido",
+    "Password should be at least 6 characters": "A senha deve ter pelo menos 6 caracteres",
+    "User already exists": "Usuário já existe",
+    "Invalid password": "Senha inválida",
+    "Email already exists": "Este email já está cadastrado",
+    "Network error": "Erro de conexão",
+    "Rate limit exceeded": "Muitas tentativas. Tente novamente mais tarde"
+  }
+  
+  return errorTranslations[errorMessage] || errorMessage
+}
+
 interface LoginFormProps {
   onSignIn?: (email: string, password: string) => Promise<{ error: any }>
 }
@@ -52,9 +70,10 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
       }
     } catch (error) {
       console.error("Login error:", error)
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
       toast({
         title: "Erro no login",
-        description: error instanceof Error ? error.message : "Erro desconhecido",
+        description: translateAuthError(errorMessage),
         variant: "destructive"
       })
     } finally {
@@ -72,9 +91,10 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
       }
     } catch (error) {
       console.error("Google login error:", error)
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido"
       toast({
         title: "Erro no login com Google",
-        description: error instanceof Error ? error.message : "Erro desconhecido",
+        description: translateAuthError(errorMessage),
         variant: "destructive"
       })
     } finally {
