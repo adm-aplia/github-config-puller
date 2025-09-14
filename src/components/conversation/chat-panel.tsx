@@ -111,7 +111,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
   return (
     <div className="flex flex-col h-full min-h-0 bg-background">
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b bg-muted/30">
+      <div className="flex items-center gap-3 p-3 sm:p-4 border-b bg-muted/30">
         {onBack && (
           <Button variant="ghost" size="sm" onClick={onBack}>
             <ArrowLeft className="h-4 w-4" />
@@ -171,7 +171,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 min-h-0 p-4">
+      <ScrollArea className="flex-1 min-h-0 p-3 sm:p-4">
         <div className="space-y-4">
           {loading && messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
@@ -188,7 +188,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
                 className={`flex ${message.sender_type === 'agent' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[70%] p-3 rounded-2xl shadow-sm ${
+                  className={`max-w-[85%] sm:max-w-[70%] p-3 rounded-2xl shadow-sm ${
                     message.sender_type === 'agent'
                       ? 'bg-primary text-primary-foreground ml-auto'
                       : 'bg-muted'
@@ -215,7 +215,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
       </ScrollArea>
 
       {/* Message Input */}
-      <div className="p-4 border-t bg-background">
+      <div className="p-3 sm:p-4 border-t bg-background">
         <div className="flex gap-2">
           <Input
             value={newMessage}

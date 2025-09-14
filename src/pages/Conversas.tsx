@@ -288,7 +288,7 @@ export default function ConversasPage() {
           </div>
 
           {/* WhatsApp-style layout */}
-          <Card className="h-[calc(100vh-12rem)] overflow-hidden">
+          <Card className="h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)] overflow-hidden">
             <CardContent className="p-0 h-full">
               <div className="flex h-full min-h-0">
                 {/* Conversation List - Left Panel */}
@@ -296,38 +296,42 @@ export default function ConversasPage() {
                   {/* Search and Filters Header */}
                 <div className="p-4 border-b bg-background">
                   {selectionMode ? (
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" onClick={exitSelectionMode}>
-                          <X className="h-4 w-4" />
-                        </Button>
-                        <span className="text-sm font-medium">
-                          {selectedIds.size} selecionada{selectedIds.size !== 1 ? 's' : ''}
-                        </span>
+                    <div className="flex flex-col gap-3 mb-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" onClick={exitSelectionMode} className="h-8 w-8 p-0">
+                            <X className="h-4 w-4" />
+                          </Button>
+                          <span className="text-sm font-medium">
+                            {selectedIds.size} selecionada{selectedIds.size !== 1 ? 's' : ''}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <Button 
-                          variant="ghost" 
+                          variant="outline" 
                           size="sm" 
                           onClick={handleSelectAll}
+                          className="flex-1 sm:flex-none"
                         >
-                          <Check className="h-4 w-4 mr-1" />
-                          {selectedIds.size === filteredConversations.length ? 'Desmarcar' : 'Selecionar'} todas
+                          <Check className="h-4 w-4 mr-2" />
+                          {selectedIds.size === filteredConversations.length ? 'Desmarcar todas' : 'Selecionar todas'}
                         </Button>
                         <Button 
                           variant="destructive" 
                           size="sm"
                           onClick={() => setIsBulkDeleteConfirmOpen(true)}
                           disabled={selectedIds.size === 0}
+                          className="flex-1 sm:flex-none"
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Excluir selecionadas
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
                         </Button>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="relative flex-1">
+                    <div className="flex flex-col gap-3 mb-3">
+                      <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                         <Input 
                           placeholder="Buscar conversas..." 
@@ -336,20 +340,25 @@ export default function ConversasPage() {
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setFiltersModalOpen(true)}
-                      >
-                        <Filter className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setSelectionMode(true)}
-                      >
-                        Selecionar
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setFiltersModalOpen(true)}
+                          className="flex-1"
+                        >
+                          <Filter className="h-4 w-4 mr-2" />
+                          Filtros
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setSelectionMode(true)}
+                          className="flex-1"
+                        >
+                          Selecionar
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -377,11 +386,12 @@ export default function ConversasPage() {
                         >
                           <div className="flex items-start gap-3">
                             {selectionMode && (
-                              <div className="pt-2">
+                              <div className="pt-1">
                                 <Checkbox
                                   checked={selectedIds.has(conversation.id)}
                                   onCheckedChange={() => handleToggleSelection(conversation.id)}
                                   onClick={(e) => e.stopPropagation()}
+                                  className="h-5 w-5"
                                 />
                               </div>
                             )}
@@ -498,21 +508,23 @@ export default function ConversasPage() {
                 
                 {/* Mobile chat overlay */}
                 {showMobileChat && selectedConversationData && (
-                  <div className="md:hidden fixed inset-0 z-40 bg-background overflow-hidden">
-                    <ChatPanel
-                      conversationId={selectedConversationId!}
-                      contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
-                      contactPhone={selectedConversationData.contact_phone}
-                      lastActivity={selectedConversationData.last_message_at}
-                      conversationCreatedAt={selectedConversationData.created_at}
-                      conversation={selectedConversationData}
-                      onBack={handleBack}
-                      onEdit={() => {
-                        setConversationBeingEdited(selectedConversationData);
-                        setIsEditModalOpen(true);
-                      }}
-                      onDelete={() => handleDeleteClick(selectedConversationData)}
-                    />
+                  <div className="md:hidden fixed inset-0 z-50 bg-background">
+                    <div className="h-full flex flex-col">
+                      <ChatPanel
+                        conversationId={selectedConversationId!}
+                        contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
+                        contactPhone={selectedConversationData.contact_phone}
+                        lastActivity={selectedConversationData.last_message_at}
+                        conversationCreatedAt={selectedConversationData.created_at}
+                        conversation={selectedConversationData}
+                        onBack={handleBack}
+                        onEdit={() => {
+                          setConversationBeingEdited(selectedConversationData);
+                          setIsEditModalOpen(true);
+                        }}
+                        onDelete={() => handleDeleteClick(selectedConversationData)}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
