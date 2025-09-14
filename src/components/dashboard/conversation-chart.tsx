@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState } from "react"
 import { ChartData } from "@/hooks/use-dashboard-stats"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 // Dados baseados nas métricas do dashboard com mais pontos para linha suave
 const data7Days = [
@@ -98,6 +99,8 @@ interface ConversationChartProps {
 }
 
 export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }: ConversationChartProps) {
+  const isMobile = useIsMobile()
+  
   if (loading) {
     return (
       <Card className="col-span-1 lg:col-span-4">
@@ -106,7 +109,7 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
           <div className="h-4 w-48 bg-muted animate-pulse rounded" />
         </CardHeader>
         <CardContent>
-          <div className="h-[280px] w-full bg-muted animate-pulse rounded" />
+          <div className="h-[220px] sm:h-[280px] w-full bg-muted animate-pulse rounded" />
         </CardContent>
       </Card>
     )
@@ -126,7 +129,7 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
       </CardHeader>
       
       <CardContent className="pt-2 pb-8">
-        <div className="h-[280px] w-full mb-8">
+        <div className="h-[220px] sm:h-[280px] w-full mb-8">
           <div className="relative h-full w-full bg-gradient-to-b from-background to-muted/10 rounded-lg p-6">
             {/* Grid lines */}
             <div className="absolute inset-6 flex flex-col justify-between">
@@ -159,11 +162,11 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
                 />
               </svg>
               
-              {/* X-axis labels - dynamically show 6-8 labels to prevent overlap */}
+              {/* X-axis labels - dynamically show 4 labels on mobile, 6-8 on desktop */}
               <div className="absolute bottom-0 w-full px-2">
                 {(() => {
                   const labelsToShow = chartData.filter(item => item.date)
-                  const maxLabels = chartData.length > 20 ? 6 : chartData.length > 10 ? 8 : labelsToShow.length
+                  const maxLabels = isMobile ? 4 : (chartData.length > 20 ? 6 : chartData.length > 10 ? 8 : labelsToShow.length)
                   const step = Math.max(1, Math.floor(labelsToShow.length / maxLabels))
                   
                   return labelsToShow.map((item, labelIndex) => {
@@ -171,6 +174,7 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
                     
                     const dataIndex = chartData.findIndex(d => d.date === item.date)
                     const position = (dataIndex / (chartData.length - 1)) * 100
+                    const label = isMobile ? item.date.split('/')[0] : item.date
                     
                     return (
                       <span 
@@ -178,7 +182,7 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
                         className="absolute text-[10px] font-medium text-muted-foreground whitespace-nowrap transform -translate-x-1/2"
                         style={{ left: `${position}%` }}
                       >
-                        {item.date}
+                        {label}
                       </span>
                     )
                   })
