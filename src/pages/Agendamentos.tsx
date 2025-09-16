@@ -637,13 +637,13 @@ export default function AgendamentosPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col gap-4">
+      <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-6">
+        <div className="flex flex-col gap-3 sm:gap-4">
           {/* Header */}
           <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Agendamentos</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Agendamentos</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Período: {getFormattedDateRange()}
               </p>
             </div>
@@ -701,21 +701,21 @@ export default function AgendamentosPage() {
               </div>
             </div>
 
-            <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
+            <div className="grid gap-2 grid-cols-2 sm:gap-3 md:grid-cols-4">
               {stats.map((stat, index) => (
                 <Card key={index} className="border-border/50">
-                  <CardContent className="p-3">
+                  <CardContent className="p-2 sm:p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
                         <span className="text-xs text-muted-foreground truncate">{stat.title}</span>
-                        <span className="text-lg font-bold">{stat.value}</span>
+                        <span className="text-base sm:text-lg font-bold">{stat.value}</span>
                         {stat.percentage && (
                           <Badge variant={stat.color as any} className="w-fit mt-1 text-xs px-1 py-0 h-4">
                             {stat.percentage}
                           </Badge>
                         )}
                       </div>
-                      <stat.icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <stat.icon className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                     </div>
                   </CardContent>
                 </Card>
@@ -905,8 +905,8 @@ export default function AgendamentosPage() {
                       head_row: "flex w-full",
                       head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] text-center",
                       row: "flex w-full mt-2",
-                      cell: "h-16 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
-                      day: "h-16 w-full p-1 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
+                      cell: "h-12 sm:h-16 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
+                      day: "h-12 sm:h-16 w-full p-1 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
                       day_range_end: "day-range-end",
                       day_selected: "bg-red-500 text-white hover:bg-red-600 focus:bg-red-600",
                       day_today: "bg-transparent text-foreground",
