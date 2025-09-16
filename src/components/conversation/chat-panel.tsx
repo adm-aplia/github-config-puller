@@ -109,7 +109,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
   }
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-background">
+    <div className="flex flex-col h-full w-full min-h-0 bg-background">
       {/* Header */}
       <div className="flex items-center gap-3 p-3 sm:p-4 border-b bg-muted/30">
         {onBack && (

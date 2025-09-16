@@ -278,9 +278,9 @@ export default function ConversasPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-6 py-4">
+      <div className="container mx-auto px-0 sm:px-6 py-4">
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 px-6 sm:px-0">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Conversas</h1>
               <p className="text-muted-foreground">Gerencie todas as conversas dos seus assistentes</p>
@@ -288,7 +288,7 @@ export default function ConversasPage() {
           </div>
 
           {/* WhatsApp-style layout */}
-          <Card className="h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)] overflow-hidden">
+          <Card className="h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)] overflow-hidden mx-0 sm:mx-auto">
             <CardContent className="p-0 h-full">
               <div className="flex h-full min-h-0">
                 {/* Conversation List - Left Panel */}
@@ -310,19 +310,19 @@ export default function ConversasPage() {
                       <div className="flex flex-col sm:flex-row gap-2">
                         <Button 
                           variant="outline" 
-                          size="sm" 
+                          size="default" 
                           onClick={handleSelectAll}
-                          className="flex-1 sm:flex-none"
+                          className="flex-1 sm:flex-none h-10 font-medium"
                         >
                           <Check className="h-4 w-4 mr-2" />
                           {selectedIds.size === filteredConversations.length ? 'Desmarcar todas' : 'Selecionar todas'}
                         </Button>
                         <Button 
                           variant="destructive" 
-                          size="sm"
+                          size="default"
                           onClick={() => setIsBulkDeleteConfirmOpen(true)}
                           disabled={selectedIds.size === 0}
-                          className="flex-1 sm:flex-none"
+                          className="flex-1 sm:flex-none h-10 font-medium"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Excluir
@@ -352,9 +352,9 @@ export default function ConversasPage() {
                         </Button>
                         <Button 
                           variant="outline" 
-                          size="sm"
+                          size="default"
                           onClick={() => setSelectionMode(true)}
-                          className="flex-1"
+                          className="flex-1 h-10"
                         >
                           Selecionar
                         </Button>
@@ -508,23 +508,21 @@ export default function ConversasPage() {
                 
                 {/* Mobile chat overlay */}
                 {showMobileChat && selectedConversationData && (
-                  <div className="md:hidden fixed inset-0 z-50 bg-background">
-                    <div className="h-full flex flex-col">
-                      <ChatPanel
-                        conversationId={selectedConversationId!}
-                        contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
-                        contactPhone={selectedConversationData.contact_phone}
-                        lastActivity={selectedConversationData.last_message_at}
-                        conversationCreatedAt={selectedConversationData.created_at}
-                        conversation={selectedConversationData}
-                        onBack={handleBack}
-                        onEdit={() => {
-                          setConversationBeingEdited(selectedConversationData);
-                          setIsEditModalOpen(true);
-                        }}
-                        onDelete={() => handleDeleteClick(selectedConversationData)}
-                      />
-                    </div>
+                  <div className="md:hidden fixed inset-0 z-50 bg-background w-full h-full">
+                    <ChatPanel
+                      conversationId={selectedConversationId!}
+                      contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
+                      contactPhone={selectedConversationData.contact_phone}
+                      lastActivity={selectedConversationData.last_message_at}
+                      conversationCreatedAt={selectedConversationData.created_at}
+                      conversation={selectedConversationData}
+                      onBack={handleBack}
+                      onEdit={() => {
+                        setConversationBeingEdited(selectedConversationData);
+                        setIsEditModalOpen(true);
+                      }}
+                      onDelete={() => handleDeleteClick(selectedConversationData)}
+                    />
                   </div>
                 )}
               </div>
