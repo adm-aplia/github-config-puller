@@ -619,17 +619,18 @@ export default function AgendamentosPage() {
     const hasBlocked = blockedAppointments.length > 0
     
     return (
-      <div className="relative w-full h-full flex flex-col justify-between p-1">
-        <span className="text-xs font-medium text-left">{date.getDate()}</span>
+      <div className="relative w-full h-full flex flex-col justify-between p-0.5 sm:p-1">
+        <span className="text-[10px] sm:text-xs font-medium text-left">{date.getDate()}</span>
         {appointmentCount > 0 && (
           <div className="w-full">
-            <div className="text-xs px-1 py-0.5 bg-gray-200 text-gray-700 rounded text-center font-medium">
-              {appointmentCount} consulta{appointmentCount > 1 ? 's' : ''}
+            <div className="text-[8px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 py-0 sm:py-0.5 bg-gray-200 text-gray-700 rounded text-center font-medium">
+              {appointmentCount}
+              <span className="hidden md:inline"> consulta{appointmentCount > 1 ? 's' : ''}</span>
             </div>
           </div>
         )}
         {hasBlocked && (
-          <div className="absolute top-0 right-0 w-2 h-2 bg-gray-500 rounded-full" title="Dia com bloqueios" />
+          <div className="absolute top-0 right-0 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-500 rounded-full" title="Dia com bloqueios" />
         )}
       </div>
     )
@@ -640,18 +641,18 @@ export default function AgendamentosPage() {
       <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-6">
         <div className="flex flex-col gap-3 sm:gap-4">
           {/* Header */}
-          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+          <header className="flex flex-col gap-3">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Agendamentos</h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Período: {getFormattedDateRange()}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
                 onClick={async () => {
                   await fetchAppointments()
                   toast({
@@ -660,25 +661,28 @@ export default function AgendamentosPage() {
                   })
                 }}
               >
-                <RefreshCw className="h-4 w-4" />
-                Atualizar
+                <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Atualizar</span>
+                <span className="sm:hidden">Atualizar</span>
               </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
                 onClick={() => setFiltersModalOpen(true)}
               >
-                <Filter className="h-4 w-4" />
-                Filtrar
+                <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Filtrar</span>
+                <span className="sm:hidden">Filtrar</span>
               </Button>
               <Button 
                 size="sm" 
-                className="flex items-center gap-2 bg-secondary hover:bg-secondary/90"
+                className="flex items-center gap-1 sm:gap-2 bg-secondary hover:bg-secondary/90 text-xs sm:text-sm"
                 onClick={() => setCreateModalOpen(true)}
               >
-                <Plus className="h-4 w-4" />
-                Novo Agendamento
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Novo Agendamento</span>
+                <span className="sm:hidden">Novo</span>
               </Button>
             </div>
           </header>
@@ -701,16 +705,16 @@ export default function AgendamentosPage() {
               </div>
             </div>
 
-            <div className="grid gap-2 grid-cols-2 sm:gap-3 md:grid-cols-4">
+            <div className="grid gap-1 grid-cols-2 sm:gap-2 md:gap-3 md:grid-cols-4">
               {stats.map((stat, index) => (
                 <Card key={index} className="border-border/50">
-                  <CardContent className="p-2 sm:p-3">
+                  <CardContent className="p-1.5 sm:p-2 md:p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
-                        <span className="text-xs text-muted-foreground truncate">{stat.title}</span>
-                        <span className="text-base sm:text-lg font-bold">{stat.value}</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.title}</span>
+                        <span className="text-sm sm:text-base md:text-lg font-bold">{stat.value}</span>
                         {stat.percentage && (
-                          <Badge variant={stat.color as any} className="w-fit mt-1 text-xs px-1 py-0 h-4">
+                          <Badge variant={stat.color as any} className="w-fit mt-0.5 sm:mt-1 text-[10px] sm:text-xs px-0.5 sm:px-1 py-0 h-3 sm:h-4">
                             {stat.percentage}
                           </Badge>
                         )}
@@ -736,9 +740,9 @@ export default function AgendamentosPage() {
                     </CardTitle>
                     <CardDescription>Visualize e gerencie todos os agendamentos</CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                     <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
-                      <SelectTrigger className="w-56">
+                      <SelectTrigger className="w-full sm:w-56">
                         <SelectValue>
                           {selectedProfessional === "all" ? "Todos os profissionais" : 
                            profiles.find(p => p.id === selectedProfessional)?.fullname || "Profissional não encontrado"}
@@ -754,22 +758,24 @@ export default function AgendamentosPage() {
                       </SelectContent>
                     </Select>
                     
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 w-full sm:w-auto">
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
                         onClick={() => setBlockModalOpen(true)}
                       >
-                        <X className="h-4 w-4" />
-                        Bloquear horários
+                        <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">Bloquear horários</span>
+                        <span className="sm:hidden">Bloquear</span>
                       </Button>
                       
                       <Dialog open={isGoogleEventsDialogOpen} onOpenChange={setIsGoogleEventsDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="flex items-center gap-2">
-                            <Download className="h-4 w-4" />
-                            Vincular eventos
+                          <Button variant="outline" size="sm" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                            <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <span className="hidden sm:inline">Vincular eventos</span>
+                            <span className="sm:hidden">Vincular</span>
                           </Button>
                         </DialogTrigger>
                             <DialogContent className="sm:max-w-md">
@@ -884,7 +890,7 @@ export default function AgendamentosPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-4">
+              <CardContent className="p-2 sm:p-4">
                 <div className="w-full">
                   <Calendar
                     mode="single"
@@ -903,10 +909,10 @@ export default function AgendamentosPage() {
                       nav_button_next: "absolute right-1",
                       table: "w-full border-collapse space-y-1",
                       head_row: "flex w-full",
-                      head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] text-center",
-                      row: "flex w-full mt-2",
-                      cell: "h-12 sm:h-16 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
-                      day: "h-12 sm:h-16 w-full p-1 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
+                      head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.7rem] sm:text-[0.8rem] text-center",
+                      row: "flex w-full mt-1 sm:mt-2",
+                      cell: "h-8 sm:h-12 md:h-16 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
+                      day: "h-8 sm:h-12 md:h-16 w-full p-0.5 sm:p-1 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
                       day_range_end: "day-range-end",
                       day_selected: "bg-red-500 text-white hover:bg-red-600 focus:bg-red-600",
                       day_today: "bg-transparent text-foreground",
