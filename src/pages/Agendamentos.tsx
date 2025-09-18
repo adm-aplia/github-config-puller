@@ -619,18 +619,18 @@ export default function AgendamentosPage() {
     const hasBlocked = blockedAppointments.length > 0
     
     return (
-      <div className="relative w-full h-full flex flex-col justify-between p-0.5 sm:p-1">
-        <span className="text-[10px] sm:text-xs font-medium text-left">{date.getDate()}</span>
+      <div className="relative w-full h-full flex flex-col justify-between p-1 sm:p-1.5">
+        <span className="text-xs sm:text-sm font-medium text-left">{date.getDate()}</span>
         {appointmentCount > 0 && (
           <div className="w-full">
-            <div className="text-[8px] sm:text-[10px] md:text-xs px-0.5 sm:px-1 py-0 sm:py-0.5 bg-gray-200 text-gray-700 rounded text-center font-medium">
+            <div className="text-[10px] sm:text-xs md:text-sm px-1 py-0.5 bg-gray-200 text-gray-700 rounded text-center font-medium">
               {appointmentCount}
-              <span className="hidden md:inline"> consulta{appointmentCount > 1 ? 's' : ''}</span>
+              <span className="hidden sm:inline"> consulta{appointmentCount > 1 ? 's' : ''}</span>
             </div>
           </div>
         )}
         {hasBlocked && (
-          <div className="absolute top-0 right-0 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-500 rounded-full" title="Dia com bloqueios" />
+          <div className="absolute top-1 right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-gray-500 rounded-full" title="Dia com bloqueios" />
         )}
       </div>
     )
@@ -740,44 +740,44 @@ export default function AgendamentosPage() {
                     </CardTitle>
                     <CardDescription>Visualize e gerencie todos os agendamentos</CardDescription>
                   </div>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                    <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
-                      <SelectTrigger className="w-full sm:w-56">
-                        <SelectValue>
-                          {selectedProfessional === "all" ? "Todos os profissionais" : 
-                           profiles.find(p => p.id === selectedProfessional)?.fullname || "Profissional não encontrado"}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os profissionais</SelectItem>
-                        {profiles.map(profile => (
-                          <SelectItem key={profile.id} value={profile.id}>
-                            {profile.fullname}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    
-                    <div className="flex items-center gap-1 w-full sm:w-auto">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
-                        onClick={() => setBlockModalOpen(true)}
-                      >
-                        <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span className="hidden sm:inline">Bloquear horários</span>
-                        <span className="sm:hidden">Bloquear</span>
-                      </Button>
+                    <div className="flex flex-col gap-2">
+                      <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
+                        <SelectTrigger className="w-full sm:w-56">
+                          <SelectValue>
+                            {selectedProfessional === "all" ? "Todos os profissionais" : 
+                             profiles.find(p => p.id === selectedProfessional)?.fullname || "Profissional não encontrado"}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os profissionais</SelectItem>
+                          {profiles.map(profile => (
+                            <SelectItem key={profile.id} value={profile.id}>
+                              {profile.fullname}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       
-                      <Dialog open={isGoogleEventsDialogOpen} onOpenChange={setIsGoogleEventsDialogOpen}>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                            <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span className="hidden sm:inline">Vincular eventos</span>
-                            <span className="sm:hidden">Vincular</span>
-                          </Button>
-                        </DialogTrigger>
+                      <div className="flex flex-wrap items-center gap-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex items-center gap-1 text-xs"
+                          onClick={() => setBlockModalOpen(true)}
+                        >
+                          <X className="h-3 w-3" />
+                          <span className="hidden sm:inline">Bloquear horários</span>
+                          <span className="sm:hidden">Bloquear</span>
+                        </Button>
+                        
+                        <Dialog open={isGoogleEventsDialogOpen} onOpenChange={setIsGoogleEventsDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="flex items-center gap-1 text-xs">
+                              <Download className="h-3 w-3" />
+                              <span className="hidden sm:inline">Vincular eventos</span>
+                              <span className="sm:hidden">Vincular</span>
+                            </Button>
+                          </DialogTrigger>
                             <DialogContent className="sm:max-w-md">
                               <DialogHeader>
                                 <DialogTitle>Vincular eventos do Google Agenda</DialogTitle>
@@ -911,8 +911,8 @@ export default function AgendamentosPage() {
                       head_row: "flex w-full",
                       head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.7rem] sm:text-[0.8rem] text-center",
                       row: "flex w-full mt-1 sm:mt-2",
-                      cell: "h-8 sm:h-12 md:h-16 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
-                      day: "h-8 sm:h-12 md:h-16 w-full p-0.5 sm:p-1 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
+                      cell: "h-14 sm:h-16 md:h-20 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
+                      day: "h-14 sm:h-16 md:h-20 w-full p-1 sm:p-1.5 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
                       day_range_end: "day-range-end",
                       day_selected: "bg-red-500 text-white hover:bg-red-600 focus:bg-red-600",
                       day_today: "bg-transparent text-foreground",
