@@ -33,6 +33,7 @@ export default function ConversasPage() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [selectedConversationData, setSelectedConversationData] = useState<Conversation | null>(null);
   const [showMobileChat, setShowMobileChat] = useState(false);
+  const [showConversationList, setShowConversationList] = useState(true);
   
   // Edit modal states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -76,6 +77,7 @@ export default function ConversasPage() {
       setSelectedConversationId(conversation.id);
       setSelectedConversationData(conversation);
       setShowMobileChat(true); // For mobile
+      setShowConversationList(false); // Hide list on desktop when conversation selected
     }
   };
 
@@ -122,6 +124,7 @@ export default function ConversasPage() {
     setSelectedConversationId(null);
     setSelectedConversationData(null);
     setShowMobileChat(false);
+    setShowConversationList(true); // Show list when going back
   };
 
   const handleToggleSelection = (id: string) => {
@@ -287,9 +290,19 @@ export default function ConversasPage() {
           {/* WhatsApp-style layout */}
           <Card className="h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)] overflow-hidden mx-0 sm:mx-auto">
             <CardContent className="p-0 h-full">
-              <div className="flex md:grid md:grid-cols-[360px_1fr] h-full min-h-0">
+              <div className={`flex h-full min-h-0 transition-all duration-300 ${
+                selectedConversationId && showConversationList
+                  ? 'md:grid md:grid-cols-[360px_1fr]' 
+                  : 'md:grid md:grid-cols-1'
+              }`}>
                 {/* Conversation List - Left Panel */}
-                <div className={`w-full border-r bg-muted/20 flex flex-col min-h-0 ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
+                <div className={`w-full bg-muted/20 flex flex-col min-h-0 transition-all duration-300 ${
+                  showMobileChat ? 'hidden md:flex' : 'flex'
+                } ${
+                  selectedConversationId ? 'md:border-r' : 'md:border-r-0'
+                } ${
+                  showConversationList || !selectedConversationId ? 'md:flex' : 'md:hidden'
+                }`}>
                   {/* Search and Filters Header */}
                 <div className="p-4 border-b bg-background">
                   {selectionMode ? (
@@ -483,7 +496,9 @@ export default function ConversasPage() {
               </div>
 
               {/* Chat Panel - Right Panel */}
-              <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div className={`flex flex-col min-h-0 overflow-hidden transition-all duration-300 ${
+                selectedConversationId ? 'flex-1' : 'flex-1 md:flex-1'
+              }`}>
                 {selectedConversationId && selectedConversationData ? (
                   <div className={`flex-1 min-h-0 overflow-hidden ${showMobileChat && 'md:block hidden'}`}>
                     <ChatPanel
@@ -502,7 +517,21 @@ export default function ConversasPage() {
                     />
                   </div>
                 ) : (
-                  <div className="hidden md:flex flex-1 flex-col items-center justify-center">
+                  <div className={`flex flex-1 flex-col items-center justify-center transition-all duration-300 ${
+                    selectedConversationId ? 'hidden md:flex' : 'hidden md:flex md:w-full'
+                  }`}>
+                    {/* Back to list button for desktop - show when no conversation selected */}
+                    <div className="absolute top-4 left-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowConversationList(true)}
+                        className="hidden md:flex"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Mostrar conversas
+                      </Button>
+                    </div>
+                    
                     {filteredConversations.length === 0 ? (
                       <>
                         <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
