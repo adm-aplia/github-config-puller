@@ -49,6 +49,9 @@ export const useProfessionalProfiles = () => {
 
   const fetchProfiles = async () => {
     try {
+      // Força a atualização dos limites antes de buscar os dados
+      await supabase.rpc('force_update_user_limits');
+
       const { data: profilesData, error: profilesError } = await supabase
         .from('professional_profiles')
         .select('*')

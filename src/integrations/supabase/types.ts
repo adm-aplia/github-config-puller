@@ -991,6 +991,10 @@ export type Database = {
         Args: { p_user_id?: string }
         Returns: undefined
       }
+      force_update_user_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_appointment_status_counts: {
         Args: { p_from: string; p_professional_id?: string; p_to: string }
         Returns: Json

@@ -16,6 +16,7 @@ import { SelectWhatsAppInstanceModal } from "@/components/whatsapp/SelectWhatsAp
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { formatLimit, formatUsage, canCreateMore, isUnlimited } from "@/lib/limits"
 
 export default function PerfilsPage() {
   const { profiles, limits, loading, createProfile, updateProfile, deleteProfile, refetch } = useProfessionalProfiles()
@@ -213,7 +214,7 @@ export default function PerfilsPage() {
               <Button 
                 className="bg-secondary hover:bg-secondary/90 text-secondary-foreground gap-2"
                 onClick={openCreateForm}
-                disabled={limits && profiles.length >= limits.max_assistentes}
+                disabled={limits && !canCreateMore(profiles.length, limits.max_assistentes)}
               >
                 <Plus className="h-4 w-4" />
                 Novo Perfil
@@ -234,15 +235,20 @@ export default function PerfilsPage() {
                   Profissional
                 </Badge>
                 <span className="text-sm">
-                  <span className="font-medium">{profiles.length}</span> de{" "}
-                  <span className="font-medium">{limits?.max_assistentes >= 999999 ? 'Ilimitado' : limits?.max_assistentes || 0}</span> perfis utilizados
+                  <span className="font-medium">{formatUsage(profiles.length, limits?.max_assistentes || 0)}</span> perfis utilizados
                 </span>
-                {limits && profiles.length < limits.max_assistentes && (
+                {limits && canCreateMore(profiles.length, limits.max_assistentes) && !isUnlimited(limits.max_assistentes) && (
                   <span className="text-sm text-green-600">
                     <span className="font-medium">{limits.max_assistentes - profiles.length}</span> perfis disponíveis
                   </span>
                 )}
-                {limits && profiles.length >= limits.max_assistentes && (
+                {limits && isUnlimited(limits.max_assistentes) && (
+                  <span className="text-sm text-green-600">
+                    <CheckCircle className="h-4 w-4 inline mr-1" />
+                    Perfis ilimitados
+                  </span>
+                )}
+                {limits && !canCreateMore(profiles.length, limits.max_assistentes) && !isUnlimited(limits.max_assistentes) && (
                   <div className="flex items-center gap-2 text-sm text-amber-600">
                     <AlertCircle className="h-4 w-4" />
                     <span>Limite atingido</span>

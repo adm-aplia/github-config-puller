@@ -30,6 +30,9 @@ export function useUserUsage() {
       setLoading(true);
       setError(null);
       
+      // Primeiro, força a atualização dos limites do usuário
+      await supabase.rpc('force_update_user_limits');
+      
       const { data, error } = await supabase.rpc('get_real_user_usage_summary');
       
       if (error) throw error;
