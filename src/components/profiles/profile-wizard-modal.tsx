@@ -415,34 +415,6 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                 <span className="text-sm text-muted-foreground">{progressPercentage}% concluído</span>
               </div>
               <CustomProgress value={progressPercentage} className="h-2" />
-              
-              {/* Barra de progresso dos steps */}
-              <div className="flex items-center justify-between mt-4">
-                {Array.from({ length: totalSteps }, (_, index) => (
-                  <div key={index} className="flex items-center">
-                    <div 
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300",
-                        index <= activeStepIndex 
-                          ? "bg-primary text-primary-foreground" 
-                          : "bg-muted text-muted-foreground"
-                      )}
-                    >
-                      {index + 1}
-                    </div>
-                    {index < totalSteps - 1 && (
-                      <div className="flex-1 mx-2 h-1 bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary transition-all duration-300"
-                          style={{ 
-                            width: index < activeStepIndex ? "100%" : "0%" 
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
             </div>
 
             {/* Step nav */}
