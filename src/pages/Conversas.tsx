@@ -375,12 +375,12 @@ export default function ConversasPage() {
                       {filteredConversations.map((conversation) => (
                         <div 
                           key={conversation.id} 
-                          className={`p-4 hover:bg-muted/50 cursor-pointer transition-colors ${
+                          className={`min-h-[80px] p-4 hover:bg-muted/50 cursor-pointer transition-colors group ${
                             selectedConversationId === conversation.id ? 'bg-muted' : ''
                           }`}
                           onClick={() => handleConversationClick(conversation)}
                         >
-                          <div className="flex items-start gap-3">
+                          <div className="flex items-start gap-3 h-full">
                             {selectionMode && (
                               <div className="pt-1">
                                 <Checkbox
@@ -401,7 +401,7 @@ export default function ConversasPage() {
                               </AvatarFallback>
                             </Avatar>
                             
-                            <div className="flex-1 min-w-0">
+                            <div className="flex-1 min-w-0 flex flex-col justify-center">
                               <div className="flex items-center gap-2 mb-1">
                                 <h3 className="font-medium text-sm truncate">
                                   {conversation.contact_name || conversation.contact_phone}
@@ -418,12 +418,12 @@ export default function ConversasPage() {
                               )}
                               
                               <div className="flex items-center justify-between">
-                                <p className="text-sm text-muted-foreground truncate flex-1">
-                                  {conversation.last_message}
+                                <p className="text-sm text-muted-foreground line-clamp-2 flex-1 mr-2">
+                                  {conversation.last_message || "Nenhuma mensagem"}
                                 </p>
                                 
                                 {!selectionMode && (
-                                  <div className="flex items-center gap-1 ml-2">
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Button 
                                       variant="ghost" 
                                       size="sm"

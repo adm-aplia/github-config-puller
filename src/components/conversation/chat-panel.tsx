@@ -195,7 +195,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
                         : 'bg-muted'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap line-clamp-[10] break-words">{message.content}</p>
                     <div className="flex justify-end mt-1">
                       <span
                         className={`text-xs ${
