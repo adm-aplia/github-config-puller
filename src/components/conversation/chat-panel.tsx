@@ -29,8 +29,8 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  const scrollToBottom = (instant = false) => {
+    messagesEndRef.current?.scrollIntoView({ behavior: instant ? "auto" : "smooth" })
   }
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
   // Auto-scroll to bottom when messages load or change
   useEffect(() => {
     if (messages.length > 0) {
-      setTimeout(() => scrollToBottom(), 100)
+      scrollToBottom(true) // Instant scroll when loading messages
     }
   }, [messages])
 

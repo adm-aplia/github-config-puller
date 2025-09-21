@@ -287,9 +287,9 @@ export default function ConversasPage() {
           {/* WhatsApp-style layout */}
           <Card className="h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)] overflow-hidden mx-0 sm:mx-auto">
             <CardContent className="p-0 h-full">
-              <div className="flex md:grid md:grid-cols-[360px_1fr] h-full min-h-0">
+              <div className={`flex h-full min-h-0 ${selectedConversationId ? 'md:grid md:grid-cols-[360px_1fr]' : 'md:grid md:grid-cols-1'}`}>
                 {/* Conversation List - Left Panel */}
-                <div className={`w-full border-r bg-muted/20 flex flex-col min-h-0 ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
+                <div className={`w-full border-r bg-muted/20 flex flex-col min-h-0 ${showMobileChat ? 'hidden md:flex' : 'flex'} ${selectedConversationId ? 'md:flex' : 'md:hidden'}`}>
                   {/* Search and Filters Header */}
                 <div className="p-4 border-b bg-background">
                   {selectionMode ? (
@@ -502,7 +502,7 @@ export default function ConversasPage() {
                     />
                   </div>
                 ) : (
-                  <div className="hidden md:flex flex-1 flex-col items-center justify-center">
+                  <div className="flex flex-1 flex-col items-center justify-center">
                     {filteredConversations.length === 0 ? (
                       <>
                         <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
