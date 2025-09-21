@@ -159,7 +159,7 @@ export function RecentConversations() {
               <div 
                 key={conversation.id} 
                 className="flex items-start space-x-4 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                onClick={() => navigate(`/dashboard/conversas?conversation=${conversation.id}`)}
+                onClick={() => navigate(`/conversas?conversation=${conversation.id}`)}
               >
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-primary text-primary-foreground">
