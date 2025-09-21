@@ -8,6 +8,7 @@ import { useMessages } from "@/hooks/use-messages"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
 import { applyMask } from "@/lib/masks"
+import chatBackgroundLight from "@/assets/chat-background-light.png"
 
 interface ChatPanelProps {
   conversationId: string
@@ -172,8 +173,18 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <ScrollArea className="h-full px-2 py-3 sm:px-4 sm:py-4">
+      <div 
+        className="flex-1 min-h-0 overflow-hidden relative"
+        style={{
+          backgroundImage: `url(${chatBackgroundLight})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {/* Overlay for better readability */}
+        <div className="absolute inset-0 bg-background/80 dark:bg-background/40"></div>
+        <ScrollArea className="h-full px-2 py-3 sm:px-4 sm:py-4 relative z-10">
           <div className="space-y-4">
             {loading && messages.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
