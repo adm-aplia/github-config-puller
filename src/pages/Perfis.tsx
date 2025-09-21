@@ -235,7 +235,7 @@ export default function PerfilsPage() {
                 </Badge>
                 <span className="text-sm">
                   <span className="font-medium">{profiles.length}</span> de{" "}
-                  <span className="font-medium">{limits?.max_assistentes || 0}</span> perfis utilizados
+                  <span className="font-medium">{limits?.max_assistentes >= 999999 ? 'Ilimitado' : limits?.max_assistentes || 0}</span> perfis utilizados
                 </span>
                 {limits && profiles.length < limits.max_assistentes && (
                   <span className="text-sm text-green-600">

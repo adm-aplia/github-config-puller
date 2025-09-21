@@ -64,7 +64,7 @@ export const useProfessionalProfiles = () => {
       if (limitsError) throw limitsError;
 
       setProfiles(profilesData || []);
-      setLimits(limitsData || { max_assistentes: 1, uso_assistentes: 0 });
+      setLimits(limitsData || { max_assistentes: 0, uso_assistentes: 0 });
     } catch (error) {
       console.error('Error fetching profiles:', error);
       toast({

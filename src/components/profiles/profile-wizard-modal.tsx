@@ -248,10 +248,6 @@ const StepFinal = React.memo<{
         <Label htmlFor="reminderpreferences">Preferências de Lembrete</Label>
         <Input id="reminderpreferences" value={formData.reminderpreferences || ""} onChange={(e) => setField("reminderpreferences", e.target.value)} placeholder="Ex: 24h e 1h antes" />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="avatar_url">URL do Avatar (opcional)</Label>
-        <Input id="avatar_url" value={(formData as any).avatar_url || ""} onChange={(e) => setFormData((prev) => ({ ...prev, avatar_url: e.target.value }))} placeholder="https://..." />
-      </div>
       <div className="space-y-2 md:col-span-2">
         <Label htmlFor="additionalinfo">Informações Adicionais</Label>
         <Textarea id="additionalinfo" value={formData.additionalinfo || ""} onChange={(e) => setField("additionalinfo", e.target.value)} rows={4} />
@@ -327,17 +323,75 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
   }, [isOpen, profile]);
 
   const totalSteps = steps.length;
-  const percent = useMemo(
-    () => Math.round(((activeStepIndex + 1) / totalSteps) * 100),
-    [activeStepIndex]
-  );
+  
+  const calculateProgress = useMemo(() => {
+    const totalFields = 26; // Total number of fields in the profile
+    let filledFields = 0;
+    
+    // Count filled basic fields
+    if (formData.fullname) filledFields++;
+    if (formData.specialty) filledFields++;
+    if (formData.professionalid) filledFields++;
+    if (formData.phonenumber) filledFields++;
+    if (formData.email) filledFields++;
+    if (formData.education) filledFields++;
+    
+    // Count filled location fields
+    if (formData.locations) filledFields++;
+    if (formData.workinghours) filledFields++;
+    if (formData.procedures) filledFields++;
+    if (formData.communicationchannels) filledFields++;
+    
+    // Count filled payment fields
+    if (formData.healthinsurance) filledFields++;
+    if (formData.paymentmethods) filledFields++;
+    if (formData.consultationfees) filledFields++;
+    
+    // Count filled scheduling fields
+    if (formData.consultationduration) filledFields++;
+    if (formData.timebetweenconsultations) filledFields++;
+    if (formData.cancellationpolicy) filledFields++;
+    if (formData.reschedulingpolicy) filledFields++;
+    if (formData.appointmentconditions) filledFields++;
+    
+    // Count filled online fields
+    if (formData.onlineconsultations) filledFields++;
+    if (formData.preappointmentinfo) filledFields++;
+    if (formData.requireddocuments) filledFields++;
+    if (formData.requiredpatientinfo) filledFields++;
+    if (formData.medicalhistoryrequirements) filledFields++;
+    if (formData.agerequirements) filledFields++;
+    
+    // Count filled final fields
+    if (formData.reminderpreferences) filledFields++;
+    if (formData.additionalinfo) filledFields++;
+    
+    return Math.round((filledFields / totalFields) * 100);
+  }, [formData]);
+
+  const percent = calculateProgress;
 
   const setField = useCallback((field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }, []);
 
-  const goNext = () => setActiveStepIndex((i) => Math.min(i + 1, totalSteps - 1));
-  const goPrev = () => setActiveStepIndex((i) => Math.max(i - 1, 0));
+  const goNext = useCallback(() => {
+    // Validação para a primeira etapa (campos obrigatórios)
+    if (activeStepIndex === 0) {
+      if (!formData.fullname?.trim()) {
+        return; // Não avança se nome completo não estiver preenchido
+      }
+      if (!formData.specialty?.trim()) {
+        return; // Não avança se especialidade não estiver preenchida
+      }
+    }
+    
+    setActiveStepIndex((i) => Math.min(i + 1, totalSteps - 1));
+  }, [activeStepIndex, totalSteps, formData.fullname, formData.specialty]);
+
+  const goPrev = useCallback(() => {
+    setActiveStepIndex((i) => Math.max(i - 1, 0));
+  }, []);
 
   const handleFinish = useCallback(async () => {
     setLoading(true);
