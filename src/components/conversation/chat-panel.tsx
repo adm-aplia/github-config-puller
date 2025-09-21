@@ -113,7 +113,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
       {/* Header */}
       <div className="flex items-center gap-3 p-3 sm:p-4 border-b bg-muted/30">
         {onBack && (
-          <Button variant="ghost" size="sm" onClick={onBack}>
+          <Button variant="ghost" size="sm" onClick={onBack} className="md:hidden">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         )}
@@ -171,48 +171,50 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 min-h-0 p-3 sm:p-4">
-        <div className="space-y-4">
-          {loading && messages.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              Carregando mensagens...
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              Nenhuma mensagem nesta conversa
-            </div>
-          ) : (
-            messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.sender_type === 'agent' ? 'justify-end' : 'justify-start'}`}
-              >
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <ScrollArea className="h-full p-3 sm:p-4">
+          <div className="space-y-4">
+            {loading && messages.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                Carregando mensagens...
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                Nenhuma mensagem nesta conversa
+              </div>
+            ) : (
+              messages.map((message) => (
                 <div
-                  className={`max-w-[85%] sm:max-w-[70%] p-3 rounded-2xl shadow-sm ${
-                    message.sender_type === 'agent'
-                      ? 'bg-primary text-primary-foreground ml-auto'
-                      : 'bg-muted'
-                  }`}
+                  key={message.id}
+                  className={`flex ${message.sender_type === 'agent' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  <div className="flex justify-end mt-1">
-                    <span
-                      className={`text-xs ${
-                        message.sender_type === 'agent'
-                          ? 'text-primary-foreground/70'
-                          : 'text-muted-foreground'
-                      }`}
-                    >
-                      {formatMessageTime(message.created_at)}
-                    </span>
+                  <div
+                    className={`max-w-[85%] sm:max-w-[70%] p-3 rounded-2xl shadow-sm ${
+                      message.sender_type === 'agent'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <div className="flex justify-end mt-1">
+                      <span
+                        className={`text-xs ${
+                          message.sender_type === 'agent'
+                            ? 'text-primary-foreground/70'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        {formatMessageTime(message.created_at)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
+              ))
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+      </div>
 
       {/* Message Input */}
       <div className="p-3 sm:p-4 border-t bg-background">

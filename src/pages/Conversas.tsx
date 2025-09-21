@@ -487,7 +487,7 @@ export default function ConversasPage() {
 
               {/* Chat Panel - Right Panel */}
               <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-                {selectedConversationId && selectedConversationData && (
+                {selectedConversationId && selectedConversationData ? (
                   <div className={`flex-1 min-h-0 overflow-hidden ${showMobileChat && 'md:block hidden'}`}>
                     <ChatPanel
                       conversationId={selectedConversationId}
@@ -503,6 +503,22 @@ export default function ConversasPage() {
                       }}
                       onDelete={() => handleDeleteClick(selectedConversationData)}
                     />
+                  </div>
+                ) : (
+                  <div className="hidden md:flex flex-1 flex-col items-center justify-center">
+                    {filteredConversations.length === 0 ? (
+                      <>
+                        <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium text-muted-foreground mb-2">Nenhuma conversa ainda</h3>
+                        <p className="text-muted-foreground text-center max-w-sm">Quando você receber suas primeiras mensagens, elas aparecerão aqui</p>
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium text-muted-foreground mb-2">Selecione uma conversa</h3>
+                        <p className="text-muted-foreground text-center max-w-sm">Escolha uma conversa na lista para começar a visualizar as mensagens</p>
+                      </>
+                    )}
                   </div>
                 )}
                 
