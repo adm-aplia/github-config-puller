@@ -188,7 +188,7 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
           <Button 
             type="button"
             variant="outline"
-            className="w-full flex justify-center py-3 px-4 border border-border rounded-lg shadow-sm text-sm font-medium bg-background text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed" 
+            className="w-full flex justify-center py-3 px-4 border border-border rounded-lg shadow-sm text-sm font-medium bg-background text-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed" 
             disabled={isLoading || isGoogleLoading}
             onClick={handleGoogleSignIn}
           >
