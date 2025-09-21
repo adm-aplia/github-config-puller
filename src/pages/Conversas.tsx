@@ -289,7 +289,7 @@ export default function ConversasPage() {
             <CardContent className="p-0 h-full">
               <div className={`flex h-full min-h-0 ${selectedConversationId ? 'md:grid md:grid-cols-[360px_1fr]' : 'md:grid md:grid-cols-1'}`}>
                 {/* Conversation List - Left Panel */}
-                <div className={`w-full border-r bg-muted/20 flex flex-col min-h-0 ${showMobileChat ? 'hidden md:flex' : 'flex'} ${selectedConversationId ? 'md:flex' : 'md:hidden'}`}>
+                <div className={`w-full border-r bg-muted/20 flex flex-col min-h-0 ${showMobileChat ? 'hidden md:flex' : 'flex'} md:flex`}>
                   {/* Search and Filters Header */}
                 <div className="p-4 border-b bg-background">
                   {selectionMode ? (
@@ -483,7 +483,7 @@ export default function ConversasPage() {
               </div>
 
               {/* Chat Panel - Right Panel */}
-              <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${selectedConversationId ? 'md:flex' : 'md:hidden'}`}>
                 {selectedConversationId && selectedConversationData ? (
                   <div className={`flex-1 min-h-0 overflow-hidden ${showMobileChat && 'md:block hidden'}`}>
                     <ChatPanel
