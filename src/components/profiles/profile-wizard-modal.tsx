@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { CustomProgress } from "@/components/ui/custom-progress";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -412,7 +414,35 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                 <span className="text-sm text-muted-foreground">Etapa {activeStepIndex + 1} de {totalSteps}</span>
                 <span className="text-sm text-muted-foreground">{progressPercentage}% concluído</span>
               </div>
-              <Progress value={progressPercentage} className="h-2" />
+              <CustomProgress value={progressPercentage} className="h-2" />
+              
+              {/* Barra de progresso dos steps */}
+              <div className="flex items-center justify-between mt-4">
+                {Array.from({ length: totalSteps }, (_, index) => (
+                  <div key={index} className="flex items-center">
+                    <div 
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300",
+                        index <= activeStepIndex 
+                          ? "bg-primary text-primary-foreground" 
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {index + 1}
+                    </div>
+                    {index < totalSteps - 1 && (
+                      <div className="flex-1 mx-2 h-1 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary transition-all duration-300"
+                          style={{ 
+                            width: index < activeStepIndex ? "100%" : "0%" 
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Step nav */}
