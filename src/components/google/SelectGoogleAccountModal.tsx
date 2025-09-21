@@ -170,7 +170,7 @@ export function SelectGoogleAccountModal({
             </div>
           ) : null}
 
-          {(!linkedCredential || availableCredentials.length > 0) && (
+          {!linkedCredential && (
             <div className="pt-4 border-t">
               <Button
                 variant="outline"
@@ -179,7 +179,7 @@ export function SelectGoogleAccountModal({
                 disabled={connecting || linking || unlinking}
               >
                 <Plus className="h-4 w-4" />
-                {connecting ? 'Conectando...' : linkedCredential ? 'Conectar nova conta Google' : 'Conectar conta Google'}
+                {connecting ? 'Conectando...' : 'Conectar conta Google'}
               </Button>
             </div>
           )}

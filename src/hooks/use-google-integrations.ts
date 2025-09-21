@@ -145,7 +145,21 @@ export const useGoogleIntegrations = () => {
 
   const linkProfileToGoogle = async (googleCredentialId: string, professionalProfileId: string) => {
     try {
-      // Verificar se já existe um link
+      // Verificar se o perfil já tem alguma conta Google vinculada
+      const existingProfileLink = profileLinks.find(
+        link => link.professional_profile_id === professionalProfileId
+      );
+
+      if (existingProfileLink) {
+        toast({
+          title: 'Perfil já vinculado',
+          description: 'Este perfil já possui uma conta Google vinculada. Apenas uma conta é permitida por perfil.',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      // Verificar se já existe um link específico
       const existingLink = profileLinks.find(
         link => link.google_credential_id === googleCredentialId && 
                 link.professional_profile_id === professionalProfileId
