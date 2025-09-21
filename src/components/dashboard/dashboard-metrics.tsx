@@ -108,7 +108,7 @@ export function DashboardMetrics({ stats, loading, visibleCards }: DashboardMetr
     metricsToShow.push(
       <MetricCard
         key="instances"
-        title="Instâncias WhatsApp"
+        title="Números WhatsApp"
         value={`${stats?.instancias_ativas || 0}/${stats?.total_instancias || 0}`}
         description="ativas / total"
         icon={Activity}

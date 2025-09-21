@@ -148,7 +148,7 @@ export function RecentConversations() {
         <CardDescription>Últimas conversas registradas</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="divide-y">
           {conversations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <p>Nenhuma conversa encontrada</p>
@@ -162,7 +162,7 @@ export function RecentConversations() {
                 onClick={() => navigate(`/dashboard/conversas?conversation=${conversation.id}`)}
               >
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-muted">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
                     {(conversation.contact_name || conversation.contact_phone).charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
