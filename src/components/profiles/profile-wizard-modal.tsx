@@ -325,6 +325,12 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
   const totalSteps = steps.length;
   
   const calculateProgress = useMemo(() => {
+    // Se é edição de perfil existente, mostrar progresso baseado na etapa atual
+    if (profile?.id) {
+      return Math.round(((activeStepIndex + 1) / totalSteps) * 100);
+    }
+    
+    // Se é criação de novo perfil, mostrar progresso baseado em campos preenchidos
     const totalFields = 26; // Total number of fields in the profile
     let filledFields = 0;
     
@@ -367,7 +373,7 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
     if (formData.additionalinfo) filledFields++;
     
     return Math.round((filledFields / totalFields) * 100);
-  }, [formData]);
+  }, [formData, activeStepIndex, totalSteps, profile?.id]);
 
   const percent = calculateProgress;
 
@@ -460,7 +466,8 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                 <div className="flex gap-2 min-w-max">
                   {steps.map((s, idx) => {
                     const active = idx === activeStepIndex;
-                    const disabled = idx > activeStepIndex;
+                    // Permitir navegação livre ao editar perfil existente, restringir apenas ao criar novo
+                    const disabled = profile?.id ? false : idx > activeStepIndex;
                     const StepIcon = s.Icon;
                     return (
                       <button
