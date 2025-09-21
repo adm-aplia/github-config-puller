@@ -172,7 +172,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
 
       {/* Messages Area */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        <ScrollArea className="h-full p-3 sm:p-4">
+        <ScrollArea className="h-full px-2 py-3 sm:px-4 sm:py-4">
           <div className="space-y-4">
             {loading && messages.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
@@ -189,7 +189,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
                   className={`flex ${message.sender_type === 'agent' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] sm:max-w-[70%] p-3 rounded-2xl shadow-sm ${
+                    className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-2xl shadow-sm ${
                       message.sender_type === 'agent'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
