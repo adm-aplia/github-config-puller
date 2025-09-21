@@ -201,13 +201,14 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
                   className={`flex ${message.sender_type === 'agent' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-2xl shadow-sm ${
+                    className={`max-w-[85%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[65%] p-3 rounded-2xl shadow-sm ${
                       message.sender_type === 'agent'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
                     }`}
+                    style={{ wordBreak: 'break-word' }}
                   >
-                    <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
                     <div className="flex justify-end mt-1">
                       <span
                         className={`text-xs ${
