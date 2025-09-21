@@ -58,12 +58,11 @@ serve(async (req) => {
       throw new Error('Nenhuma assinatura ativa encontrada')
     }
 
-    // Update subscription status to cancelled
+    // Update subscription status to cancelled but keep original end date
     const { error: updateError } = await supabaseClient
       .from('assinaturas')
       .update({
         status: 'cancelled',
-        data_fim: new Date().toISOString().split('T')[0], // Today's date
         updated_at: new Date().toISOString()
       })
       .eq('id', currentSubscription.id)
@@ -72,23 +71,8 @@ serve(async (req) => {
       throw new Error('Erro ao cancelar assinatura: ' + updateError.message)
     }
 
-    // Reset user limits to free plan (0 assistants, 1 WhatsApp instance)
-    const { error: limitsError } = await supabaseClient
-      .from('usuario_limites')
-      .update({
-        assinatura_id: null,
-        max_assistentes: 0,
-        max_instancias_whatsapp: 1,
-        max_conversas_mes: 100,
-        max_agendamentos_mes: 50,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id)
-
-    if (limitsError) {
-      console.error('Error updating user limits:', limitsError)
-      // Don't throw here - subscription cancellation is more important
-    }
+    // DO NOT reset user limits immediately - they should keep access until data_fim
+    // Limits will be reset automatically when the subscription expires
 
     // TODO: Integrate with Asaas API to cancel recurring billing if needed
     // This would require calling Asaas API with the subscription ID
