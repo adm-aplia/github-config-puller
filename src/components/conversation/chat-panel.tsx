@@ -201,7 +201,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
                   className={`flex ${message.sender_type === 'agent' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[65%] p-3 rounded-2xl shadow-sm ${
+                    className={`max-w-[85%] sm:max-w-[85%] md:max-w-[80%] lg:max-w-[70%] p-3 rounded-2xl shadow-sm ${
                       message.sender_type === 'agent'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
