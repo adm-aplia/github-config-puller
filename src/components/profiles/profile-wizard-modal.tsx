@@ -330,7 +330,8 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
   const calculateProgress = useMemo(() => {
     // Se é edição de perfil existente, mostrar progresso baseado na etapa atual
     if (isEditing) {
-      return Math.round(((activeStepIndex + 1) / totalSteps) * 100);
+      const stepProgress = Math.round(((activeStepIndex + 1) / totalSteps) * 100);
+      return stepProgress;
     }
     
     // Se é criação de novo perfil, mostrar progresso baseado em campos preenchidos
@@ -460,7 +461,7 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
                 <span className="text-sm text-muted-foreground">Etapa {activeStepIndex + 1} de {totalSteps}</span>
                 <span className="text-sm text-muted-foreground">{percent}% concluído</span>
               </div>
-              <Progress value={percent} className="h-2" />
+              <Progress value={percent} className="h-2" key={`progress-${activeStepIndex}-${isEditing}`} />
             </div>
 
             {/* Step nav */}
