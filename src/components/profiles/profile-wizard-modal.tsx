@@ -327,59 +327,10 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
   // Determinar se é modo edição ou criação
   const isEditing = Boolean(profile?.id);
   
-  const calculateProgress = useMemo(() => {
-    // Se é edição de perfil existente, mostrar progresso baseado na etapa atual
-    if (isEditing) {
-      const stepProgress = Math.round(((activeStepIndex + 1) / totalSteps) * 100);
-      return stepProgress;
-    }
-    
-    // Se é criação de novo perfil, mostrar progresso baseado em campos preenchidos
-    const totalFields = 26; // Total number of fields in the profile
-    let filledFields = 0;
-    
-    // Count filled basic fields
-    if (formData.fullname) filledFields++;
-    if (formData.specialty) filledFields++;
-    if (formData.professionalid) filledFields++;
-    if (formData.phonenumber) filledFields++;
-    if (formData.email) filledFields++;
-    if (formData.education) filledFields++;
-    
-    // Count filled location fields
-    if (formData.locations) filledFields++;
-    if (formData.workinghours) filledFields++;
-    if (formData.procedures) filledFields++;
-    if (formData.communicationchannels) filledFields++;
-    
-    // Count filled payment fields
-    if (formData.healthinsurance) filledFields++;
-    if (formData.paymentmethods) filledFields++;
-    if (formData.consultationfees) filledFields++;
-    
-    // Count filled scheduling fields
-    if (formData.consultationduration) filledFields++;
-    if (formData.timebetweenconsultations) filledFields++;
-    if (formData.cancellationpolicy) filledFields++;
-    if (formData.reschedulingpolicy) filledFields++;
-    if (formData.appointmentconditions) filledFields++;
-    
-    // Count filled online fields
-    if (formData.onlineconsultations) filledFields++;
-    if (formData.preappointmentinfo) filledFields++;
-    if (formData.requireddocuments) filledFields++;
-    if (formData.requiredpatientinfo) filledFields++;
-    if (formData.medicalhistoryrequirements) filledFields++;
-    if (formData.agerequirements) filledFields++;
-    
-    // Count filled final fields
-    if (formData.reminderpreferences) filledFields++;
-    if (formData.additionalinfo) filledFields++;
-    
-    return Math.round((filledFields / totalFields) * 100);
-  }, [formData, activeStepIndex, totalSteps, isEditing]);
-
-  const percent = calculateProgress;
+  // Lógica simplificada: sempre baseada na etapa atual
+  const progressPercentage = useMemo(() => {
+    return Math.round(((activeStepIndex + 1) / totalSteps) * 100);
+  }, [activeStepIndex, totalSteps]);
 
   const setField = useCallback((field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -459,9 +410,9 @@ export const ProfileWizardModal: React.FC<ProfileWizardModalProps> = ({
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Etapa {activeStepIndex + 1} de {totalSteps}</span>
-                <span className="text-sm text-muted-foreground">{percent}% concluído</span>
+                <span className="text-sm text-muted-foreground">{progressPercentage}% concluído</span>
               </div>
-              <Progress value={percent} className="h-2" key={`progress-${activeStepIndex}-${isEditing}`} />
+              <Progress value={progressPercentage} className="h-2" />
             </div>
 
             {/* Step nav */}
