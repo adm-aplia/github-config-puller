@@ -8,6 +8,7 @@ import { RefreshCw, Plus, User, SquarePen, MessageCircle, CalendarDays, Trash2, 
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
 import { useWhatsAppInstances } from "@/hooks/use-whatsapp-instances"
+import { useSubscription } from "@/hooks/use-subscription"
 import { ProfileWizardModal } from "@/components/profiles/profile-wizard-modal"
 import { CreateInstanceModal } from "@/components/whatsapp/CreateInstanceModal"
 import { QrCodeDialog } from "@/components/whatsapp/QrCodeDialog"
@@ -22,6 +23,7 @@ export default function PerfilsPage() {
   const { profiles, limits, loading, createProfile, updateProfile, deleteProfile, refetch } = useProfessionalProfiles()
   const { credentials, profileLinks, connectGoogleAccount, linkProfileToGoogle, unlinkProfileFromGoogle, refetch: refetchGoogle } = useGoogleIntegrations()
   const { instances, createInstance, updateInstance, refetch: refetchInstances } = useWhatsAppInstances()
+  const { subscription } = useSubscription()
   const [showForm, setShowForm] = useState(false)
   const [editingProfile, setEditingProfile] = useState(null)
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
@@ -232,7 +234,7 @@ export default function PerfilsPage() {
             <CardContent>
               <div className="flex items-center gap-4">
                 <Badge variant="secondary">
-                  Profissional
+                  {subscription?.plano?.nome || 'Gratuito'}
                 </Badge>
                 <span className="text-sm">
                   <span className="font-medium">{formatUsage(profiles.length, limits?.max_assistentes || 0)}</span> perfis utilizados
