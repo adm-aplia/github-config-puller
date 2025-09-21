@@ -26,11 +26,13 @@ export const useGoogleIntegrations = () => {
   const [credentials, setCredentials] = useState<GoogleCredential[]>([]);
   const [profileLinks, setProfileLinks] = useState<GoogleProfileLink[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
   const fetchCredentials = async () => {
     try {
+      setRefreshing(true);
       const { data: credentialsData, error: credentialsError } = await supabase
         .from('google_credentials')
         .select('id, user_id, email, name, expires_at, professional_profile_id, created_at, updated_at')
@@ -55,6 +57,7 @@ export const useGoogleIntegrations = () => {
       });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -298,6 +301,7 @@ export const useGoogleIntegrations = () => {
     credentials,
     profileLinks,
     loading,
+    refreshing,
     connectGoogleAccount,
     disconnectGoogleAccount,
     linkProfileToGoogle,

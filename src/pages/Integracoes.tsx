@@ -11,7 +11,7 @@ import { useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
 
 export default function IntegracoesPage() {
-  const { credentials, profileLinks, loading, connectGoogleAccount, disconnectGoogleAccount, refetch } = useGoogleIntegrations();
+  const { credentials, profileLinks, loading, refreshing, connectGoogleAccount, disconnectGoogleAccount, refetch } = useGoogleIntegrations();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -145,9 +145,9 @@ export default function IntegracoesPage() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-medium">Contas Conectadas</h3>
-                    <Button variant="outline" size="sm" onClick={refetch}>
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Atualizar
+                    <Button variant="outline" size="sm" onClick={refetch} disabled={refreshing}>
+                      <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                      {refreshing ? 'Atualizando...' : 'Atualizar'}
                     </Button>
                   </div>
                   
