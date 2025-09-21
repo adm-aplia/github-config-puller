@@ -29,8 +29,8 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
 
-  const scrollToBottom = (instant = false) => {
-    messagesEndRef.current?.scrollIntoView({ behavior: instant ? "auto" : "smooth" })
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
   useEffect(() => {
@@ -39,21 +39,12 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
     }
   }, [conversationId])
 
-  // Instant scroll to bottom when conversation changes
-  useEffect(() => {
-    if (conversationId && messages.length > 0) {
-      scrollToBottom(true) // Instant scroll when conversation changes
-    }
-  }, [conversationId])
-
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when messages load or change
   useEffect(() => {
     if (messages.length > 0) {
-      // Use instant scroll for initial load, smooth for new messages
-      const isInitialLoad = messages.length === 1
-      scrollToBottom(isInitialLoad)
+      setTimeout(() => scrollToBottom(), 100)
     }
-  }, [messages.length])
+  }, [messages])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sending) return
