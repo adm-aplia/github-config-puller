@@ -9,6 +9,7 @@ import { Plan } from '@/hooks/use-plans';
 import { Subscription } from '@/hooks/use-subscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { formatLimit } from '@/lib/limits';
 
 interface PlanChangeModalProps {
   open: boolean;
@@ -141,10 +142,10 @@ export function PlanChangeModal({
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>Assistentes: {plan.max_assistentes}</div>
-                      <div>WhatsApp: {plan.max_instancias_whatsapp}</div>
-                      <div>Conversas/mês: {plan.max_conversas_mes}</div>
-                      <div>Agendamentos/mês: {plan.max_agendamentos_mes}</div>
+                      <div>Assistentes: {formatLimit(plan.max_assistentes)}</div>
+                      <div>WhatsApp: {formatLimit(plan.max_instancias_whatsapp)}</div>
+                      <div>Conversas/mês: {formatLimit(plan.max_conversas_mes)}</div>
+                      <div>Agendamentos/mês: {formatLimit(plan.max_agendamentos_mes)}</div>
                     </div>
                   </CardContent>
                 </Card>

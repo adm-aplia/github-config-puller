@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlanChangeModal } from '@/components/plans/plan-change-modal';
+import { PlanCancelModal } from '@/components/plans/plan-cancel-modal';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { usePlans } from '@/hooks/use-plans';
 import { useSubscription } from '@/hooks/use-subscription';
+import { formatLimit } from '@/lib/limits';
 import { 
   MessageCircle, 
   Calendar, 
@@ -19,13 +21,15 @@ import {
   Settings, 
   CreditCard,
   Crown,
-  Check
+  Check,
+  XCircle
 } from 'lucide-react';
 import { PaymentHistory } from '@/components/payments/payment-history';
 
 export default function Planos() {
   const navigate = useNavigate();
   const [changeModalOpen, setChangeModalOpen] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const { plans, loading: plansLoading } = usePlans();
   const { subscription, loading: subscriptionLoading, refetch } = useSubscription();
 
@@ -36,6 +40,11 @@ export default function Planos() {
   const handleChangePlanSuccess = () => {
     refetch();
     setChangeModalOpen(false);
+  };
+
+  const handleCancelSuccess = () => {
+    refetch();
+    setCancelModalOpen(false);
   };
 
   if (plansLoading || subscriptionLoading) {
@@ -57,7 +66,7 @@ export default function Planos() {
   const getPlanFeatures = (plan: any, isEnterprise: boolean) => {
     if (isEnterprise) {
       return [
-        { icon: MessageCircle, text: "+10 Números de whatsApp" },
+        { icon: MessageCircle, text: "+10 Números de WhatsApp" },
         { icon: CreditCard, text: "Agendamentos ilimitados" },
         { icon: Bot, text: "Assistentes ilimitados" },
         { icon: Users, text: "Suporte 24/7 dedicado" },
@@ -66,18 +75,18 @@ export default function Planos() {
       ];
     } else if (plan.nome.toLowerCase().includes('profissional')) {
       return [
-        { icon: MessageCircle, text: `${plan.max_instancias_whatsapp} Números de whatsApp` },
-        { icon: Calendar, text: `Até ${plan.max_agendamentos_mes.toLocaleString()} agendamentos/mês` },
-        { icon: Bot, text: `${plan.max_assistentes} assistentes personalizado${plan.max_assistentes > 1 ? 's' : ''}` },
+        { icon: MessageCircle, text: `${plan.max_instancias_whatsapp} Números de WhatsApp` },
+        { icon: Calendar, text: `Até ${formatLimit(plan.max_agendamentos_mes)} agendamentos/mês` },
+        { icon: Bot, text: `${formatLimit(plan.max_assistentes)} assistente${plan.max_assistentes > 1 ? 's' : ''} personalizado${plan.max_assistentes > 1 ? 's' : ''}` },
         { icon: Users, text: "Suporte prioritário" },
         { icon: ChartColumn, text: "Relatórios Avançados" }
       ];
     } else {
       // Básico
       return [
-        { icon: MessageCircle, text: `${plan.max_instancias_whatsapp} Número de whatsapp` },
-        { icon: Calendar, text: `Até ${plan.max_agendamentos_mes} agendamentos/mês` },
-        { icon: Bot, text: `${plan.max_assistentes} Assistente personalizado` },
+        { icon: MessageCircle, text: `${plan.max_instancias_whatsapp} Número de WhatsApp` },
+        { icon: Calendar, text: `Até ${formatLimit(plan.max_agendamentos_mes)} agendamentos/mês` },
+        { icon: Bot, text: `${formatLimit(plan.max_assistentes)} Assistente personalizado` },
         { icon: Users, text: "Suporte por e-mail" }
       ];
     }
@@ -233,14 +242,24 @@ export default function Planos() {
                         : 'N/A'
                       }
                     </div>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setChangeModalOpen(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <CreditCard className="h-4 w-4" />
-                      Alterar Plano
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setChangeModalOpen(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        Alterar Plano
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setCancelModalOpen(true)}
+                        className="flex items-center gap-2 text-destructive hover:text-destructive"
+                      >
+                        <XCircle className="h-4 w-4" />
+                        Cancelar
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -263,6 +282,13 @@ export default function Planos() {
           plans={plans}
           currentSubscription={subscription}
           onSuccess={handleChangePlanSuccess}
+        />
+
+        <PlanCancelModal
+          open={cancelModalOpen}
+          onOpenChange={setCancelModalOpen}
+          currentSubscription={subscription}
+          onSuccess={handleCancelSuccess}
         />
       </div>
     </DashboardLayout>
