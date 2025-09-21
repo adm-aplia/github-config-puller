@@ -338,8 +338,21 @@ export const useConversations = () => {
         },
         (payload) => {
           console.log('Conversation change detected:', payload);
-          // Refetch conversations on any change
-          fetchConversations();
+          
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            // Update specific conversation instead of refetching all
+            setConversations(prev => prev.map(conv => 
+              conv.id === payload.new.id 
+                ? { ...conv, ...payload.new }
+                : conv
+            ));
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            // Remove deleted conversation
+            setConversations(prev => prev.filter(conv => conv.id !== payload.old.id));
+          } else {
+            // For INSERT and other cases, refetch
+            fetchConversations();
+          }
         }
       )
       .subscribe();
@@ -356,8 +369,21 @@ export const useConversations = () => {
         },
         (payload) => {
           console.log('New message detected:', payload);
-          // Refetch conversations to update last_message and message_count
-          fetchConversations();
+          const newMessage = payload.new;
+          
+          if (newMessage && newMessage.conversation_id) {
+            // Update specific conversation with new last message and timestamp
+            setConversations(prev => prev.map(conv => 
+              conv.id === newMessage.conversation_id
+                ? {
+                    ...conv,
+                    last_message: newMessage.content,
+                    last_message_at: newMessage.created_at,
+                    message_count: (conv.message_count || 0) + 1
+                  }
+                : conv
+            ));
+          }
         }
       )
       .subscribe();

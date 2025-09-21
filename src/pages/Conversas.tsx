@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useState, useEffect, useMemo } from "react"
 import { useSearchParams } from "react-router-dom"
+import { applyMask } from "@/lib/masks"
 
 
 export default function ConversasPage() {
@@ -404,7 +405,7 @@ export default function ConversasPage() {
                             <div className="flex-1 min-w-0 flex flex-col justify-center">
                               <div className="flex items-center gap-2 mb-1">
                                 <h3 className="font-medium text-sm truncate">
-                                  {conversation.contact_name || conversation.contact_phone}
+                                  {conversation.contact_name || applyMask.phone(conversation.contact_phone)}
                                 </h3>
                                 <span className="text-xs text-muted-foreground flex-shrink-0">
                                   • {conversation.last_message_at ? formatTimestamp(conversation.last_message_at) : formatTimestamp(conversation.created_at)}

@@ -7,6 +7,7 @@ import { Send, ArrowLeft, Phone, MoreVertical, Edit, Trash2 } from "lucide-react
 import { useMessages } from "@/hooks/use-messages"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
+import { applyMask } from "@/lib/masks"
 
 interface ChatPanelProps {
   conversationId: string
@@ -136,7 +137,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
               </span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">{contactPhone}</p>
+          <p className="text-sm text-muted-foreground">{applyMask.phone(contactPhone)}</p>
         </div>
         
         <DropdownMenu>
