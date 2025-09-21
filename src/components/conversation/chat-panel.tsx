@@ -8,7 +8,7 @@ import { useMessages } from "@/hooks/use-messages"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
 import { applyMask } from "@/lib/masks"
-import chatBackgroundLight from "@/assets/chat-background-light.png"
+import chatBackgroundLight from "@/assets/chat-background-light-new.png"
 
 interface ChatPanelProps {
   conversationId: string
