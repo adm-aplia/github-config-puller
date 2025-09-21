@@ -42,7 +42,7 @@ export function ConversationEditModal({
     if (open && conversation) {
       setFormData({
         contact_name: conversation.contact_name || "",
-        contact_phone: conversation.contact_phone || "",
+        contact_phone: conversation.contact_phone ? applyMask.phone(conversation.contact_phone) : "",
         agent_id: conversation.agent_id || "none"
       })
     }
@@ -108,7 +108,7 @@ export function ConversationEditModal({
                 const maskedValue = applyMask.phone(e.target.value);
                 setFormData(prev => ({ ...prev, contact_phone: maskedValue }));
               }}
-              placeholder="(11) 99999-9999"
+              placeholder="+55 (11) 99999-9999"
               required
             />
           </div>
