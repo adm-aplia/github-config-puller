@@ -26,6 +26,17 @@ export const useConversations = () => {
 
   const fetchConversations = async () => {
     try {
+      console.log('🔍 Fetching conversations...');
+      
+      // Check authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.error('❌ Authentication error:', authError);
+        throw new Error('User not authenticated');
+      }
+      
+      console.log('✅ User authenticated:', user.id);
+      
       // Buscar conversas
       const { data: conversationsData, error: conversationsError } = await supabase
         .from('conversations')
@@ -33,9 +44,18 @@ export const useConversations = () => {
         .order('last_message_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 
-      if (conversationsError) throw conversationsError;
+      if (conversationsError) {
+        console.error('❌ Error fetching conversations:', conversationsError);
+        throw conversationsError;
+      }
+
+      console.log('📊 Raw conversations data:', {
+        count: conversationsData?.length || 0,
+        data: conversationsData
+      });
 
       if (!conversationsData || conversationsData.length === 0) {
+        console.log('📭 No conversations found');
         setConversations([]);
         return;
       }
@@ -91,6 +111,16 @@ export const useConversations = () => {
         last_message: lastMessageMap.get(conversation.id) || 'Nenhuma mensagem',
         profile_name: conversation.agent_id ? (profileMap.get(conversation.agent_id) || '') : ''
       })) as Conversation[];
+
+      console.log('✅ Final conversations with details:', {
+        count: conversationsWithDetails.length,
+        conversations: conversationsWithDetails.map(c => ({
+          id: c.id,
+          contact_name: c.contact_name,
+          contact_phone: c.contact_phone,
+          message_count: c.message_count
+        }))
+      });
 
       setConversations(conversationsWithDetails);
     } catch (error) {
