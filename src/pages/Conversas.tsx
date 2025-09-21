@@ -238,18 +238,14 @@ export default function ConversasPage() {
     }
   }, [searchParams, conversations, setSearchParams]);
 
-  // Auto-select first conversation when conversations load
+  // Clear selection when no conversations match filter
   useEffect(() => {
-    if (filteredConversations.length > 0 && !selectedConversationId) {
-      const firstConversation = filteredConversations[0];
-      setSelectedConversationId(firstConversation.id);
-      setSelectedConversationData(firstConversation);
-    } else if (filteredConversations.length === 0) {
+    if (filteredConversations.length === 0) {
       setSelectedConversationId(null);
       setSelectedConversationData(null);
       setShowMobileChat(false);
     }
-  }, [filteredConversations, selectedConversationId]);
+  }, [filteredConversations]);
 
   const applyFilters = () => {
     // Filters are applied automatically via useMemo
@@ -290,9 +286,9 @@ export default function ConversasPage() {
           {/* WhatsApp-style layout */}
           <Card className="h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)] overflow-hidden mx-0 sm:mx-auto">
             <CardContent className="p-0 h-full">
-              <div className="flex h-full min-h-0">
+              <div className="flex md:grid md:grid-cols-[360px_1fr] h-full min-h-0">
                 {/* Conversation List - Left Panel */}
-                <div className={`w-full md:w-[360px] border-r bg-muted/20 flex flex-col min-h-0 ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
+                <div className={`w-full border-r bg-muted/20 flex flex-col min-h-0 ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
                   {/* Search and Filters Header */}
                 <div className="p-4 border-b bg-background">
                   {selectionMode ? (
