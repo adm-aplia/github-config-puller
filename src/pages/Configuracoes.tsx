@@ -281,49 +281,7 @@ export default function ConfiguracoesPage() {
             </CardContent>
           </Card>
 
-          {/* Preferências */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Preferências</CardTitle>
-              <CardDescription>
-                Personalize sua experiência no sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="language">Idioma</Label>
-                  <Select 
-                    value={userSettings.language}
-                    onValueChange={(value) => setUserSettings(prev => ({ ...prev, language: value }))}
-                    disabled={saving}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Español</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="date-format">Formato de Data</Label>
-                  <Select defaultValue="dd/mm/yyyy">
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="dd/mm/yyyy">DD/MM/YYYY</SelectItem>
-                      <SelectItem value="mm/dd/yyyy">MM/DD/YYYY</SelectItem>
-                      <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Preferências - Seção removida */}
 
           <div className="flex justify-end">
             <Button onClick={handleSave} disabled={saving || loading}>
