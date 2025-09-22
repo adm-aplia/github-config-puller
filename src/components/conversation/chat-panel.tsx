@@ -184,7 +184,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
       >
         {/* Overlay for better readability */}
         <div className="absolute inset-0 bg-background/80 dark:bg-background/40"></div>
-        <ScrollArea className="h-full px-2 py-3 sm:px-4 sm:py-4 relative z-10">
+        <ScrollArea className="h-full px-4 py-3 sm:px-6 sm:py-4 md:px-8 relative z-10">
           <div className="space-y-4">
             {loading && messages.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
@@ -201,7 +201,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
                   className={`flex ${message.sender_type === 'agent' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] sm:max-w-[85%] md:max-w-[80%] lg:max-w-[70%] p-3 rounded-2xl shadow-sm ${
+                    className={`max-w-[75%] sm:max-w-[70%] md:max-w-[65%] lg:max-w-[60%] p-3 rounded-2xl shadow-sm ${
                       message.sender_type === 'agent'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
