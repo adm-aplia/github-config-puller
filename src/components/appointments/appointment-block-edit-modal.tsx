@@ -39,7 +39,8 @@ export function AppointmentBlockEditModal({ appointment, open, onOpenChange, onU
       setSelectedDate(appointmentDate)
       setEndDate(appointmentDate)
       
-      if (appointment.all_day) {
+      // Check if it's a full day block (either explicitly set or duration >= 1440 minutes = 24 hours)
+      if (appointment.all_day || (appointment.duration_minutes && appointment.duration_minutes >= 1440)) {
         setBlockType('fullday')
       } else {
         setBlockType('specific')
