@@ -51,7 +51,7 @@ export function AppointmentBlockEditModal({ appointment, open, onOpenChange, onU
         setEndTime(format(endDateTime, "HH:mm"))
       }
       
-      setSelectedProfessional(appointment.professional_profile_id || "")
+      setSelectedProfessional(appointment.professional_profile_id || "all")
       setReason(appointment.notes || "")
     }
   }, [open, appointment?.id])
@@ -89,7 +89,7 @@ export function AppointmentBlockEditModal({ appointment, open, onOpenChange, onU
 
       await onUpdate(appointment.id, {
         appointment_date: appointmentDateTime.toISOString(),
-        professional_profile_id: selectedProfessional || null,
+        professional_profile_id: selectedProfessional === "all" ? null : selectedProfessional || null,
         appointment_type: "blocked",
         status: "blocked",
         duration_minutes: duration,
@@ -122,7 +122,7 @@ export function AppointmentBlockEditModal({ appointment, open, onOpenChange, onU
                 <SelectValue placeholder="Selecione um profissional" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os profissionais</SelectItem>
+                <SelectItem value="all">Todos os profissionais</SelectItem>
                 {professionalProfiles.map((profile) => (
                   <SelectItem key={profile.id} value={profile.id}>
                     {profile.fullname}
