@@ -92,12 +92,7 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
     const current = new Date(startDate)
     
     if (!isRecurring) {
-      // No recurrence - if start and end dates are the same, return single date
-      if (startDate.getTime() === endDate.getTime()) {
-        return [new Date(startDate)]
-      }
-      
-      // Generate dates between start and end
+      // No recurrence, just generate dates between start and end
       while (current <= endDate) {
         dates.push(new Date(current))
         current.setDate(current.getDate() + 1)
@@ -285,10 +280,7 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
         const day = String(slot.start.getDate()).padStart(2, '0')
         const hour = String(blockType === "fullday" ? 0 : slot.start.getHours()).padStart(2, '0')
         const minute = String(blockType === "fullday" ? 0 : slot.start.getMinutes()).padStart(2, '0')
-        // Use different format for full day vs specific time blocks
-        const formattedDate = blockType === "fullday" 
-          ? `${year}-${month}-${day}` 
-          : `${year}-${month}-${day} ${hour}:${minute}:00`
+        const formattedDate = `${year}-${month}-${day} ${hour}:${minute}:00+00`
 
         const slotEndFormatted = format(slot.end, "HH:mm", { locale: ptBR })
         
