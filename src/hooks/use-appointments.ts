@@ -586,7 +586,7 @@ export const useAppointments = () => {
         }
       ]
 
-      const response = await fetch('https://aplia-n8n-editor.kopfcf.easypanel.host/webhook-test/remarcar', {
+      const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/remarcar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
