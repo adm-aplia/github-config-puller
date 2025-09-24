@@ -36,7 +36,9 @@ import {
   UserX,
   Trash2,
   Download,
-  HelpCircle
+  HelpCircle,
+  MoreVertical,
+  Copy
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
@@ -48,6 +50,7 @@ import { AppointmentRescheduleModal } from "@/components/appointments/appointmen
 import { AppointmentFiltersModal, AppointmentFilters } from "@/components/appointments/appointment-filters-modal"
 import { AppointmentCreateModal } from "@/components/appointments/appointment-create-modal"
 import { AppointmentBlockModal } from "@/components/appointments/appointment-block-modal"
+import { AppointmentBlockEditModal } from "@/components/appointments/appointment-block-edit-modal"
 import { cn } from "@/lib/utils"
 
   const getStatusBadge = (status: string) => {
@@ -74,7 +77,7 @@ export default function AgendamentosPage() {
   
   const { user } = useAuth()
   const { profiles, loading: profilesLoading } = useProfessionalProfiles()
-  const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, deleteAppointment } = useAppointments()
+  const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, updateBlockedAppointment, deleteAppointment } = useAppointments()
   const { credentials, profileLinks, loading: googleLoading, connectGoogleAccount } = useGoogleIntegrations()
   const { toast } = useToast()
 
@@ -132,7 +135,9 @@ export default function AgendamentosPage() {
   const [filtersModalOpen, setFiltersModalOpen] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [blockModalOpen, setBlockModalOpen] = useState(false)
+  const [blockEditModalOpen, setBlockEditModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [selectedBlockForEdit, setSelectedBlockForEdit] = useState<Appointment | null>(null)
   
   // Filters state
   const [filters, setFilters] = useState<AppointmentFilters>({
@@ -509,6 +514,59 @@ export default function AgendamentosPage() {
         variant: 'destructive',
       })
     }
+  }
+
+  const handleEditBlock = (appointment: Appointment) => {
+    setSelectedBlockForEdit(appointment)
+    setBlockEditModalOpen(true)
+  }
+
+  const handleUpdateBlock = async (appointmentId: string, updatedData: Partial<Appointment>) => {
+    try {
+      await updateBlockedAppointment(appointmentId, updatedData)
+      await fetchAppointments()
+      toast({
+        title: "Bloqueio atualizado",
+        description: "O bloqueio foi atualizado com sucesso.",
+      })
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar bloqueio",
+        description: "Não foi possível atualizar o bloqueio.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteBlock = async (appointmentId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este bloqueio?')) {
+      return
+    }
+    
+    try {
+      await deleteAppointment(appointmentId)
+      await fetchAppointments()
+      toast({
+        title: "Bloqueio excluído",
+        description: "O bloqueio foi excluído com sucesso.",
+      })
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir bloqueio",
+        description: "Não foi possível excluir o bloqueio.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDuplicateBlock = (appointment: Appointment) => {
+    // Set the appointment data for duplication in the create modal
+    setSelectedAppointment({
+      ...appointment,
+      id: "", // Clear ID for new appointment
+      appointment_date: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss")
+    })
+    setBlockModalOpen(true)
   }
 
   // Function to pull Google Calendar events
@@ -1057,33 +1115,60 @@ export default function AgendamentosPage() {
                         Nenhum bloqueio para esta data
                       </p>
                     ) : (
-                      <div className="space-y-3">
-                        {selectedDateBlocked.map((blocked) => (
-                          <div
-                            key={blocked.id}
-                            className="p-3 border border-border rounded-lg bg-muted/30"
-                          >
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-foreground">
-                                  Horário Bloqueado
-                                </span>
-                              </div>
-                               <div className="text-sm text-muted-foreground">
-                                 <div>{formatBlockDisplay(blocked)}</div>
-                                 {blocked.professional_profile_id && (
-                                   <div>
-                                     👨‍⚕️ {profiles.find(p => p.id === blocked.professional_profile_id)?.fullname || 'Profissional não encontrado'}
-                                   </div>
-                                 )}
-                                 {blocked.notes && extractReasonFromNotes(blocked.notes) && (
-                                   <div className="mt-1">Motivo: {extractReasonFromNotes(blocked.notes)}</div>
-                                 )}
+                       <div className="space-y-3">
+                         {selectedDateBlocked.map((blocked) => (
+                           <div
+                             key={blocked.id}
+                             className="p-3 border border-border rounded-lg bg-muted/30"
+                           >
+                             <div className="flex items-center justify-between">
+                               <div className="flex-1 space-y-1">
+                                 <div className="flex items-center gap-2">
+                                   <span className="font-medium text-foreground">
+                                     Horário Bloqueado
+                                   </span>
+                                 </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    <div>{formatBlockDisplay(blocked)}</div>
+                                    {blocked.professional_profile_id && (
+                                      <div>
+                                        👨‍⚕️ {profiles.find(p => p.id === blocked.professional_profile_id)?.fullname || 'Profissional não encontrado'}
+                                      </div>
+                                    )}
+                                    {blocked.notes && extractReasonFromNotes(blocked.notes) && (
+                                      <div className="mt-1">Motivo: {extractReasonFromNotes(blocked.notes)}</div>
+                                    )}
+                                  </div>
                                </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                               <DropdownMenu>
+                                 <DropdownMenuTrigger asChild>
+                                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                     <MoreVertical className="h-4 w-4" />
+                                   </Button>
+                                 </DropdownMenuTrigger>
+                                 <DropdownMenuContent align="end">
+                                   <DropdownMenuItem onClick={() => handleEditBlock(blocked)}>
+                                     <Edit className="mr-2 h-4 w-4" />
+                                     Editar
+                                   </DropdownMenuItem>
+                                   <DropdownMenuItem onClick={() => handleDuplicateBlock(blocked)}>
+                                     <Copy className="mr-2 h-4 w-4" />
+                                     Duplicar
+                                   </DropdownMenuItem>
+                                   <DropdownMenuSeparator />
+                                   <DropdownMenuItem 
+                                     onClick={() => handleDeleteBlock(blocked.id)}
+                                     className="text-destructive"
+                                   >
+                                     <Trash2 className="mr-2 h-4 w-4" />
+                                     Excluir
+                                   </DropdownMenuItem>
+                                 </DropdownMenuContent>
+                               </DropdownMenu>
+                             </div>
+                           </div>
+                         ))}
+                       </div>
                     )}
                   </ScrollArea>
                 </CardContent>
@@ -1132,6 +1217,13 @@ export default function AgendamentosPage() {
         open={blockModalOpen}
         onOpenChange={setBlockModalOpen}
         onSuccess={fetchAppointments}
+      />
+
+      <AppointmentBlockEditModal
+        appointment={selectedBlockForEdit}
+        open={blockEditModalOpen}
+        onOpenChange={setBlockEditModalOpen}
+        onUpdate={handleUpdateBlock}
       />
     </DashboardLayout>
   )

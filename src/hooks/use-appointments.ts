@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { format } from 'date-fns';
 
 export interface Appointment {
   id: string;
@@ -536,6 +537,75 @@ export const useAppointments = () => {
     }
   };
 
+  const updateBlockedAppointment = async (appointmentId: string, updatedData: Partial<Appointment>) => {
+    try {
+      const appointmentToUpdate = appointments.find(apt => apt.id === appointmentId)
+      if (!appointmentToUpdate) {
+        throw new Error('Appointment not found')
+      }
+
+      const userData = await supabase.auth.getUser()
+      if (!userData.data.user) {
+        throw new Error('User not authenticated')
+      }
+
+      // Format current appointment data
+      const currentDateTime = format(new Date(appointmentToUpdate.appointment_date), "yyyy-MM-dd HH:mm:ss")
+      
+      // Format new appointment data
+      const newDateTime = format(new Date(updatedData.appointment_date!), "yyyy-MM-dd HH:mm:ss")
+
+      const payload = [
+        {
+          query: JSON.stringify({
+            action: "current",
+            user_id: userData.data.user.id,
+            agent_id: appointmentToUpdate.professional_profile_id,
+            appointment_id: appointmentId,
+            datetime: currentDateTime,
+            appointment_type: "blocked",
+            patient_name: appointmentToUpdate.patient_name,
+            patient_phone: appointmentToUpdate.patient_phone,
+            notes: appointmentToUpdate.notes || "",
+            duration_minutes: appointmentToUpdate.duration_minutes || 60
+          })
+        },
+        {
+          query: JSON.stringify({
+            action: "update", 
+            user_id: userData.data.user.id,
+            agent_id: updatedData.professional_profile_id,
+            appointment_id: appointmentId,
+            datetime: newDateTime,
+            appointment_type: "blocked",
+            patient_name: updatedData.patient_name || "Bloqueio",
+            patient_phone: updatedData.patient_phone || "000000000",
+            notes: updatedData.notes || "",
+            duration_minutes: updatedData.duration_minutes || 60
+          })
+        }
+      ]
+
+      const response = await fetch('https://aplia-n8n-editor.kopfcf.easypanel.host/webhook-test/remarcar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update blocked appointment')
+      }
+
+      // Refresh appointments to get updated data
+      await fetchAppointments()
+    } catch (error) {
+      console.error('Error updating blocked appointment:', error)
+      throw error
+    }
+  }
+
   return {
     appointments,
     loading,
@@ -545,6 +615,7 @@ export const useAppointments = () => {
     updateAppointment,
     updateAppointmentStatus,
     rescheduleAppointment,
+    updateBlockedAppointment,
     deleteAppointment,
   };
 };
