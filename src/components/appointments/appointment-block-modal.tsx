@@ -274,10 +274,10 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
       for (let i = 0; i < slots.length; i++) {
         const slot = slots[i]
         
-        // Format slot start date - use UTC for full day blocks to avoid timezone issues
-        const year = blockType === "fullday" ? slot.start.getUTCFullYear() : slot.start.getFullYear()
-        const month = String((blockType === "fullday" ? slot.start.getUTCMonth() : slot.start.getMonth()) + 1).padStart(2, '0')
-        const day = String(blockType === "fullday" ? slot.start.getUTCDate() : slot.start.getDate()).padStart(2, '0')
+        // Format slot start date - use local time to preserve selected date
+        const year = slot.start.getFullYear()
+        const month = String(slot.start.getMonth() + 1).padStart(2, '0')
+        const day = String(slot.start.getDate()).padStart(2, '0')
         const hour = String(blockType === "fullday" ? 0 : slot.start.getHours()).padStart(2, '0')
         const minute = String(blockType === "fullday" ? 0 : slot.start.getMinutes()).padStart(2, '0')
         const formattedDate = `${year}-${month}-${day} ${hour}:${minute}:00+00`
