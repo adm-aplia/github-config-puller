@@ -35,7 +35,6 @@ import {
   X,
   UserX,
   Trash2,
-  Download,
   HelpCircle,
   MoreVertical,
   Copy
@@ -70,10 +69,7 @@ export default function AgendamentosPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [viewPeriod, setViewPeriod] = useState("last30days")
   const [selectedProfessional, setSelectedProfessional] = useState("all")
-  const [isGoogleEventsDialogOpen, setIsGoogleEventsDialogOpen] = useState(false)
-  const [selectedProfessionalForImport, setSelectedProfessionalForImport] = useState<string>("")
-  const [selectedGoogleCredentialId, setSelectedGoogleCredentialId] = useState<string>("")
-  const [isImporting, setIsImporting] = useState(false)
+  // Estados removidos - não mais necessários com sincronização automática
   
   const { user } = useAuth()
   const { profiles, loading: profilesLoading } = useProfessionalProfiles()
@@ -227,33 +223,7 @@ export default function AgendamentosPage() {
     applyFilters()
   }, [appointments, filters, viewPeriod, selectedProfessional])
 
-  // Auto-select Google credential when modal opens or when credentials change
-  useEffect(() => {
-    if (isGoogleEventsDialogOpen && credentials.length > 0 && !selectedGoogleCredentialId) {
-      // If only one credential, auto-select it
-      if (credentials.length === 1) {
-        setSelectedGoogleCredentialId(credentials[0].id)
-      } else if (selectedProfessionalForImport) {
-        // Check if the selected professional profile is linked to a Google credential
-        const profileLink = profileLinks.find(link => link.professional_profile_id === selectedProfessionalForImport)
-        if (profileLink) {
-          setSelectedGoogleCredentialId(profileLink.google_credential_id)
-        }
-      }
-    }
-  }, [isGoogleEventsDialogOpen, credentials, profileLinks, selectedProfessionalForImport, selectedGoogleCredentialId])
-
-  // Auto-select credential when professional profile changes
-  useEffect(() => {
-    if (selectedProfessionalForImport && credentials.length > 0) {
-      const profileLink = profileLinks.find(link => link.professional_profile_id === selectedProfessionalForImport)
-      if (profileLink) {
-        setSelectedGoogleCredentialId(profileLink.google_credential_id)
-      } else if (credentials.length === 1) {
-        setSelectedGoogleCredentialId(credentials[0].id)
-      }
-    }
-  }, [selectedProfessionalForImport, credentials, profileLinks])
+  // useEffects removidos - não mais necessários com sincronização automática
 
   // Helper function to check if appointment is blocked
   const isBlocked = (apt: Appointment) => {
@@ -569,104 +539,7 @@ export default function AgendamentosPage() {
     setBlockModalOpen(true)
   }
 
-  // Function to pull Google Calendar events
-  const handleGoogleEventsSync = async () => {
-    console.log('handleGoogleEventsSync called', { selectedProfessionalForImport, selectedGoogleCredentialId });
-    
-    if (!selectedGoogleCredentialId) {
-      console.log('Missing Google credential');
-      toast({
-        title: 'Erro',
-        description: 'Selecione uma conta do Google.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    if (!selectedProfessionalForImport) {
-      console.log('Missing professional profile');
-      toast({
-        title: 'Erro',
-        description: 'Selecione um perfil profissional.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const selectedCredential = credentials.find(c => c.id === selectedGoogleCredentialId);
-    if (!selectedCredential) {
-      toast({
-        title: 'Erro',
-        description: 'Conta do Google não encontrada.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsImporting(true)
-
-    // Set 1 year range automatically: 6 months before and 6 months after current date
-    const now = new Date();
-    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
-    const sixMonthsLater = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
-
-    const query = {
-      my_email: selectedCredential.email,
-      user_id: user.id,
-      calendarId: "primary",
-      timeMin: sixMonthsAgo.toISOString(),
-      timeMax: sixMonthsLater.toISOString(),
-      professionalProfileId: selectedProfessionalForImport
-    }
-
-    console.log('Sending webhook request with query:', query);
-
-    try {
-      const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/eventos-google-agenda', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify([{ query: JSON.stringify(query) }])
-      })
-      
-      console.log('Webhook response status:', response.status);
-      console.log('Webhook response ok:', response.ok);
-      
-      if (response.ok) {
-        const data = await response.json()
-        console.log('Webhook response data:', data);
-        
-        if (data && data[0]) {
-          console.log('Processing webhook data:', data[0]);
-          
-          await createAppointmentsFromGoogleEvents(data[0], selectedProfessionalForImport)
-          setIsGoogleEventsDialogOpen(false)
-          setSelectedProfessionalForImport("")
-          setSelectedGoogleCredentialId("")
-        } else {
-          console.log('No events in response');
-          toast({
-            title: 'Aviso',
-            description: 'Nenhum evento encontrado no período de 1 ano.',
-          });
-        }
-      } else {
-        const errorText = await response.text();
-        console.log('Webhook response not ok:', errorText);
-        throw new Error(`Erro do servidor: ${errorText || response.status}`);
-      }
-    } catch (error) {
-      console.error('Erro ao enviar eventos:', error)
-      toast({
-        title: 'Erro ao importar eventos',
-        description: error instanceof Error ? error.message : 'Erro desconhecido',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsImporting(false)
-    }
-  }
+  // Função removida - sincronização agora é automática via vinculação de perfis
 
 
   // Custom day content renderer
@@ -828,108 +701,7 @@ export default function AgendamentosPage() {
                           <span className="sm:hidden">Bloquear</span>
                         </Button>
                         
-                        <Dialog open={isGoogleEventsDialogOpen} onOpenChange={setIsGoogleEventsDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="flex items-center gap-1 text-xs">
-                              <Download className="h-3 w-3" />
-                              <span className="hidden sm:inline">Vincular eventos</span>
-                              <span className="sm:hidden">Vincular</span>
-                            </Button>
-                          </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                <DialogTitle>Vincular eventos do Google Agenda</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="bg-muted/50 p-4 rounded-lg">
-                                  <p className="text-sm text-muted-foreground">
-                                    Os eventos serão importados automaticamente do período de 1 ano (6 meses antes e 6 meses depois da data atual).
-                                  </p>
-                                </div>
-                                 
-                                 <div className="space-y-2">
-                                   <label className="text-sm font-medium">Perfil Profissional</label>
-                                   <Select value={selectedProfessionalForImport} onValueChange={setSelectedProfessionalForImport}>
-                                     <SelectTrigger>
-                                       <SelectValue placeholder="Selecione o perfil profissional" />
-                                     </SelectTrigger>
-                                     <SelectContent>
-                                       {profiles.map(profile => (
-                                         <SelectItem key={profile.id} value={profile.id}>
-                                           {profile.fullname}
-                                         </SelectItem>
-                                       ))}
-                                     </SelectContent>
-                                   </Select>
-                                 </div>
-
-                                 <div className="space-y-2">
-                                   <label className="text-sm font-medium">Conta Google</label>
-                                   {googleLoading ? (
-                                     <div className="p-2 text-center text-sm text-muted-foreground">
-                                       Carregando contas...
-                                     </div>
-                                   ) : credentials.length === 0 ? (
-                                     <div className="space-y-2">
-                                       <div className="p-3 border rounded-lg bg-muted/50">
-                                         <p className="text-sm text-muted-foreground">
-                                           Nenhuma conta Google conectada. Conecte uma conta para importar eventos.
-                                         </p>
-                                       </div>
-                                       <Button 
-                                         variant="outline" 
-                                         size="sm" 
-                                         onClick={connectGoogleAccount}
-                                         className="w-full"
-                                       >
-                                         Conectar Google Agenda
-                                       </Button>
-                                     </div>
-                                   ) : (
-                                     <Select value={selectedGoogleCredentialId} onValueChange={setSelectedGoogleCredentialId}>
-                                       <SelectTrigger>
-                                         <SelectValue placeholder="Selecione a conta Google" />
-                                       </SelectTrigger>
-                                       <SelectContent>
-                                         {credentials.map(credential => (
-                                           <SelectItem key={credential.id} value={credential.id}>
-                                             {credential.email}
-                                           </SelectItem>
-                                         ))}
-                                       </SelectContent>
-                                     </Select>
-                                   )}
-                                 </div>
-                                
-                                <div className="flex gap-2 pt-4">
-                                   <Button 
-                                     onClick={handleGoogleEventsSync}
-                                     disabled={!selectedProfessionalForImport || !selectedGoogleCredentialId || isImporting || credentials.length === 0}
-                                     className="flex-1"
-                                   >
-                                    {isImporting ? "Vinculando..." : "Vincular eventos"}
-                                  </Button>
-                                  <Button 
-                                    variant="outline" 
-                                    onClick={() => setIsGoogleEventsDialogOpen(false)}
-                                    className="flex-1"
-                                  >
-                                    Cancelar
-                                  </Button>
-                                </div>
-                              </div>
-                            </DialogContent>
-                      </Dialog>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Use esse botão para vincular os eventos do seu Google Agenda</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                         {/* Botão e tooltip removidos - sincronização agora é automática via página de Perfis */}
                     </div>
                     
                     <Button 

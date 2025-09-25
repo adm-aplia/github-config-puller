@@ -146,6 +146,98 @@ export const useGoogleIntegrations = () => {
     }
   };
 
+  // Função para sincronizar eventos automaticamente
+  const syncGoogleEventsForProfile = async (credentialId: string, profileId: string) => {
+    try {
+      const credential = credentials.find(c => c.id === credentialId);
+      if (!credential) {
+        throw new Error('Credencial Google não encontrada');
+      }
+
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData.user;
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      // Configurar período de 1 ano (6 meses para trás, 6 para frente)
+      const now = new Date();
+      const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+      const sixMonthsLater = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
+
+      const query = {
+        my_email: credential.email,
+        user_id: user.id,
+        calendarId: "primary",
+        timeMin: sixMonthsAgo.toISOString(),
+        timeMax: sixMonthsLater.toISOString(),
+        professionalProfileId: profileId
+      };
+
+      console.log('🔄 Sincronizando eventos automaticamente:', query);
+
+      const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/eventos-google-agenda', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([{ query: JSON.stringify(query) }])
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Eventos sincronizados:', data);
+
+        if (data && data[0]) {
+          // Fazer chamada direta ao webhook que já processa os eventos
+          console.log('📅 Eventos processados e inseridos automaticamente');
+          return true;
+        }
+      } else {
+        throw new Error(`Erro do servidor: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('❌ Erro na sincronização automática:', error);
+      throw error;
+    }
+  };
+
+  // Função para deletar eventos do perfil
+  const deleteGoogleEventsForProfile = async (profileId: string) => {
+    try {
+      console.log('🗑️ Deletando eventos do perfil:', profileId);
+
+      // Deletar eventos da tabela google_calendar_events
+      const { error: calendarError } = await supabase
+        .from('google_calendar_events')
+        .delete()
+        .eq('professional_profile_id', profileId);
+
+      if (calendarError) {
+        console.error('Erro ao deletar google_calendar_events:', calendarError);
+        throw calendarError;
+      }
+
+      // Deletar appointments relacionados (identificados por google_event_id não nulo)
+      const { error: appointmentsError } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('professional_profile_id', profileId)
+        .not('google_event_id', 'is', null);
+
+      if (appointmentsError) {
+        console.error('Erro ao deletar appointments:', appointmentsError);
+        throw appointmentsError;
+      }
+
+      console.log('✅ Eventos deletados com sucesso');
+      return true;
+    } catch (error) {
+      console.error('❌ Erro ao deletar eventos:', error);
+      throw error;
+    }
+  };
+
   const linkProfileToGoogle = async (googleCredentialId: string, professionalProfileId: string) => {
     try {
       // Verificar se o perfil já tem alguma conta Google vinculada
@@ -177,6 +269,12 @@ export const useGoogleIntegrations = () => {
         return false;
       }
 
+      // Mostrar loading para sincronização
+      toast({
+        title: 'Sincronizando eventos...',
+        description: 'Vinculando perfil e importando eventos do Google Calendar.',
+      });
+
       const { data, error } = await supabase
         .from('google_profile_links')
         .insert([{
@@ -199,10 +297,22 @@ export const useGoogleIntegrations = () => {
         )
       );
 
-      toast({
-        title: 'Perfil vinculado',
-        description: 'Perfil vinculado à conta Google com sucesso.',
-      });
+      // Sincronizar eventos automaticamente
+      try {
+        await syncGoogleEventsForProfile(googleCredentialId, professionalProfileId);
+        
+        toast({
+          title: 'Perfil vinculado com sucesso',
+          description: 'Perfil vinculado e eventos sincronizados automaticamente.',
+        });
+      } catch (syncError) {
+        console.error('Erro na sincronização automática:', syncError);
+        toast({
+          title: 'Perfil vinculado',
+          description: 'Perfil vinculado, mas houve erro na sincronização automática de eventos.',
+          variant: 'destructive',
+        });
+      }
 
       return true;
     } catch (error) {
@@ -220,6 +330,19 @@ export const useGoogleIntegrations = () => {
     try {
       const linkToDelete = profileLinks.find(link => link.id === linkId);
       
+      if (!linkToDelete) {
+        throw new Error('Link não encontrado');
+      }
+
+      // Deletar eventos relacionados antes de remover a vinculação
+      try {
+        await deleteGoogleEventsForProfile(linkToDelete.professional_profile_id);
+        console.log('✅ Eventos deletados automaticamente');
+      } catch (deleteError) {
+        console.error('❌ Erro ao deletar eventos:', deleteError);
+        // Continuar com a desvinculação mesmo se houver erro na deleção de eventos
+      }
+
       const { error } = await supabase
         .from('google_profile_links')
         .delete()
@@ -230,25 +353,23 @@ export const useGoogleIntegrations = () => {
       setProfileLinks(prev => prev.filter(link => link.id !== linkId));
 
       // Atualizar a credencial local removendo o professional_profile_id se necessário
-      if (linkToDelete) {
-        const remainingLinks = profileLinks.filter(
-          link => link.id !== linkId && link.google_credential_id === linkToDelete.google_credential_id
+      const remainingLinks = profileLinks.filter(
+        link => link.id !== linkId && link.google_credential_id === linkToDelete.google_credential_id
+      );
+      
+      if (remainingLinks.length === 0) {
+        setCredentials(prev => 
+          prev.map(cred => 
+            cred.id === linkToDelete.google_credential_id 
+              ? { ...cred, professional_profile_id: undefined }
+              : cred
+          )
         );
-        
-        if (remainingLinks.length === 0) {
-          setCredentials(prev => 
-            prev.map(cred => 
-              cred.id === linkToDelete.google_credential_id 
-                ? { ...cred, professional_profile_id: undefined }
-                : cred
-            )
-          );
-        }
       }
 
       toast({
         title: 'Vinculação removida',
-        description: 'Vinculação entre perfil e conta Google removida.',
+        description: 'Perfil desvinculado e eventos removidos automaticamente.',
       });
 
       return true;
