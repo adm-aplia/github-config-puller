@@ -252,7 +252,7 @@ export const useAppointments = () => {
             patient_email: event.attendees?.[0]?.email || '',
             appointment_date: startDate,
             duration_minutes: durationMinutes,
-            appointment_type: 'blocked', // Mark as blocked so it doesn't count in limits
+            appointment_type: 'google_sync', // Mark as blocked so it doesn't count in limits
             status: event.status === 'cancelled' ? 'cancelled' : 'confirmed',
             notes: [
               event.description,

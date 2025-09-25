@@ -218,12 +218,12 @@ export const useGoogleIntegrations = () => {
         throw calendarError;
       }
 
-      // Deletar appointments relacionados (identificados por google_event_id não nulo)
+      // Deletar appointments relacionados (apenas os vindos do Google Calendar)
       const { error: appointmentsError } = await supabase
         .from('appointments')
         .delete()
         .eq('professional_profile_id', profileId)
-        .not('google_event_id', 'is', null);
+        .eq('appointment_type', 'google_sync');
 
       if (appointmentsError) {
         console.error('Erro ao deletar appointments:', appointmentsError);
