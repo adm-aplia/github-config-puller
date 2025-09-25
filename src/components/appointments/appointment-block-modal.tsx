@@ -68,6 +68,7 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
 
   // Helper function to send individual appointment to webhook
   const sendAppointmentToWebhook = async (queryObj: any) => {
+    console.log('🔄 Enviando bloqueio para webhook:', queryObj)
     const payload = [{ query: JSON.stringify(queryObj) }]
     
     const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/agendamento-aplia', {
@@ -77,6 +78,8 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
       },
       body: JSON.stringify(payload)
     })
+
+    console.log('📡 Resposta do webhook:', response.status, response.statusText)
 
     if (!response.ok) {
       throw new Error(`Webhook error: ${response.status}`)
@@ -309,8 +312,9 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
         try {
           await sendAppointmentToWebhook(queryObj)
           successCount++
+          console.log(`✅ Slot ${i + 1} enviado com sucesso`)
         } catch (error) {
-          console.error(`Error sending slot ${i + 1}:`, error)
+          console.error(`❌ Erro ao enviar slot ${i + 1}:`, error)
           errorCount++
         }
       }
