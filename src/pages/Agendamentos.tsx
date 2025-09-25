@@ -579,42 +579,80 @@ export default function AgendamentosPage() {
                 Período: {getFormattedDateRange()}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
-                onClick={async () => {
-                  await fetchAppointments()
-                  toast({
-                    title: "Atualizado",
-                    description: "Lista de agendamentos atualizada com sucesso."
-                  })
-                }}
-              >
-                <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Atualizar</span>
-                <span className="sm:hidden">Atualizar</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
-                onClick={() => setFiltersModalOpen(true)}
-              >
-                <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Filtrar</span>
-                <span className="sm:hidden">Filtrar</span>
-              </Button>
-              <Button 
-                size="sm" 
-                className="flex items-center gap-1 sm:gap-2 bg-secondary hover:bg-secondary/90 text-xs sm:text-sm"
-                onClick={() => setCreateModalOpen(true)}
-              >
-                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Novo Agendamento</span>
-                <span className="sm:hidden">Novo</span>
-              </Button>
+            
+            {/* Todos os controles organizados no header */}
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              {/* Grupo 1: Visualização */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
+                  <SelectTrigger className="w-full sm:w-56">
+                    <SelectValue>
+                      {selectedProfessional === "all" ? "Todos os profissionais" : 
+                       profiles.find(p => p.id === selectedProfessional)?.fullname || "Profissional não encontrado"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os profissionais</SelectItem>
+                    {profiles.map(profile => (
+                      <SelectItem key={profile.id} value={profile.id}>
+                        {profile.fullname}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                  onClick={() => setFiltersModalOpen(true)}
+                >
+                  <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Filtrar</span>
+                  <span className="sm:hidden">Filtrar</span>
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                  onClick={async () => {
+                    await fetchAppointments()
+                    toast({
+                      title: "Atualizado",
+                      description: "Lista de agendamentos atualizada com sucesso."
+                    })
+                  }}
+                >
+                  <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Atualizar</span>
+                  <span className="sm:hidden">Atualizar</span>
+                </Button>
+              </div>
+
+              {/* Grupo 2: Ações */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                  onClick={() => setBlockModalOpen(true)}
+                >
+                  <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Bloquear horários</span>
+                  <span className="sm:hidden">Bloquear</span>
+                </Button>
+                
+                <Button 
+                  size="sm" 
+                  className="flex items-center gap-1 sm:gap-2 bg-primary hover:bg-primary/90 text-xs sm:text-sm"
+                  onClick={() => setCreateModalOpen(true)}
+                >
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Novo Agendamento</span>
+                  <span className="sm:hidden">Novo</span>
+                </Button>
+              </div>
             </div>
           </header>
 
@@ -670,53 +708,6 @@ export default function AgendamentosPage() {
                       Calendário de Agendamentos
                     </CardTitle>
                     <CardDescription>Visualize e gerencie todos os agendamentos</CardDescription>
-                  </div>
-                    <div className="flex flex-col gap-2">
-                      <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
-                        <SelectTrigger className="w-full sm:w-56">
-                          <SelectValue>
-                            {selectedProfessional === "all" ? "Todos os profissionais" : 
-                             profiles.find(p => p.id === selectedProfessional)?.fullname || "Profissional não encontrado"}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos os profissionais</SelectItem>
-                          {profiles.map(profile => (
-                            <SelectItem key={profile.id} value={profile.id}>
-                              {profile.fullname}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      
-                      <div className="flex flex-wrap items-center gap-1">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex items-center gap-1 text-xs"
-                          onClick={() => setBlockModalOpen(true)}
-                        >
-                          <X className="h-3 w-3" />
-                          <span className="hidden sm:inline">Bloquear horários</span>
-                          <span className="sm:hidden">Bloquear</span>
-                        </Button>
-                        
-                         {/* Botão e tooltip removidos - sincronização agora é automática via página de Perfis */}
-                    </div>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={async () => {
-                        await fetchAppointments()
-                        toast({
-                          title: "Atualizado",
-                          description: "Calendário atualizado com sucesso."
-                        })
-                      }}
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
               </CardHeader>
