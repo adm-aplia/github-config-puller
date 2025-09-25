@@ -315,11 +315,11 @@ export default function AgendamentosPage() {
     return applyAppointmentFilters(appointments)
   }
 
-  // Get appointments for a specific date (excluding blocked appointments) - for calendar view
+  // Get appointments for a specific date (excluding blocked appointments and cancelled) - for calendar view
   const getAppointmentsForDate = (date: Date) => {
     return appointmentsForCalendar().filter(apt => {
       const aptDate = new Date(apt.appointment_date)
-      return aptDate.toDateString() === date.toDateString() && !isBlocked(apt)
+      return aptDate.toDateString() === date.toDateString() && !isBlocked(apt) && apt.status !== 'cancelled'
     })
   }
 
@@ -331,7 +331,7 @@ export default function AgendamentosPage() {
     })
   }
 
-  // Get appointments for selected date in day view (non-blocked only)
+  // Get appointments for selected date in day view (non-blocked and non-cancelled only for calendar)
   const getAppointmentsForSelectedDateDayView = (date: Date) => {
     return appointmentsForDayView().filter(apt => {
       const aptDate = new Date(apt.appointment_date)
@@ -1013,10 +1013,14 @@ export default function AgendamentosPage() {
                       </p>
                     ) : (
                       <div className="space-y-3">
-                        {selectedDateAppointments.map((appointment) => (
+                        {/* Agendamentos ativos (não cancelados) */}
+                        {selectedDateAppointments.filter(apt => apt.status !== 'cancelled').map((appointment) => (
                           <div
                             key={appointment.id}
-                            className="p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                            className={cn(
+                              "p-3 border rounded-lg hover:bg-accent/50 transition-colors",
+                              appointment.status === 'confirmed' && "bg-green-50 border-green-200"
+                            )}
                           >
                             <div className="flex items-start justify-between">
                               <div className="space-y-1">
@@ -1089,7 +1093,99 @@ export default function AgendamentosPage() {
                               </DropdownMenu>
                             </div>
                           </div>
-                        ))}
+                         ))}
+                        
+                        {/* Separador e agendamentos cancelados */}
+                        {selectedDateAppointments.filter(apt => apt.status === 'cancelled').length > 0 && (
+                          <>
+                            <div className="py-2">
+                              <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                  <span className="w-full border-t" />
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                  <span className="bg-background px-2 text-muted-foreground">
+                                    Cancelados
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {selectedDateAppointments.filter(apt => apt.status === 'cancelled').map((appointment) => (
+                              <div
+                                key={appointment.id}
+                                className="p-3 border rounded-lg hover:bg-accent/50 transition-colors opacity-60"
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium">
+                                        {appointment.patient_name}
+                                      </span>
+                                      <Badge variant={getStatusBadge(appointment.status).variant}>
+                                        {getStatusBadge(appointment.status).label}
+                                      </Badge>
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                      <div>⏰ {format(new Date(appointment.appointment_date), "HH:mm")}</div>
+                                      {appointment.duration_minutes && (
+                                        <div>Duração: {appointment.duration_minutes} min</div>
+                                      )}
+                                      {appointment.professional_profile_id && (
+                                        <div>
+                                          👨‍⚕️ {profiles.find(p => p.id === appointment.professional_profile_id)?.fullname || 'Profissional não encontrado'}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" className="h-8 w-8 p-0">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => {
+                                        setSelectedAppointment(appointment)
+                                        setViewModalOpen(true)
+                                      }}>
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        Visualizar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => {
+                                        setSelectedAppointment(appointment)
+                                        setEditModalOpen(true)
+                                      }}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        Editar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => {
+                                        setSelectedAppointment(appointment)
+                                        setRescheduleModalOpen(true)
+                                      }}>
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        Reagendar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => handleUpdateStatus(appointment.id, 'confirmed')}>
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Confirmar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem 
+                                        onClick={() => handleDeleteAppointment(appointment.id)}
+                                        className="text-destructive"
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Excluir
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        )}
                       </div>
                     )}
                   </ScrollArea>
