@@ -1015,22 +1015,22 @@ export default function AgendamentosPage() {
                       <div className="space-y-3">
                         {/* Agendamentos ativos (não cancelados) */}
                         {selectedDateAppointments.filter(apt => apt.status !== 'cancelled').map((appointment) => (
-                          <div
-                            key={appointment.id}
-                            className={cn(
-                              "p-3 border rounded-lg hover:bg-accent/50 transition-colors",
-                              appointment.status === 'confirmed' && "bg-green-50 border-green-200"
-                            )}
-                          >
+                           <div
+                             key={appointment.id}
+                             className="p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                           >
                             <div className="flex items-start justify-between">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium">
                                     {appointment.patient_name}
                                   </span>
-                                  <Badge variant={getStatusBadge(appointment.status).variant}>
-                                    {getStatusBadge(appointment.status).label}
-                                  </Badge>
+                                   <Badge 
+                                     variant={appointment.status === 'confirmed' ? "default" : getStatusBadge(appointment.status).variant}
+                                     className={appointment.status === 'confirmed' ? "bg-green-500 text-white hover:bg-green-600" : ""}
+                                   >
+                                     {getStatusBadge(appointment.status).label}
+                                   </Badge>
                                 </div>
                                 <div className="text-sm text-muted-foreground">
                                   <div>⏰ {format(new Date(appointment.appointment_date), "HH:mm")}</div>
@@ -1122,9 +1122,12 @@ export default function AgendamentosPage() {
                                       <span className="font-medium">
                                         {appointment.patient_name}
                                       </span>
-                                      <Badge variant={getStatusBadge(appointment.status).variant}>
-                                        {getStatusBadge(appointment.status).label}
-                                      </Badge>
+                                       <Badge 
+                                         variant={appointment.status === 'confirmed' ? "default" : getStatusBadge(appointment.status).variant}
+                                         className={appointment.status === 'confirmed' ? "bg-green-500 text-white hover:bg-green-600" : ""}
+                                       >
+                                         {getStatusBadge(appointment.status).label}
+                                       </Badge>
                                     </div>
                                     <div className="text-sm text-muted-foreground">
                                       <div>⏰ {format(new Date(appointment.appointment_date), "HH:mm")}</div>
