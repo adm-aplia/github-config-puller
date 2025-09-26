@@ -18,20 +18,9 @@ export interface ProfessionalProfile {
   healthinsurance?: string;
   paymentmethods?: string;
   consultationfees?: string;
-  cancellationpolicy?: string;
   consultationduration?: string;
-  timebetweenconsultations?: string;
-  reschedulingpolicy?: string;
-  onlineconsultations?: string;
-  reminderpreferences?: string;
-  requiredpatientinfo?: string;
-  appointmentconditions?: string;
-  medicalhistoryrequirements?: string;
-  agerequirements?: string;
-  communicationchannels?: string;
-  preappointmentinfo?: string;
-  requireddocuments?: string;
-  additionalinfo?: string;
+  installment_enabled?: boolean;
+  max_installments?: number;
   created_at: string;
   updated_at: string;
 }

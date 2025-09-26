@@ -9,7 +9,7 @@ import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
 import { useWhatsAppInstances } from "@/hooks/use-whatsapp-instances"
 import { useSubscription } from "@/hooks/use-subscription"
-import { ProfileWizardModal } from "@/components/profiles/profile-wizard-modal"
+import { ProfileForm } from "@/components/profiles/profile-form"
 import { CreateInstanceModal } from "@/components/whatsapp/CreateInstanceModal"
 import { QrCodeDialog } from "@/components/whatsapp/QrCodeDialog"
 import { SelectGoogleAccountModal } from "@/components/google/SelectGoogleAccountModal"
@@ -416,7 +416,7 @@ export default function PerfilsPage() {
         </div>
       </div>
 
-      <ProfileWizardModal
+      <ProfileForm
         profile={editingProfile}
         isOpen={showForm}
         onClose={closeForm}

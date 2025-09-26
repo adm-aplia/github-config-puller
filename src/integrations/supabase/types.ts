@@ -696,7 +696,9 @@ export type Database = {
           fullname: string
           healthinsurance: string | null
           id: string
+          installment_enabled: boolean | null
           locations: string | null
+          max_installments: number | null
           medicalhistoryrequirements: string | null
           onlineconsultations: string | null
           paymentmethods: string | null
@@ -729,7 +731,9 @@ export type Database = {
           fullname: string
           healthinsurance?: string | null
           id?: string
+          installment_enabled?: boolean | null
           locations?: string | null
+          max_installments?: number | null
           medicalhistoryrequirements?: string | null
           onlineconsultations?: string | null
           paymentmethods?: string | null
@@ -762,7 +766,9 @@ export type Database = {
           fullname?: string
           healthinsurance?: string | null
           id?: string
+          installment_enabled?: boolean | null
           locations?: string | null
+          max_installments?: number | null
           medicalhistoryrequirements?: string | null
           onlineconsultations?: string | null
           paymentmethods?: string | null
