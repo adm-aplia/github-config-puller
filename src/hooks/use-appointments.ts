@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
+import { normalizePhoneNumber } from '@/lib/whatsapp';
 
 export interface Appointment {
   id: string;
@@ -122,6 +123,68 @@ export const useAppointments = () => {
 
     // Add delay between requests
     await new Promise(resolve => setTimeout(resolve, 200))
+  }
+
+  // Send cancellation webhook
+  const sendCancellationWebhook = async (appointment: Appointment) => {
+    const phoneNumber = normalizePhoneNumber(appointment.patient_phone);
+    const formattedPhone = phoneNumber.startsWith('55') ? `+${phoneNumber}` : `+55${phoneNumber}`;
+    
+    const queryObj = {
+      action: "cancel",
+      lead_number: formattedPhone,
+      agent_id: appointment.professional_profile_id,
+      appointment_date: format(new Date(appointment.appointment_date), 'yyyy-MM-dd')
+    };
+
+    const payload = [{ query: JSON.stringify(queryObj) }];
+    
+    const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/cancelamento-site', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Cancellation webhook error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('[cancelamento-webhook] Response:', result);
+    return result;
+  }
+
+  // Send deletion webhook
+  const sendDeletionWebhook = async (appointment: Appointment) => {
+    const phoneNumber = normalizePhoneNumber(appointment.patient_phone);
+    const formattedPhone = phoneNumber.startsWith('55') ? `+${phoneNumber}` : `+55${phoneNumber}`;
+    
+    const queryObj = {
+      action: "delete",
+      lead_number: formattedPhone,
+      agent_id: appointment.professional_profile_id,
+      appointment_date: format(new Date(appointment.appointment_date), 'yyyy-MM-dd')
+    };
+
+    const payload = [{ query: JSON.stringify(queryObj) }];
+    
+    const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/deletar-site', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Deletion webhook error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('[deletar-webhook] Response:', result);
+    return result;
   }
 
   const createAppointmentsFromGoogleEvents = async (payload: any, professionalId?: string) => {
@@ -398,8 +461,49 @@ export const useAppointments = () => {
     }
   };
 
-  const updateAppointmentStatus = async (appointmentId: string, newStatus: string) => {
-    return updateAppointment(appointmentId, { status: newStatus });
+  const updateAppointmentStatus = async (appointmentId: string, status: string) => {
+    try {
+      // Get appointment data first
+      const { data: appointment } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('id', appointmentId)
+        .single();
+
+      if (!appointment) throw new Error('Appointment not found');
+
+      // If cancelling, send webhook first
+      if (status === 'cancelled') {
+        await sendCancellationWebhook(appointment);
+      }
+
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status })
+        .eq('id', appointmentId);
+
+      if (error) throw error;
+
+      // If confirming a cancelled appointment, recreate it via webhook
+      if (status === 'confirmed' && appointment.status === 'cancelled') {
+        const queryObj = {
+          action: "create",
+          nome: appointment.patient_name,
+          telefone: appointment.patient_phone,
+          email: appointment.patient_email || "",
+          datetime: appointment.appointment_date,
+          appointment_type: appointment.appointment_type || "consulta",
+          notes: appointment.notes || "",
+          professional_profile_id: appointment.professional_profile_id,
+          duration_minutes: appointment.duration_minutes || 60
+        };
+        
+        await sendAppointmentToWebhook(queryObj);
+      }
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      throw error;
+    }
   };
 
   const rescheduleAppointment = async (appointmentId: string, newDateTime: string) => {
@@ -525,6 +629,18 @@ export const useAppointments = () => {
 
   const deleteAppointment = async (appointmentId: string) => {
     try {
+      // Get appointment data first
+      const { data: appointment } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('id', appointmentId)
+        .single();
+
+      if (!appointment) throw new Error('Appointment not found');
+
+      // Send deletion webhook first
+      await sendDeletionWebhook(appointment);
+
       const { error } = await supabase
         .from('appointments')
         .delete()

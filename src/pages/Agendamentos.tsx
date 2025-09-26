@@ -416,14 +416,23 @@ export default function AgendamentosPage() {
     try {
       await updateAppointmentStatus(appointmentId, newStatus)
       await fetchAppointments()
+      
+      const statusMessages = {
+        cancelled: 'Agendamento cancelado e notificação enviada',
+        confirmed: 'Agendamento confirmado',
+        pending: 'Status atualizado para pendente',
+        completed: 'Agendamento marcado como concluído',
+        rescheduled: 'Agendamento remarcado'
+      }
+      
       toast({
         title: 'Status atualizado',
-        description: 'O status do agendamento foi atualizado com sucesso.',
+        description: statusMessages[newStatus as keyof typeof statusMessages] || 'O status do agendamento foi atualizado com sucesso.',
       })
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Erro ao atualizar status',
-        description: 'Não foi possível atualizar o status do agendamento.',
+        description: error?.message || 'Não foi possível atualizar o status do agendamento.',
         variant: 'destructive',
       })
     }
@@ -475,12 +484,12 @@ export default function AgendamentosPage() {
       await fetchAppointments()
       toast({
         title: 'Agendamento excluído',
-        description: 'O agendamento foi excluído com sucesso.',
+        description: 'O agendamento foi excluído com sucesso e notificação enviada.',
       })
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Erro ao excluir',
-        description: 'Não foi possível excluir o agendamento.',
+        description: error?.message || 'Não foi possível excluir o agendamento.',
         variant: 'destructive',
       })
     }
