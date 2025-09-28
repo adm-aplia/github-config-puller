@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useGoogleCalendarEvents } from '@/hooks/use-google-calendar-events';
 
 export interface GoogleCredential {
   id: string;
@@ -29,6 +30,7 @@ export const useGoogleIntegrations = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { processGoogleCalendarWebhook } = useGoogleCalendarEvents();
 
   const fetchCredentials = async () => {
     try {
@@ -188,8 +190,12 @@ export const useGoogleIntegrations = () => {
         const data = await response.json();
         console.log('✅ Eventos sincronizados:', data);
 
-        if (data && data[0]) {
-          // Fazer chamada direta ao webhook que já processa os eventos
+        if (data && data[0] && data[0].response) {
+          // Processar os eventos recebidos do webhook
+          const events = data[0].response;
+          console.log(`📅 Processando ${events.length} eventos do Google Calendar`);
+          
+          await processGoogleCalendarWebhook(events, "primary", profileId);
           console.log('📅 Eventos processados e inseridos automaticamente');
           return true;
         }
