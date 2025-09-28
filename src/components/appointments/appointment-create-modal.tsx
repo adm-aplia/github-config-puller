@@ -281,6 +281,7 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
                     onSelect={setSelectedDate}
                     disabled={(date) => date < startOfDay(new Date())}
                     initialFocus
+                    className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
               </Popover>

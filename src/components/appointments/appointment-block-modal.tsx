@@ -448,6 +448,7 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
                     onSelect={setStartDate}
                     disabled={(date) => date < startOfDay(new Date())}
                     initialFocus
+                    className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
               </Popover>
@@ -475,6 +476,7 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
                     onSelect={setEndDate}
                     disabled={(date) => date < startOfDay(new Date())}
                     initialFocus
+                    className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
               </Popover>
