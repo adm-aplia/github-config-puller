@@ -2,17 +2,23 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
-// Interface para eventos vindos do N8N (formato diferente)
+// Interface para dados recebidos do webhook N8N
+export interface N8NWebhookData {
+  my_email: string;
+  count: number;
+  events: N8NEvent[];
+}
+
+// Interface para eventos vindos do N8N
 export interface N8NEvent {
   id: string;
   summary?: string;
-  start?: string; // String direta do N8N
-  end?: string;   // String direta do N8N
-  organizer?: string; // String direta do N8N
-  attendees?: string[]; // Array de strings do N8N
+  start?: string; // String direta do N8N em formato ISO
+  end?: string;   // String direta do N8N em formato ISO
+  organizer?: string;
+  attendees?: string[]; // Array de emails
   htmlLink?: string;
-  location?: string;
-  status?: string;
+  location?: string | null;
 }
 
 export interface GoogleCalendarEvent {
@@ -414,6 +420,24 @@ export const useGoogleCalendarEvents = () => {
     }
   };
 
+  // Função para processar dados do webhook N8N no novo formato
+  const processN8NWebhookData = async (
+    webhookData: N8NWebhookData,
+    professionalProfileId?: string
+  ): Promise<number> => {
+    console.log('📥 Processando dados do webhook N8N:', webhookData);
+    
+    // Transformar para o formato esperado
+    const transformedEvents = transformN8NEvents(webhookData.events);
+    
+    // Processar como eventos do Google Calendar
+    return await processGoogleCalendarWebhook(
+      transformedEvents,
+      'primary', // calendar ID padrão
+      professionalProfileId
+    );
+  };
+
   // Função para transformar eventos do N8N para o formato esperado
   const transformN8NEvents = (n8nEvents: N8NEvent[]): GCalendarWebhookEvent[] => {
     console.log('🔄 Transformando eventos do N8N:', n8nEvents);
@@ -421,10 +445,10 @@ export const useGoogleCalendarEvents = () => {
     return n8nEvents.map(event => ({
       id: event.id,
       summary: event.summary,
-      status: event.status || 'confirmed',
+      status: 'confirmed',
       start: event.start ? { dateTime: event.start } : undefined,
       end: event.end ? { dateTime: event.end } : undefined,
-      location: event.location,
+      location: event.location || undefined,
       attendees: Array.isArray(event.attendees) 
         ? event.attendees.map(email => ({ email }))
         : [],
@@ -443,8 +467,9 @@ export const useGoogleCalendarEvents = () => {
     loading,
     fetchGoogleCalendarEvents,
     processGoogleCalendarWebhook,
+    processN8NWebhookData, // Nova função para processar dados do N8N
     syncGoogleCalendarWithAppointments,
-    transformN8NEvents, // Exportar nova função
+    transformN8NEvents,
     refetch: fetchGoogleCalendarEvents,
   };
 };
