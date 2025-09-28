@@ -628,12 +628,12 @@ export default function AgendamentosPage() {
                 </Select>
               </div>
               
-              {/* Botões de ação - horizontal no desktop */}
-              <div className="grid grid-cols-2 sm:flex sm:flex-wrap lg:flex gap-2">
+              {/* Botões de ação - horizontal no desktop, alinhados à direita */}
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap lg:flex lg:flex-nowrap gap-2 lg:ml-auto">
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex items-center justify-center gap-2 text-sm"
+                  className="flex items-center justify-center gap-2 text-sm whitespace-nowrap"
                   onClick={() => setFiltersModalOpen(true)}
                 >
                   <Filter className="h-4 w-4" />
@@ -643,7 +643,7 @@ export default function AgendamentosPage() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex items-center justify-center gap-2 text-sm"
+                  className="flex items-center justify-center gap-2 text-sm whitespace-nowrap"
                   onClick={async () => {
                     await fetchAppointments()
                     toast({
@@ -659,7 +659,7 @@ export default function AgendamentosPage() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex items-center justify-center gap-2 text-sm"
+                  className="flex items-center justify-center gap-2 text-sm whitespace-nowrap"
                   onClick={() => setBlockModalOpen(true)}
                 >
                   <X className="h-4 w-4" />
@@ -668,7 +668,7 @@ export default function AgendamentosPage() {
                 
                 <Button 
                   size="sm" 
-                  className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-sm"
+                  className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-sm whitespace-nowrap"
                   onClick={() => setCreateModalOpen(true)}
                 >
                   <Plus className="h-4 w-4" />
