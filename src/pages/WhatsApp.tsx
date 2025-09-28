@@ -13,6 +13,7 @@ import { CreateInstanceModal } from "@/components/whatsapp/CreateInstanceModal"
 import { AssignProfileModal } from "@/components/whatsapp/AssignProfileModal"
 import { EditInstanceNameModal } from "@/components/whatsapp/edit-instance-name-modal"
 import { useToast } from "@/hooks/use-toast"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { supabase } from "@/integrations/supabase/client"
 import { formatPhoneNumber, extractPhoneNumberFromApi, normalizePhoneNumber } from "@/lib/whatsapp"
 
@@ -39,6 +40,7 @@ const getStatusConfig = (status: string) => {
 
 export default function WhatsAppPage() {
   const { instances, loading, createInstance, updateInstance, deleteInstance, refetch, syncInstances } = useWhatsAppInstances();
+  const isMobile = useIsMobile();
   const [qrOpen, setQrOpen] = useState(false);
   const [qrData, setQrData] = useState<{ id?: string; slug?: string; displayName?: string; code?: string | null }>({});
   const [createOpen, setCreateOpen] = useState(false);
@@ -287,9 +289,11 @@ export default function WhatsAppPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">WhatsApp</h1>
-                <p className="text-muted-foreground">
-                  Gerencie suas instâncias do WhatsApp Business
-                </p>
+                {!isMobile && (
+                  <p className="text-muted-foreground">
+                    Gerencie suas instâncias do WhatsApp Business
+                  </p>
+                )}
               </div>
               <Button disabled>
                 <Plus className="h-4 w-4 mr-2" />
@@ -314,9 +318,11 @@ export default function WhatsAppPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">WhatsApp</h1>
-              <p className="text-muted-foreground">
-                Gerencie suas instâncias do WhatsApp Business
-              </p>
+              {!isMobile && (
+                <p className="text-muted-foreground">
+                  Gerencie suas instâncias do WhatsApp Business
+                </p>
+              )}
             </div>
             <Button onClick={handleCreateInstance} className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
