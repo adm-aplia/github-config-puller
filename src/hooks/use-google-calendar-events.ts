@@ -183,7 +183,7 @@ export const useGoogleCalendarEvents = () => {
     googleCalendarId = 'primary',
     professionalProfileId?: string
   ): Promise<number> => {
-    console.log('📥 Processando webhook do Google Calendar:', webhookEvents);
+    console.log('📥 Processando webhook do Google Calendar diretamente para appointments:', webhookEvents);
     
     try {
       const { data: userData } = await supabase.auth.getUser();
@@ -192,7 +192,7 @@ export const useGoogleCalendarEvents = () => {
         throw new Error('User not authenticated');
       }
 
-      const eventsToUpsert: Partial<GoogleCalendarEvent>[] = [];
+      const appointmentsToCreate = [];
 
       for (const event of webhookEvents) {
         if (!event.id) continue;
@@ -205,103 +205,91 @@ export const useGoogleCalendarEvents = () => {
           continue;
         }
 
-        const isAllDay = Boolean(event.start?.date);
-        const rrule = extractRRule(event.recurrence);
+        // Check if appointment already exists
+        const { data: existingAppointment } = await supabase
+          .from('appointments')
+          .select('id')
+          .eq('user_id', userData.user.id)
+          .eq('google_event_id', event.id)
+          .eq('google_calendar_id', googleCalendarId)
+          .single();
 
-        const googleCalendarEvent: Partial<GoogleCalendarEvent> = {
+        if (existingAppointment) {
+          console.log(`⏭️ Appointment já existe para evento ${event.id}`);
+          continue;
+        }
+
+        const isAllDay = Boolean(event.start?.date);
+        
+        // Parse attendees safely
+        const attendees = event.attendees || [];
+        const firstAttendeeEmail = attendees.length > 0 && typeof attendees[0] === 'object' 
+          ? attendees[0]?.email || '' 
+          : '';
+
+        const appointment = {
           user_id: userData.user.id,
           professional_profile_id: professionalProfileId,
-          google_calendar_id: googleCalendarId,
+          patient_name: event.summary || 'Evento Google Calendar',
+          patient_phone: '', // Google Calendar doesn't provide phone
+          patient_email: firstAttendeeEmail,
+          appointment_date: startTime,
+          duration_minutes: Math.round(
+            (new Date(endTime).getTime() - new Date(startTime).getTime()) / (1000 * 60)
+          ),
+          appointment_type: null, // Regular appointment from Google Calendar
+          status: event.status === 'cancelled' ? 'cancelled' : 'confirmed',
+          notes: [
+            event.description,
+            event.location ? `Local: ${event.location}` : null,
+            `Evento do Google Calendar`,
+            `ID: ${event.id}`
+          ].filter(Boolean).join('\n'),
           google_event_id: event.id,
-          etag: event.etag,
-          ical_uid: event.iCalUID,
-          summary: event.summary,
-          description: event.description,
-          location: event.location,
-          start_time: startTime,
-          end_time: endTime,
+          google_calendar_id: googleCalendarId,
+          google_recurring_event_id: event.recurringEventId,
+          google_original_start_time: parseGoogleDate(event.originalStartTime),
           timezone: event.start?.timeZone || 'America/Sao_Paulo',
           all_day: isAllDay,
-          recurrence: event.recurrence || [],
-          rrule: rrule,
-          recurring_event_id: event.recurringEventId,
-          original_start_time: parseGoogleDate(event.originalStartTime),
-          is_recurring_instance: Boolean(event.recurringEventId),
-          status: event.status || 'confirmed',
-          attendees: event.attendees || [],
-          reminders: event.reminders || {},
-          sequence: event.sequence || 0,
-          event_type: event.eventType,
         };
 
-        eventsToUpsert.push(googleCalendarEvent);
+        appointmentsToCreate.push(appointment);
       }
 
-      if (eventsToUpsert.length === 0) {
+      if (appointmentsToCreate.length === 0) {
+        console.log('ℹ️ Nenhum novo appointment para criar');
         toast({
-          title: 'Nenhum evento válido',
-          description: 'Nenhum evento válido foi encontrado para processar.',
+          title: 'Nenhum evento novo',
+          description: 'Todos os eventos já foram sincronizados.',
         });
         return 0;
       }
 
-      // Filter out incomplete events and ensure proper typing
-      const validEvents = eventsToUpsert.filter(event => 
-        event.user_id && event.google_calendar_id && event.google_event_id && 
-        event.start_time && event.end_time
-      ) as Array<{
-        user_id: string;
-        google_calendar_id: string;
-        google_event_id: string;
-        start_time: string;
-        end_time: string;
-        [key: string]: any;
-      }>;
+      console.log(`💾 Criando ${appointmentsToCreate.length} appointments diretamente...`);
+      console.log('📋 Appointments a serem criados:', appointmentsToCreate);
 
-      if (validEvents.length === 0) {
-        throw new Error('No valid events to upsert');
-      }
-
-      console.log(`💾 Inserindo ${validEvents.length} eventos no banco...`);
-
-      // Upsert events in Google Calendar events table
-      const { data, error } = await supabase
-        .from('google_calendar_events')
-        .upsert(validEvents, {
-          onConflict: 'user_id,google_calendar_id,google_event_id',
-          ignoreDuplicates: false,
-        })
+      // Insert appointments directly
+      const { data: insertedData, error } = await supabase
+        .from('appointments')
+        .insert(appointmentsToCreate)
         .select();
 
       if (error) {
-        console.error('❌ Erro ao inserir eventos:', error);
+        console.error('❌ Erro ao inserir appointments:', error);
         throw error;
       }
 
-      const eventCount = data?.length || 0;
-      console.log(`✅ ${eventCount} eventos inseridos/atualizados com sucesso`);
-
-      // Sync the newly saved events with appointments
-      console.log('🔄 Iniciando sincronização com appointments...');
-      const appointmentsCreated = await syncGoogleCalendarWithAppointments();
-      console.log(`✅ Sincronização concluída - ${appointmentsCreated} appointments criados`);
+      const appointmentCount = insertedData?.length || 0;
+      console.log(`✅ ${appointmentCount} appointments criados com sucesso`);
 
       toast({
-        title: 'Sincronização completa',
-        description: `${eventCount} evento(s) processados e ${appointmentsCreated || 0} agendamento(s) criado(s).`,
+        title: 'Agendamentos sincronizados',
+        description: `${appointmentCount} agendamento(s) criado(s) diretamente do Google Calendar.`,
       });
 
-      return eventCount;
+      return appointmentCount;
     } catch (error) {
       console.error('Error processing Google Calendar webhook:', error);
-      
-      // Still try to sync existing events even if processing failed
-      try {
-        console.log('🔄 Tentando sincronizar appointments existentes após erro...');
-        await syncGoogleCalendarWithAppointments();
-      } catch (syncError) {
-        console.error('❌ Erro na sincronização de fallback:', syncError);
-      }
       
       toast({
         title: 'Erro na sincronização',
