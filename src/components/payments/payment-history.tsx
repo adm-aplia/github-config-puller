@@ -53,17 +53,17 @@ export function PaymentHistory() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
-        return <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">Pago</Badge>;
+        return <Badge className="bg-green-100 text-green-700 border-green-200 font-medium">Pago</Badge>;
       case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">Pendente</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 font-medium">Pendente</Badge>;
       case 'overdue':
-        return <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">Em Atraso</Badge>;
+        return <Badge className="bg-destructive/10 text-destructive border-destructive/20 font-medium">Em Atraso</Badge>;
       case 'cancelled':
-        return <Badge variant="secondary" className="bg-gray-100 text-gray-800 border-gray-200">Cancelado</Badge>;
+        return <Badge className="bg-muted text-muted-foreground border-muted-foreground/20 font-medium">Cancelado</Badge>;
       case 'refunded':
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">Reembolsado</Badge>;
+        return <Badge className="bg-aplia-blue/10 text-aplia-blue border-aplia-blue/20 font-medium">Reembolsado</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline" className="font-medium">{status}</Badge>;
     }
   };
 
@@ -83,52 +83,56 @@ export function PaymentHistory() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard className="h-5 w-5" />
+    <Card className="border-muted shadow-card">
+      <CardHeader className="bg-gradient-to-r from-muted/30 to-transparent">
+        <CardTitle className="flex items-center gap-3 text-xl">
+          <div className="w-10 h-10 bg-aplia-blue/10 rounded-full flex items-center justify-center">
+            <CreditCard className="h-5 w-5 text-aplia-blue" />
+          </div>
           Histórico de Pagamentos
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-base">
           Visualize suas últimas cobranças e faturas
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         {payments.length === 0 ? (
-          <div className="text-center py-8">
-            <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <CreditCard className="h-8 w-8 text-muted-foreground" />
+            </div>
             <p className="text-muted-foreground">Nenhum pagamento encontrado</p>
           </div>
         ) : (
           <div className="space-y-4">
             {payments.map((payment) => (
-              <div key={payment.id} className="border rounded-lg p-4 space-y-3">
+              <div key={payment.id} className="border border-muted rounded-xl p-6 space-y-4 hover:shadow-card transition-shadow duration-300">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <CreditCard className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-aplia-blue/10 rounded-full flex items-center justify-center">
+                      <CreditCard className="h-6 w-6 text-aplia-blue" />
                     </div>
                     <div>
-                      <p className="font-medium">{payment.descricao}</p>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <p className="font-semibold text-foreground">{payment.descricao}</p>
+                      <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
                         <Calendar className="h-3 w-3" />
                         Vencimento: {formatDate(payment.data_vencimento)}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-lg">{formatCurrency(payment.valor)}</p>
+                  <div className="text-right space-y-2">
+                    <p className="font-bold text-xl text-foreground">{formatCurrency(payment.valor)}</p>
                     {getStatusBadge(payment.status)}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <div className="text-sm text-muted-foreground">
+                <div className="flex items-center justify-between pt-4 border-t border-muted">
+                  <div className="text-sm text-muted-foreground space-y-1">
                     {payment.forma_pagamento && (
-                      <span className="mr-4">Forma: {payment.forma_pagamento}</span>
+                      <div>Forma de pagamento: <span className="font-medium">{payment.forma_pagamento}</span></div>
                     )}
                     {payment.data_pagamento && (
-                      <span>Pago em: {formatDate(payment.data_pagamento)}</span>
+                      <div>Pago em: <span className="font-medium">{formatDate(payment.data_pagamento)}</span></div>
                     )}
                   </div>
                   {payment.link_pagamento && (
@@ -136,7 +140,7 @@ export function PaymentHistory() {
                       variant="outline" 
                       size="sm"
                       onClick={() => window.open(payment.link_pagamento, '_blank')}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 hover:bg-aplia-blue/10 hover:border-aplia-blue/30"
                     >
                       <ExternalLink className="h-3 w-3" />
                       Ver Fatura
