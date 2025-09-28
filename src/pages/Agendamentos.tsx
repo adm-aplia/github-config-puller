@@ -663,7 +663,7 @@ export default function AgendamentosPage() {
                   onClick={() => setBlockModalOpen(true)}
                 >
                   <X className="h-4 w-4" />
-                  <span>Bloquear</span>
+                  <span>Bloquear Horários</span>
                 </Button>
                 
                 <Button 
@@ -672,7 +672,7 @@ export default function AgendamentosPage() {
                   onClick={() => setCreateModalOpen(true)}
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Novo</span>
+                  <span>Novo Agendamento</span>
                 </Button>
               </div>
             </div>
