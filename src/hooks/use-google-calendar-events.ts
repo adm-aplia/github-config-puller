@@ -256,6 +256,9 @@ export const useGoogleCalendarEvents = () => {
 
       // Refresh events
       await fetchGoogleCalendarEvents();
+      
+      // Sync the newly saved events with appointments
+      await syncGoogleCalendarWithAppointments();
 
       toast({
         title: 'Eventos sincronizados',
