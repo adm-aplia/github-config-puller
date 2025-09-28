@@ -64,13 +64,16 @@ export function SelectGoogleAccountModal({
     }, 60000) // 60 segundos
     
     try {
+      console.log('🔗 Iniciando vinculação da conta Google...');
       const success = await onLinkAccount(selectedCredentialId, profileId)
       clearTimeout(timeout)
-      setLinking(false)
+      
+      console.log('🎯 Resultado da vinculação:', success);
       
       if (success) {
         onOpenChange(false)
         setSelectedCredentialId(null)
+        console.log('✅ Conta vinculada com sucesso');
         toast({
           title: 'Conta vinculada',
           description: 'Conta Google vinculada com sucesso e eventos sincronizados.',
@@ -78,13 +81,14 @@ export function SelectGoogleAccountModal({
       }
     } catch (error) {
       clearTimeout(timeout)
-      setLinking(false)
       console.error('❌ Erro na vinculação:', error)
       toast({
         title: 'Erro na vinculação',
-        description: 'Houve um erro ao vincular a conta. Tente novamente.',
+        description: error instanceof Error ? error.message : 'Houve um erro ao vincular a conta. Tente novamente.',
         variant: 'destructive',
       })
+    } finally {
+      setLinking(false)
     }
   }
 

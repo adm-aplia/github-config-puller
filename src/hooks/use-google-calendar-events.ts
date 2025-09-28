@@ -291,9 +291,23 @@ export const useGoogleCalendarEvents = () => {
         description: `${eventCount} evento(s) do Google Calendar foram sincronizados.`,
       });
 
+      // After processing events, sync with appointments  
+      console.log('🔄 Iniciando sincronização de appointments...');
+      await syncGoogleCalendarWithAppointments();
+      console.log('✅ Sincronização de appointments concluída');
+
       return eventCount;
     } catch (error) {
       console.error('Error processing Google Calendar webhook:', error);
+      
+      // Still try to sync existing events even if processing failed
+      try {
+        console.log('🔄 Tentando sincronizar appointments existentes após erro...');
+        await syncGoogleCalendarWithAppointments();
+      } catch (syncError) {
+        console.error('❌ Erro na sincronização de fallback:', syncError);
+      }
+      
       toast({
         title: 'Erro na sincronização',
         description: 'Erro ao processar eventos do Google Calendar.',

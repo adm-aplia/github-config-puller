@@ -214,6 +214,7 @@ export const useGoogleIntegrations = () => {
           console.log(`🔄 Eventos transformados para processamento:`, transformedEvents);
           
           // Processar eventos e criar appointments automaticamente
+          console.log('🔄 Chamando processGoogleCalendarWebhook...');
           const eventCount = await processGoogleCalendarWebhook(transformedEvents, "primary", profileId);
           console.log(`✅ ${eventCount} eventos processados e sincronizados com appointments`);
           
