@@ -289,11 +289,9 @@ export default function WhatsAppPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">WhatsApp</h1>
-                {!isMobile && (
-                  <p className="text-muted-foreground">
-                    Gerencie suas instâncias do WhatsApp Business
-                  </p>
-                )}
+                <p className="text-muted-foreground hidden md:block">
+                  Gerencie suas instâncias do WhatsApp Business
+                </p>
               </div>
               <Button disabled>
                 <Plus className="h-4 w-4 mr-2" />
@@ -318,11 +316,9 @@ export default function WhatsAppPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">WhatsApp</h1>
-              {!isMobile && (
-                <p className="text-muted-foreground">
-                  Gerencie suas instâncias do WhatsApp Business
-                </p>
-              )}
+              <p className="text-muted-foreground hidden md:block">
+                Gerencie suas instâncias do WhatsApp Business
+              </p>
             </div>
             <Button onClick={handleCreateInstance} className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
