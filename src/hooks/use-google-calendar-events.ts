@@ -3,10 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
 // Interface para dados recebidos do webhook N8N
+// Interface para dados do N8N - formato antigo
 export interface N8NWebhookData {
   my_email: string;
   count: number;
   events: N8NEvent[];
+}
+
+// Interface para dados do N8N - novo formato com response
+export interface N8NWebhookDataNew {
+  response: string; // JSON string contendo array de eventos
+  count: number;
+  professionalProfileId: string;
 }
 
 // Interface para eventos vindos do N8N
@@ -453,25 +461,59 @@ export const useGoogleCalendarEvents = () => {
     }
   };
 
-  // Função para processar dados do webhook N8N no novo formato - com logging detalhado
+  // Função para processar dados do webhook N8N - suporta formatos antigo e novo
   const processN8NWebhookData = async (
-    webhookData: N8NWebhookData,
+    webhookData: N8NWebhookData | N8NWebhookDataNew,
     professionalProfileId?: string
   ): Promise<number> => {
     console.log('📥 [processN8NWebhookData] Iniciando processamento dos dados do webhook N8N');
-    console.log('📊 [processN8NWebhookData] Dados recebidos:', {
-      email: webhookData.my_email,
-      count: webhookData.count,
-      eventsLength: webhookData.events?.length || 0,
-      professionalProfileId
-    });
     
-    if (!webhookData.events || webhookData.events.length === 0) {
+    // Detectar formato e normalizar dados
+    let events: N8NEvent[] = [];
+    let userEmail: string = '';
+    let profileId: string | undefined = professionalProfileId;
+    
+    // Verificar se é o novo formato (com response)
+    if ('response' in webhookData) {
+      console.log('🆕 [processN8NWebhookData] Detectado formato novo do N8N');
+      const newFormatData = webhookData as N8NWebhookDataNew;
+      
+      try {
+        console.log('📋 [processN8NWebhookData] Parseando JSON da response...');
+        events = JSON.parse(newFormatData.response);
+        profileId = newFormatData.professionalProfileId;
+        userEmail = events[0]?.organizer || 'unknown';
+        
+        console.log('📊 [processN8NWebhookData] Dados do novo formato:', {
+          count: newFormatData.count,
+          eventsLength: events.length,
+          professionalProfileId: profileId,
+          userEmail
+        });
+      } catch (parseError) {
+        console.error('💥 [processN8NWebhookData] Erro ao fazer parse do JSON da response:', parseError);
+        throw new Error('Erro ao fazer parse dos eventos do campo response');
+      }
+    } else {
+      console.log('🔄 [processN8NWebhookData] Detectado formato antigo do N8N');
+      const oldFormatData = webhookData as N8NWebhookData;
+      events = oldFormatData.events;
+      userEmail = oldFormatData.my_email;
+      
+      console.log('📊 [processN8NWebhookData] Dados do formato antigo:', {
+        email: userEmail,
+        count: oldFormatData.count,
+        eventsLength: events?.length || 0,
+        professionalProfileId: profileId
+      });
+    }
+    
+    if (!events || events.length === 0) {
       console.log('⚠️ [processN8NWebhookData] Nenhum evento encontrado no webhook');
       throw new Error('Nenhum evento encontrado no webhook N8N');
     }
     
-    console.log('🔄 [processN8NWebhookData] Eventos brutos do N8N:', webhookData.events);
+    console.log('🔄 [processN8NWebhookData] Eventos brutos do N8N:', events);
     
     try {
       // Verificar autenticação
@@ -485,7 +527,7 @@ export const useGoogleCalendarEvents = () => {
       // Processar eventos diretamente como appointments
       const appointmentsToCreate = [];
       
-      for (const event of webhookData.events) {
+      for (const event of events) {
         console.log('🔄 [processN8NWebhookData] Processando evento:', event.id);
         
         const startDate = parseGoogleDate(event.start);
@@ -530,7 +572,7 @@ export const useGoogleCalendarEvents = () => {
             event.location ? `Local: ${event.location}` : null,
             `Importado do Google Calendar`,
             `ID: ${event.id}`,
-            `Email organizador: ${webhookData.my_email}`
+            `Email organizador: ${userEmail}`
           ].filter(Boolean).join('\n'),
           google_event_id: event.id,
           google_calendar_id: 'primary',
@@ -599,29 +641,31 @@ export const useGoogleCalendarEvents = () => {
     });
   };
 
-  // Função de teste para simular dados do N8N
+  // Função de teste para simular dados do N8N (novo formato)
   const testN8NWebhookData = async (professionalProfileId?: string) => {
-    console.log('🧪 [testN8NWebhookData] Iniciando teste com dados mock');
+    console.log('🧪 [testN8NWebhookData] Iniciando teste com dados mock no novo formato');
     
-    const mockWebhookData: N8NWebhookData = {
-      my_email: "nathancwb@gmail.com",
-      count: 1,
-      events: [
-        {
-          id: "test_event_" + Date.now(),
-          summary: "Teste - Treino",
-          start: "2025-03-28T07:45:00-03:00",
-          end: "2025-03-28T09:15:00-03:00",
-          organizer: "nathancwb@gmail.com",
-          attendees: [],
-          htmlLink: "https://test.google.com/calendar/event",
-          location: null
-        }
-      ]
+    const mockEvents = [
+      {
+        id: "test_event_" + Date.now(),
+        summary: "Teste - Treino",
+        start: "2025-03-28T07:45:00-03:00",
+        end: "2025-03-28T09:15:00-03:00",
+        organizer: "nathancwb@gmail.com",
+        attendees: [],
+        htmlLink: "https://test.google.com/calendar/event",
+        location: null
+      }
+    ];
+
+    const mockWebhookData: N8NWebhookDataNew = {
+      response: JSON.stringify(mockEvents),
+      count: mockEvents.length,
+      professionalProfileId: professionalProfileId || "83a961bc-2042-407e-9c09-c4a0e29c51de"
     };
     
     try {
-      const result = await processN8NWebhookData(mockWebhookData, professionalProfileId);
+      const result = await processN8NWebhookData(mockWebhookData);
       console.log('✅ [testN8NWebhookData] Teste concluído com sucesso:', result);
       toast({
         title: 'Teste executado',
