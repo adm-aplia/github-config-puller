@@ -240,6 +240,24 @@ export const useGoogleIntegrations = () => {
 
   const linkProfileToGoogle = async (googleCredentialId: string, professionalProfileId: string) => {
     try {
+      // Verificar se a conta Google já está vinculada a outro perfil
+      const existingCredentialLink = profileLinks.find(
+        link => link.google_credential_id === googleCredentialId
+      );
+
+      if (existingCredentialLink) {
+        // Buscar o nome do perfil que já está usando esta conta
+        const linkedProfile = credentials.find(cred => cred.id === googleCredentialId);
+        const credentialEmail = linkedProfile?.email || 'conta Google';
+        
+        toast({
+          title: 'Conta já vinculada',
+          description: `Esta ${credentialEmail} já está vinculada a outro perfil. Uma conta Google só pode estar conectada a um perfil por vez.`,
+          variant: 'destructive',
+        });
+        return false;
+      }
+
       // Verificar se o perfil já tem alguma conta Google vinculada
       const existingProfileLink = profileLinks.find(
         link => link.professional_profile_id === professionalProfileId
@@ -249,21 +267,6 @@ export const useGoogleIntegrations = () => {
         toast({
           title: 'Perfil já vinculado',
           description: 'Este perfil já possui uma conta Google vinculada. Apenas uma conta é permitida por perfil.',
-          variant: 'destructive',
-        });
-        return false;
-      }
-
-      // Verificar se já existe um link específico
-      const existingLink = profileLinks.find(
-        link => link.google_credential_id === googleCredentialId && 
-                link.professional_profile_id === professionalProfileId
-      );
-
-      if (existingLink) {
-        toast({
-          title: 'Já vinculado',
-          description: 'Este perfil já está vinculado a esta conta Google.',
           variant: 'destructive',
         });
         return false;

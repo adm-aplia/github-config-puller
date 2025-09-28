@@ -40,9 +40,10 @@ export function SelectGoogleAccountModal({
     credential.professional_profile_id === profileId
   )
   
-  // Filter out credentials already linked to this profile
+  // Filter out credentials already linked to ANY profile (exclusividade)
   const availableCredentials = credentials.filter(credential => 
-    credential.professional_profile_id !== profileId
+    credential.professional_profile_id !== profileId && 
+    credential.professional_profile_id == null // só mostrar contas não vinculadas a nenhum perfil
   )
 
   const handleLink = async () => {
