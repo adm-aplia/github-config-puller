@@ -201,39 +201,47 @@ export default function PerfilsPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-6 py-8">
-        <div className="container mx-auto py-6 space-y-6">
-          <div className="flex items-center justify-between">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+          <div className="space-y-4 sm:flex sm:justify-between sm:items-start sm:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Perfis Profissionais</h1>
-              <p className="text-muted-foreground">Gerencie seus perfis profissionais cadastrados</p>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Perfis Profissionais</h1>
+              <p className="text-muted-foreground text-sm sm:text-base mt-1">
+                Gerencie seus perfis profissionais cadastrados
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" className="flex items-center gap-2" onClick={refetch}>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto order-2 sm:order-1" 
+                onClick={refetch}
+              >
                 <RefreshCw className="h-4 w-4" />
-                Atualizar
+                <span className="sm:inline">Atualizar</span>
               </Button>
               <Button 
-                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground gap-2"
+                size="sm"
+                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground gap-2 w-full sm:w-auto order-1 sm:order-2"
                 onClick={openCreateForm}
                 disabled={limits && !canCreateMore(profiles.length, limits.max_assistentes)}
               >
                 <Plus className="h-4 w-4" />
-                Novo Perfil
+                <span className="sm:inline">Novo Perfil</span>
               </Button>
             </div>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <User className="h-5 w-5" />
                 Informações do Plano
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4">
-                <Badge variant="secondary">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <Badge variant="secondary" className="w-fit">
                   {subscription?.plano?.nome || 'Gratuito'}
                 </Badge>
                 <span className="text-sm">
@@ -245,8 +253,8 @@ export default function PerfilsPage() {
                   </span>
                 )}
                 {limits && isUnlimited(limits.max_assistentes) && (
-                  <span className="text-sm text-green-600">
-                    <CheckCircle className="h-4 w-4 inline mr-1" />
+                  <span className="text-sm text-green-600 flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4" />
                     Perfis ilimitados
                   </span>
                 )}
@@ -288,128 +296,216 @@ export default function PerfilsPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="relative w-full overflow-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Especialidade</TableHead>
-                        <TableHead>WhatsApp Conectado</TableHead>
-                        <TableHead>Google Conectado</TableHead>
-                        <TableHead>Data de Criação</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                     {profiles.map((profile) => {
-                          const whatsappInfo = getWhatsAppInfo(profile.id)
-                          const googleConnected = getGoogleStatus(profile.id)
-                          
-                          return (
-                          <TableRow key={profile.id}>
-                            <TableCell className="font-medium">{profile.fullname}</TableCell>
-                            <TableCell>{profile.specialty}</TableCell>
-                            <TableCell>
+                <>
+                  {/* Desktop Table */}
+                  <div className="hidden md:block relative w-full overflow-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>Especialidade</TableHead>
+                          <TableHead>WhatsApp</TableHead>
+                          <TableHead>Google</TableHead>
+                          <TableHead>Criação</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                       {profiles.map((profile) => {
+                            const whatsappInfo = getWhatsAppInfo(profile.id)
+                            const googleConnected = getGoogleStatus(profile.id)
+                            
+                            return (
+                            <TableRow key={profile.id}>
+                              <TableCell className="font-medium">{profile.fullname}</TableCell>
+                              <TableCell>{profile.specialty}</TableCell>
+                              <TableCell>
+                                {whatsappInfo.count > 0 ? (
+                                  <Badge 
+                                    variant="default" 
+                                    className={whatsappInfo.hasConnected 
+                                      ? "bg-green-600/10 text-green-700 border-green-600/20"
+                                      : "bg-amber-600/10 text-amber-700 border-amber-600/20"
+                                    }
+                                  >
+                                    {whatsappInfo.count === 1 
+                                      ? "1 número"
+                                      : `${whatsappInfo.count} números`
+                                    }
+                                  </Badge>
+                                ) : (
+                                  <span className="text-muted-foreground">Não conectado</span>
+                                )}
+                              </TableCell>
+                             <TableCell>
+                               {googleConnected ? (
+                                 <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20">
+                                   Conectado
+                                 </Badge>
+                               ) : (
+                                 <span className="text-muted-foreground">Não conectado</span>
+                               )}
+                             </TableCell>
+                             <TableCell>
+                               {format(new Date(profile.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                             </TableCell>
+                             <TableCell className="text-right">
+                               <div className="flex justify-end gap-1">
+                                 <Button 
+                                   variant="ghost" 
+                                   size="sm" 
+                                   className="gap-1 hover:bg-muted hover:text-foreground"
+                                   onClick={() => openEditForm(profile)}
+                                 >
+                                   <SquarePen className="h-4 w-4" />
+                                   Editar
+                                 </Button>
+                                   <Button 
+                                     variant="ghost" 
+                                     size="sm" 
+                                     className={`gap-1 hover:bg-muted hover:text-foreground ${
+                                       whatsappInfo.hasConnected ? 'text-green-600' : ''
+                                     }`}
+                                     onClick={() => handleWhatsAppClick(profile.id)}
+                                   >
+                                     <MessageCircle className="h-4 w-4" />
+                                     WhatsApp
+                                   </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className={`gap-1 hover:bg-muted hover:text-foreground ${
+                                      googleConnected ? 'text-green-600' : ''
+                                    }`}
+                                    onClick={() => handleGoogleConnect(profile.id)}
+                                  >
+                                    <CalendarDays className="h-4 w-4" />
+                                    Google
+                                  </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                      Excluir
+                                    </Button>
+                                  </AlertDialogTrigger>
+...
+                                </AlertDialog>
+                               </div>
+                             </TableCell>
+                           </TableRow>
+                           )
+                         })}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Mobile Cards */}
+                  <div className="md:hidden space-y-4">
+                    {profiles.map((profile) => {
+                      const whatsappInfo = getWhatsAppInfo(profile.id)
+                      const googleConnected = getGoogleStatus(profile.id)
+                      
+                      return (
+                        <Card key={profile.id} className="border border-border/50">
+                          <CardContent className="p-4 space-y-3">
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1">
+                                <h3 className="font-medium text-base">{profile.fullname}</h3>
+                                <p className="text-sm text-muted-foreground">{profile.specialty}</p>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {format(new Date(profile.created_at), "dd/MM/yy", { locale: ptBR })}
+                              </span>
+                            </div>
+                            
+                            <div className="flex flex-wrap gap-2">
                               {whatsappInfo.count > 0 ? (
                                 <Badge 
                                   variant="default" 
                                   className={whatsappInfo.hasConnected 
-                                    ? "bg-green-600/10 text-green-700 border-green-600/20"
-                                    : "bg-amber-600/10 text-amber-700 border-amber-600/20"
+                                    ? "bg-green-600/10 text-green-700 border-green-600/20 text-xs"
+                                    : "bg-amber-600/10 text-amber-700 border-amber-600/20 text-xs"
                                   }
                                 >
-                                  {whatsappInfo.count === 1 
+                                  WhatsApp: {whatsappInfo.count === 1 
                                     ? "1 número"
                                     : `${whatsappInfo.count} números`
                                   }
                                 </Badge>
                               ) : (
-                                <span className="text-foreground">Não conectado</span>
+                                <Badge variant="outline" className="text-xs">
+                                  WhatsApp: Não conectado
+                                </Badge>
                               )}
-                            </TableCell>
-                           <TableCell>
-                             {googleConnected ? (
-                               <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20">
-                                 Conectado
-                               </Badge>
-                             ) : (
-                               <span className="text-foreground">Não conectado</span>
-                             )}
-                           </TableCell>
-                           <TableCell>
-                             {format(new Date(profile.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                           </TableCell>
-                           <TableCell className="text-right">
-                             <div className="flex justify-end gap-2">
-                               <Button 
-                                 variant="ghost" 
-                                 size="sm" 
-                                 className="gap-1 hover:bg-muted hover:text-foreground"
-                                 onClick={() => openEditForm(profile)}
-                               >
-                                 <SquarePen className="h-4 w-4" />
-                                 Editar
-                               </Button>
-                                 <Button 
-                                   variant="ghost" 
-                                   size="sm" 
-                                   className={`gap-1 hover:bg-muted hover:text-foreground ${
-                                     whatsappInfo.hasConnected ? 'text-green-600' : ''
-                                   }`}
-                                   onClick={() => handleWhatsAppClick(profile.id)}
-                                 >
-                                   <MessageCircle className="h-4 w-4" />
-                                   WhatsApp
-                                 </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className={`gap-1 hover:bg-muted hover:text-foreground ${
-                                    googleConnected ? 'text-green-600' : ''
-                                  }`}
-                                  onClick={() => handleGoogleConnect(profile.id)}
-                                >
-                                  <CalendarDays className="h-4 w-4" />
-                                  Google
-                                </Button>
+                              
+                              {googleConnected ? (
+                                <Badge variant="default" className="bg-green-600/10 text-green-700 border-green-600/20 text-xs">
+                                  Google: Conectado
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-xs">
+                                  Google: Não conectado
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <div className="flex flex-wrap gap-2 pt-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1 min-w-[80px] text-xs h-8"
+                                onClick={() => openEditForm(profile)}
+                              >
+                                <SquarePen className="h-3 w-3 mr-1" />
+                                Editar
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className={`flex-1 min-w-[80px] text-xs h-8 ${
+                                  whatsappInfo.hasConnected ? 'text-green-600 border-green-600/20' : ''
+                                }`}
+                                onClick={() => handleWhatsAppClick(profile.id)}
+                              >
+                                <MessageCircle className="h-3 w-3 mr-1" />
+                                WhatsApp
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className={`flex-1 min-w-[80px] text-xs h-8 ${
+                                  googleConnected ? 'text-green-600 border-green-600/20' : ''
+                                }`}
+                                onClick={() => handleGoogleConnect(profile.id)}
+                              >
+                                <CalendarDays className="h-3 w-3 mr-1" />
+                                Google
+                              </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button 
-                                    variant="ghost" 
+                                    variant="outline" 
                                     size="sm" 
-                                    className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    className="flex-1 min-w-[80px] text-xs h-8 text-destructive border-destructive/20 hover:bg-destructive/10"
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="h-3 w-3 mr-1" />
                                     Excluir
                                   </Button>
                                 </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Tem certeza de que deseja excluir o perfil "{profile.fullname}"? 
-                                      Esta ação não pode ser desfeita.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction 
-                                      onClick={() => handleDeleteProfile(profile.id)}
-                                      className="bg-destructive hover:bg-destructive/90"
-                                    >
-                                      Excluir
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
+...
                               </AlertDialog>
-                             </div>
-                           </TableCell>
-                         </TableRow>
-                         )
-                       })}
-                    </TableBody>
-                  </Table>
-                </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
