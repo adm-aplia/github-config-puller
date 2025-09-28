@@ -18,8 +18,12 @@ export interface Subscription {
 }
 
 export function useSubscription() {
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [subscription, setSubscription] = useState<Subscription | null>(() => {
+    // Tenta carregar do cache localStorage primeiro
+    const cached = localStorage.getItem('user_subscription');
+    return cached ? JSON.parse(cached) : null;
+  });
+  const [loading, setLoading] = useState(!subscription); // Só loading se não tem cache
   const [error, setError] = useState<string | null>(null);
 
   const fetchSubscription = async () => {
@@ -30,7 +34,12 @@ export function useSubscription() {
       const { data, error } = await supabase.rpc('get_user_subscription_info');
       
       if (error) throw error;
-      setSubscription(data as unknown as Subscription);
+      
+      const subscriptionData = data as unknown as Subscription;
+      setSubscription(subscriptionData);
+      
+      // Salva no cache
+      localStorage.setItem('user_subscription', JSON.stringify(subscriptionData));
     } catch (err) {
       console.error('Error fetching subscription:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar assinatura');

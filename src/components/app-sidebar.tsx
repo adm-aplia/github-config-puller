@@ -65,7 +65,7 @@ export function AppSidebar() {
   const [userEmail, setUserEmail] = useState<string>('')
   const [userName, setUserName] = useState<string>('')
   const { toast } = useToast()
-  const { subscription } = useSubscription()
+  const { subscription, loading } = useSubscription()
 
 
   useEffect(() => {
@@ -199,9 +199,11 @@ export function AppSidebar() {
                 className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:text-accent-foreground w-full justify-between px-3 py-2 h-auto text-left hover:bg-muted"
               >
                 <div className="flex flex-col items-start min-w-0 flex-1">
-                  <span className="text-xs text-muted-foreground truncate w-full mb-1">
-                    Plano {planName}
-                  </span>
+                  {!loading && (
+                    <span className="text-xs text-muted-foreground truncate w-full mb-1">
+                      Plano {planName}
+                    </span>
+                  )}
                   <span className="text-sm font-medium text-foreground truncate w-full">
                     {userName}
                   </span>
