@@ -2,6 +2,19 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
+// Interface para eventos vindos do N8N (formato diferente)
+export interface N8NEvent {
+  id: string;
+  summary?: string;
+  start?: string; // String direta do N8N
+  end?: string;   // String direta do N8N
+  organizer?: string; // String direta do N8N
+  attendees?: string[]; // Array de strings do N8N
+  htmlLink?: string;
+  location?: string;
+  status?: string;
+}
+
 export interface GoogleCalendarEvent {
   id: string;
   user_id: string;
@@ -366,6 +379,26 @@ export const useGoogleCalendarEvents = () => {
     }
   };
 
+  // Função para transformar eventos do N8N para o formato esperado
+  const transformN8NEvents = (n8nEvents: N8NEvent[]): GCalendarWebhookEvent[] => {
+    console.log('🔄 Transformando eventos do N8N:', n8nEvents);
+    
+    return n8nEvents.map(event => ({
+      id: event.id,
+      summary: event.summary,
+      status: event.status || 'confirmed',
+      start: event.start ? { dateTime: event.start } : undefined,
+      end: event.end ? { dateTime: event.end } : undefined,
+      location: event.location,
+      attendees: Array.isArray(event.attendees) 
+        ? event.attendees.map(email => ({ email }))
+        : [],
+      organizer: event.organizer ? { email: event.organizer } : undefined,
+      sequence: 0,
+      reminders: { useDefault: true }
+    }));
+  };
+
   useEffect(() => {
     fetchGoogleCalendarEvents();
   }, []);
@@ -376,6 +409,7 @@ export const useGoogleCalendarEvents = () => {
     fetchGoogleCalendarEvents,
     processGoogleCalendarWebhook,
     syncGoogleCalendarWithAppointments,
+    transformN8NEvents, // Exportar nova função
     refetch: fetchGoogleCalendarEvents,
   };
 };

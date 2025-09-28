@@ -30,7 +30,7 @@ export const useGoogleIntegrations = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const { processGoogleCalendarWebhook } = useGoogleCalendarEvents();
+  const { processGoogleCalendarWebhook, transformN8NEvents } = useGoogleCalendarEvents();
 
   const fetchCredentials = async () => {
     try {
@@ -191,11 +191,25 @@ export const useGoogleIntegrations = () => {
         console.log('✅ Eventos sincronizados:', data);
 
         if (data && data[0] && data[0].response) {
-          // Processar os eventos recebidos do webhook
-          const events = data[0].response;
-          console.log(`📅 Processando ${events.length} eventos do Google Calendar`);
+          // Parse da resposta JSON do N8N
+          let rawEvents;
+          try {
+            rawEvents = typeof data[0].response === 'string' 
+              ? JSON.parse(data[0].response) 
+              : data[0].response;
+          } catch (e) {
+            console.error('❌ Erro ao fazer parse dos eventos:', e);
+            return false;
+          }
+
+          console.log(`📅 Eventos recebidos do N8N:`, rawEvents);
+          console.log(`📅 Processando ${rawEvents.length} eventos do Google Calendar`);
           
-          await processGoogleCalendarWebhook(events, "primary", profileId);
+          // Transformar eventos do formato N8N para o formato esperado
+          const transformedEvents = transformN8NEvents(rawEvents);
+          console.log(`🔄 Eventos transformados:`, transformedEvents);
+          
+          await processGoogleCalendarWebhook(transformedEvents, "primary", profileId);
           console.log('📅 Eventos processados e inseridos automaticamente');
           return true;
         }
