@@ -1092,8 +1092,6 @@ export default function AgendamentosPage() {
         onOpenChange={setBlockEditModalOpen}
         onUpdate={handleUpdateBlock}
       />
-        </div>
-      </div>
     </DashboardLayout>
   )
 }
