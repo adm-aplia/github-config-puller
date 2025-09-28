@@ -292,8 +292,13 @@ export const useGoogleCalendarEvents = () => {
 
   const syncGoogleCalendarWithAppointments = async () => {
     try {
+      console.log('🔄 Sincronizando eventos do Google Calendar com appointments...');
+      
       const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user?.id) throw new Error('User not authenticated');
+      if (!userData.user?.id) {
+        console.error('❌ Usuário não autenticado');
+        throw new Error('User not authenticated');
+      }
 
       // Get all Google Calendar events that should create appointments
       const { data: calendarEvents, error: eventsError } = await supabase
@@ -301,11 +306,17 @@ export const useGoogleCalendarEvents = () => {
         .select('*')
         .eq('user_id', userData.user.id);
 
-      if (eventsError) throw eventsError;
+      if (eventsError) {
+        console.error('❌ Erro ao buscar eventos:', eventsError);
+        throw eventsError;
+      }
 
       if (!calendarEvents || calendarEvents.length === 0) {
+        console.log('ℹ️ Nenhum evento do Google Calendar encontrado');
         return;
       }
+
+      console.log(`📅 Encontrados ${calendarEvents.length} eventos do Google Calendar`);
 
       // Get existing appointments with Google event IDs
       const eventIds = calendarEvents.map(event => event.google_event_id);
@@ -339,7 +350,7 @@ export const useGoogleCalendarEvents = () => {
             duration_minutes: Math.round(
               (new Date(event.end_time).getTime() - new Date(event.start_time).getTime()) / (1000 * 60)
             ),
-            appointment_type: 'blocked', // Mark as blocked so it doesn't count in limits
+            appointment_type: null, // Regular appointment from Google Calendar
             status: event.status === 'cancelled' ? 'cancelled' : 'confirmed',
             notes: [
               event.description,
@@ -357,16 +368,27 @@ export const useGoogleCalendarEvents = () => {
         });
 
       if (appointmentsToCreate.length > 0) {
-        const { error: insertError } = await supabase
+        console.log(`💾 Inserindo ${appointmentsToCreate.length} appointments...`);
+        console.log('📋 Appointments a serem criados:', appointmentsToCreate);
+        
+        const { data: insertedData, error: insertError } = await supabase
           .from('appointments')
-          .insert(appointmentsToCreate);
+          .insert(appointmentsToCreate)
+          .select();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('❌ Erro ao inserir appointments:', insertError);
+          throw insertError;
+        }
+
+        console.log(`✅ ${insertedData?.length || 0} appointments criados com sucesso`);
 
         toast({
           title: 'Agendamentos criados',
           description: `${appointmentsToCreate.length} agendamento(s) criado(s) a partir do Google Calendar.`,
         });
+      } else {
+        console.log('✅ Todos os eventos já têm appointments correspondentes');
       }
 
     } catch (error) {

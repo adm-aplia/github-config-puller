@@ -202,15 +202,15 @@ export const useGoogleIntegrations = () => {
             return false;
           }
 
-          console.log(`📅 Eventos recebidos do N8N:`, rawEvents);
-          console.log(`📅 Processando ${rawEvents.length} eventos do Google Calendar`);
+          console.log(`📅 Eventos recebidos do N8N (${rawEvents.length} eventos):`, rawEvents);
           
           // Transformar eventos do formato N8N para o formato esperado
           const transformedEvents = transformN8NEvents(rawEvents);
-          console.log(`🔄 Eventos transformados:`, transformedEvents);
+          console.log(`🔄 Eventos transformados para processamento:`, transformedEvents);
           
-          await processGoogleCalendarWebhook(transformedEvents, "primary", profileId);
-          console.log('📅 Eventos processados e inseridos automaticamente');
+          // Processar eventos e criar appointments automaticamente
+          const eventCount = await processGoogleCalendarWebhook(transformedEvents, "primary", profileId);
+          console.log(`✅ ${eventCount} eventos processados e sincronizados com appointments`);
           return true;
         }
       } else {
