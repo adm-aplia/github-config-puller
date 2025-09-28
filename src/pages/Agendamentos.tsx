@@ -578,23 +578,23 @@ export default function AgendamentosPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-6">
-        <div className="flex flex-col gap-3 sm:gap-4">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
           {/* Header */}
-          <header className="flex flex-col gap-3">
+          <header className="space-y-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Agendamentos</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Agendamentos</h1>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">
                 Período: {getFormattedDateRange()}
               </p>
             </div>
             
-            {/* Todos os controles organizados no header */}
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              {/* Grupo 1: Visualização */}
-              <div className="flex flex-wrap items-center gap-2">
+            {/* Controles organizados de forma responsiva */}
+            <div className="space-y-3 sm:space-y-4">
+              {/* Linha 1: Seletor de profissional (sempre em linha própria em mobile) */}
+              <div className="w-full">
                 <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
-                  <SelectTrigger className="w-full sm:w-56">
+                  <SelectTrigger className="w-full">
                     <SelectValue>
                       {selectedProfessional === "all" ? "Todos os profissionais" : 
                        profiles.find(p => p.id === selectedProfessional)?.fullname || "Profissional não encontrado"}
@@ -609,22 +609,24 @@ export default function AgendamentosPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                
+              </div>
+              
+              {/* Linha 2: Botões de ação em grid responsivo */}
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-2 text-sm"
                   onClick={() => setFiltersModalOpen(true)}
                 >
-                  <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Filtrar</span>
-                  <span className="sm:hidden">Filtrar</span>
+                  <Filter className="h-4 w-4" />
+                  <span>Filtrar</span>
                 </Button>
                 
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-2 text-sm"
                   onClick={async () => {
                     await fetchAppointments()
                     toast({
@@ -633,71 +635,65 @@ export default function AgendamentosPage() {
                     })
                   }}
                 >
-                  <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Atualizar</span>
-                  <span className="sm:hidden">Atualizar</span>
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Atualizar</span>
                 </Button>
-              </div>
-
-              {/* Grupo 2: Ações */}
-              <div className="flex flex-wrap items-center gap-2">
+                
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-2 text-sm"
                   onClick={() => setBlockModalOpen(true)}
                 >
-                  <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Bloquear horários</span>
-                  <span className="sm:hidden">Bloquear</span>
+                  <X className="h-4 w-4" />
+                  <span>Bloquear</span>
                 </Button>
                 
                 <Button 
                   size="sm" 
-                  className="flex items-center gap-1 sm:gap-2 bg-primary hover:bg-primary/90 text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-sm"
                   onClick={() => setCreateModalOpen(true)}
                 >
-                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Novo Agendamento</span>
-                  <span className="sm:hidden">Novo</span>
+                  <Plus className="h-4 w-4" />
+                  <span>Novo</span>
                 </Button>
               </div>
             </div>
           </header>
 
           {/* Statistics Section */}
-          <div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <h2 className="text-lg font-semibold">Estatísticas de Agendamentos</h2>
+                <h2 className="text-lg sm:text-xl font-semibold">Estatísticas de Agendamentos</h2>
                 <p className="text-sm text-muted-foreground">Acompanhe o desempenho dos seus agendamentos</p>
               </div>
-              <div className="flex items-center gap-2">
-                      <Tabs value={viewPeriod} onValueChange={setViewPeriod}>
-                        <TabsList>
-                          <TabsTrigger value="today">Hoje</TabsTrigger>
-                          <TabsTrigger value="last7days">Últimos 7 dias</TabsTrigger>
-                          <TabsTrigger value="last30days">Últimos 30 dias</TabsTrigger>
-                        </TabsList>
+              <div className="w-full sm:w-auto">
+                <Tabs value={viewPeriod} onValueChange={setViewPeriod} className="w-full sm:w-auto">
+                  <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:grid-cols-none sm:flex">
+                    <TabsTrigger value="today" className="text-xs sm:text-sm">Hoje</TabsTrigger>
+                    <TabsTrigger value="last7days" className="text-xs sm:text-sm">7 dias</TabsTrigger>
+                    <TabsTrigger value="last30days" className="text-xs sm:text-sm">30 dias</TabsTrigger>
+                  </TabsList>
                 </Tabs>
               </div>
             </div>
 
-            <div className="grid gap-1 grid-cols-2 sm:gap-2 md:gap-3 md:grid-cols-4">
+            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
               {stats.map((stat, index) => (
                 <Card key={index} className="border-border/50">
-                  <CardContent className="p-1.5 sm:p-2 md:p-3">
+                  <CardContent className="p-3 sm:p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
-                        <span className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.title}</span>
-                        <span className="text-sm sm:text-base md:text-lg font-bold">{stat.value}</span>
+                        <span className="text-xs sm:text-sm text-muted-foreground truncate">{stat.title}</span>
+                        <span className="text-lg sm:text-xl font-bold">{stat.value}</span>
                         {stat.percentage && (
-                          <Badge variant={stat.color as any} className="w-fit mt-0.5 sm:mt-1 text-[10px] sm:text-xs px-0.5 sm:px-1 py-0 h-3 sm:h-4">
+                          <Badge variant={stat.color as any} className="w-fit mt-1 text-xs px-1 py-0 h-4">
                             {stat.percentage}
                           </Badge>
                         )}
                       </div>
-                      <stat.icon className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                      <stat.icon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
                     </div>
                   </CardContent>
                 </Card>
@@ -720,7 +716,7 @@ export default function AgendamentosPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-2 sm:p-4">
+              <CardContent className="p-3 sm:p-4 lg:p-6">
                 <div className="w-full">
                   <Calendar
                     mode="single"
@@ -739,10 +735,10 @@ export default function AgendamentosPage() {
                       nav_button_next: "absolute right-1",
                       table: "w-full border-collapse space-y-1",
                       head_row: "flex w-full",
-                      head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.7rem] sm:text-[0.8rem] text-center",
+                      head_cell: "text-muted-foreground rounded-md w-full font-normal text-xs sm:text-sm text-center",
                       row: "flex w-full mt-1 sm:mt-2",
-                      cell: "h-14 sm:h-16 md:h-20 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
-                      day: "h-14 sm:h-16 md:h-20 w-full p-1 sm:p-1.5 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
+                      cell: "h-12 sm:h-14 md:h-16 lg:h-20 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
+                      day: "h-12 sm:h-14 md:h-16 lg:h-20 w-full p-1 sm:p-1.5 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
                       day_range_end: "day-range-end",
                       day_selected: "bg-red-500 text-white hover:bg-red-600 focus:bg-red-600",
                       day_today: "bg-transparent text-foreground",
@@ -759,22 +755,22 @@ export default function AgendamentosPage() {
               </CardContent>
             </Card>
 
-            {/* Daily Appointments and Blocks - Side by Side Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Daily Appointments and Blocks - Responsive Layout */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               {/* Regular Appointments */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    Agendamentos do Dia ({selectedDateAppointments.length})
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-lg">
+                    <span>Agendamentos do Dia ({selectedDateAppointments.length})</span>
                     {selectedDate && (
-                      <span className="text-sm font-normal text-muted-foreground ml-2">
+                      <span className="text-sm font-normal text-muted-foreground">
                         {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
                       </span>
                     )}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[400px]">
+                <CardContent className="p-3 sm:p-4">
+                  <ScrollArea className="h-[300px] sm:h-[400px]">
                     {appointmentsLoading ? (
                       <div className="flex justify-center py-8">
                         <RefreshCw className="h-6 w-6 animate-spin" />
@@ -969,18 +965,18 @@ export default function AgendamentosPage() {
 
               {/* Blocked Times */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    Bloqueios do Dia ({selectedDateBlocked.length})
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-lg">
+                    <span>Bloqueios do Dia ({selectedDateBlocked.length})</span>
                     {selectedDate && (
-                      <span className="text-sm font-normal text-muted-foreground ml-2">
+                      <span className="text-sm font-normal text-muted-foreground">
                         {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
                       </span>
                     )}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[400px]">
+                <CardContent className="p-3 sm:p-4">
+                  <ScrollArea className="h-[300px] sm:h-[400px]">
                     {selectedDateBlocked.length === 0 ? (
                       <p className="text-muted-foreground text-center py-8">
                         Nenhum bloqueio para esta data
@@ -1096,6 +1092,8 @@ export default function AgendamentosPage() {
         onOpenChange={setBlockEditModalOpen}
         onUpdate={handleUpdateBlock}
       />
+        </div>
+      </div>
     </DashboardLayout>
   )
 }
