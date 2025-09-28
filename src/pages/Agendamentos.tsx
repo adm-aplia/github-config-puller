@@ -15,6 +15,7 @@ import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useAppointments } from "@/hooks/use-appointments"
 import { useToast } from "@/hooks/use-toast"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
+import { useGoogleCalendarEvents } from "@/hooks/use-google-calendar-events"
 import { 
   Calendar as CalendarIcon, 
   Plus, 
@@ -75,6 +76,7 @@ export default function AgendamentosPage() {
   const { profiles, loading: profilesLoading } = useProfessionalProfiles()
   const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, updateBlockedAppointment, deleteAppointment } = useAppointments()
   const { credentials, profileLinks, loading: googleLoading, connectGoogleAccount } = useGoogleIntegrations()
+  const { testN8NWebhookData, processN8NWebhookData } = useGoogleCalendarEvents()
   const { toast } = useToast()
 
   // Helper function to get last 30 days range
@@ -673,6 +675,44 @@ export default function AgendamentosPage() {
                 >
                   <Plus className="h-4 w-4" />
                   <span>Novo Agendamento</span>
+                </Button>
+                
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 text-sm whitespace-nowrap"
+                  onClick={async () => {
+                    try {
+                      // Testar com dados reais do formato do usuário
+                      const testData = [
+                        {
+                          "my_email": "nathancwb@gmail.com",
+                          "count": 1,
+                          "events": [
+                            {
+                              "id": "test_real_" + Date.now(),
+                              "summary": "Treino",
+                              "start": "2025-03-28T07:45:00-03:00",
+                              "end": "2025-03-28T09:15:00-03:00",
+                              "organizer": "nathancwb@gmail.com",
+                              "attendees": [],
+                              "htmlLink": "https://www.google.com/calendar/event?eid=test123",
+                              "location": null
+                            }
+                          ]
+                        }
+                      ];
+                      
+                      console.log('🧪 Testando com dados reais do usuário:', testData[0]);
+                      await processN8NWebhookData(testData[0]);
+                      await fetchAppointments();
+                    } catch (error) {
+                      console.error('💥 Erro no teste:', error);
+                    }
+                  }}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Teste N8N</span>
                 </Button>
               </div>
             </div>

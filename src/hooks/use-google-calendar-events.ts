@@ -146,33 +146,66 @@ export const useGoogleCalendarEvents = () => {
     }
   };
 
-  const parseGoogleDate = (dateInput?: { dateTime?: string; date?: string; timeZone?: string }): string | null => {
-    if (!dateInput) return null;
+  // Parse date input to get proper timestamp - melhorado para formato ISO do N8N
+  const parseGoogleDate = (dateInput?: string | { dateTime?: string; date?: string; timeZone?: string }): string | null => {
+    console.log('🔍 [parseGoogleDate] Input recebido:', dateInput);
+    
+    if (!dateInput) {
+      console.log('❌ [parseGoogleDate] Input vazio ou null');
+      return null;
+    }
     
     try {
       let dateString: string;
-      let isAllDay = false;
       
-      if (dateInput.date) {
-        // All-day event
-        dateString = dateInput.date;
-        isAllDay = true;
-      } else if (dateInput.dateTime) {
-        // Timed event
-        dateString = dateInput.dateTime;
+      // Handle Google Calendar's date format (object with dateTime or date)
+      if (typeof dateInput === 'object') {
+        dateString = dateInput.dateTime || dateInput.date || '';
+        console.log('📅 [parseGoogleDate] Objeto detectado, dateString extraído:', dateString);
       } else {
+        dateString = dateInput;
+        console.log('📅 [parseGoogleDate] String direta recebida:', dateString);
+      }
+      
+      if (!dateString) {
+        console.log('❌ [parseGoogleDate] DateString vazio após extração');
         return null;
       }
       
-      const date = new Date(dateString);
+      // Tentar diferentes formatos de data
+      let date: Date;
+      
+      // Formato ISO completo (N8N): "2025-03-28T07:45:00-03:00"
+      if (dateString.includes('T') && (dateString.includes('-') || dateString.includes('+'))) {
+        date = new Date(dateString);
+        console.log('📝 [parseGoogleDate] Formato ISO detectado');
+      }
+      // Formato de data simples: "2025-03-28"
+      else if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        date = new Date(dateString + 'T00:00:00');
+        console.log('📝 [parseGoogleDate] Formato data simples detectado');
+      }
+      // Formato UTC: "2025-03-28T10:45:00Z"
+      else if (dateString.endsWith('Z')) {
+        date = new Date(dateString);
+        console.log('📝 [parseGoogleDate] Formato UTC detectado');
+      }
+      // Fallback: tentar parseamento direto
+      else {
+        date = new Date(dateString);
+        console.log('📝 [parseGoogleDate] Fallback: parseamento direto');
+      }
+      
       if (isNaN(date.getTime())) {
-        console.warn('[parseGoogleDate] Invalid date string:', dateString);
+        console.error('❌ [parseGoogleDate] Data inválida após parsing:', dateString);
         return null;
       }
       
-      return date.toISOString();
+      const result = date.toISOString();
+      console.log('✅ [parseGoogleDate] Data parseada com sucesso:', result);
+      return result;
     } catch (error) {
-      console.error('[parseGoogleDate] Error parsing date:', dateInput, error);
+      console.error('💥 [parseGoogleDate] Erro ao parsear data:', dateInput, error);
       return null;
     }
   };
@@ -420,42 +453,190 @@ export const useGoogleCalendarEvents = () => {
     }
   };
 
-  // Função para processar dados do webhook N8N no novo formato
+  // Função para processar dados do webhook N8N no novo formato - com logging detalhado
   const processN8NWebhookData = async (
     webhookData: N8NWebhookData,
     professionalProfileId?: string
   ): Promise<number> => {
-    console.log('📥 Processando dados do webhook N8N:', webhookData);
-    
-    // Transformar para o formato esperado
-    const transformedEvents = transformN8NEvents(webhookData.events);
-    
-    // Processar como eventos do Google Calendar
-    return await processGoogleCalendarWebhook(
-      transformedEvents,
-      'primary', // calendar ID padrão
+    console.log('📥 [processN8NWebhookData] Iniciando processamento dos dados do webhook N8N');
+    console.log('📊 [processN8NWebhookData] Dados recebidos:', {
+      email: webhookData.my_email,
+      count: webhookData.count,
+      eventsLength: webhookData.events?.length || 0,
       professionalProfileId
-    );
+    });
+    
+    if (!webhookData.events || webhookData.events.length === 0) {
+      console.log('⚠️ [processN8NWebhookData] Nenhum evento encontrado no webhook');
+      throw new Error('Nenhum evento encontrado no webhook N8N');
+    }
+    
+    console.log('🔄 [processN8NWebhookData] Eventos brutos do N8N:', webhookData.events);
+    
+    try {
+      // Verificar autenticação
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user?.id) {
+        console.error('❌ [processN8NWebhookData] Usuário não autenticado');
+        throw new Error('Usuário não autenticado');
+      }
+      console.log('✅ [processN8NWebhookData] Usuário autenticado:', userData.user.id);
+      
+      // Processar eventos diretamente como appointments
+      const appointmentsToCreate = [];
+      
+      for (const event of webhookData.events) {
+        console.log('🔄 [processN8NWebhookData] Processando evento:', event.id);
+        
+        const startDate = parseGoogleDate(event.start);
+        const endDate = parseGoogleDate(event.end);
+        
+        if (!startDate) {
+          console.error('❌ [processN8NWebhookData] Data de início inválida para evento:', event.id);
+          continue;
+        }
+        
+        console.log('📅 [processN8NWebhookData] Datas parseadas:', { startDate, endDate });
+        
+        // Verificar se já existe
+        const { data: existingAppointment } = await supabase
+          .from('appointments')
+          .select('id')
+          .eq('user_id', userData.user.id)
+          .eq('google_event_id', event.id)
+          .maybeSingle();
+        
+        if (existingAppointment) {
+          console.log('⚠️ [processN8NWebhookData] Appointment já existe para evento:', event.id);
+          continue;
+        }
+        
+        const durationMinutes = startDate && endDate 
+          ? Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60))
+          : 60;
+        
+        const appointmentData = {
+          user_id: userData.user.id,
+          professional_profile_id: professionalProfileId || null,
+          patient_name: event.summary || 'Evento Google Calendar',
+          patient_phone: 'Google Calendar', // Campo obrigatório - usar placeholder
+          patient_email: event.attendees?.[0] || null,
+          appointment_date: startDate,
+          duration_minutes: durationMinutes,
+          appointment_type: 'google_sync',
+          status: 'confirmed',
+          notes: [
+            event.summary,
+            event.location ? `Local: ${event.location}` : null,
+            `Importado do Google Calendar`,
+            `ID: ${event.id}`,
+            `Email organizador: ${webhookData.my_email}`
+          ].filter(Boolean).join('\n'),
+          google_event_id: event.id,
+          google_calendar_id: 'primary',
+          timezone: 'America/Sao_Paulo',
+          all_day: false,
+        };
+        
+        console.log('💾 [processN8NWebhookData] Appointment preparado:', appointmentData);
+        appointmentsToCreate.push(appointmentData);
+      }
+      
+      console.log(`📝 [processN8NWebhookData] Total de appointments para criar: ${appointmentsToCreate.length}`);
+      
+      if (appointmentsToCreate.length === 0) {
+        console.log('⚠️ [processN8NWebhookData] Nenhum appointment novo para criar');
+        return 0;
+      }
+      
+      // Inserir appointments
+      const { data: insertedAppointments, error: appointmentsError } = await supabase
+        .from('appointments')
+        .insert(appointmentsToCreate)
+        .select();
+      
+      if (appointmentsError) {
+        console.error('💥 [processN8NWebhookData] Erro ao inserir appointments:', appointmentsError);
+        throw appointmentsError;
+      }
+      
+      console.log('✅ [processN8NWebhookData] Appointments inseridos com sucesso:', insertedAppointments?.length || 0);
+      
+      // Atualizar lista de appointments
+      await fetchGoogleCalendarEvents();
+      
+      return appointmentsToCreate.length;
+    } catch (error) {
+      console.error('💥 [processN8NWebhookData] Erro geral:', error);
+      throw error;
+    }
   };
 
   // Função para transformar eventos do N8N para o formato esperado
   const transformN8NEvents = (n8nEvents: N8NEvent[]): GCalendarWebhookEvent[] => {
-    console.log('🔄 Transformando eventos do N8N:', n8nEvents);
+    console.log('🔄 [transformN8NEvents] Transformando eventos do N8N:', n8nEvents.length);
     
-    return n8nEvents.map(event => ({
-      id: event.id,
-      summary: event.summary,
-      status: 'confirmed',
-      start: event.start ? { dateTime: event.start } : undefined,
-      end: event.end ? { dateTime: event.end } : undefined,
-      location: event.location || undefined,
-      attendees: Array.isArray(event.attendees) 
-        ? event.attendees.map(email => ({ email }))
-        : [],
-      organizer: event.organizer ? { email: event.organizer } : undefined,
-      sequence: 0,
-      reminders: { useDefault: true }
-    }));
+    return n8nEvents.map(event => {
+      console.log('🔄 [transformN8NEvents] Transformando evento:', event.id);
+      
+      const result = {
+        id: event.id,
+        summary: event.summary,
+        status: 'confirmed' as const,
+        start: event.start ? { dateTime: event.start } : undefined,
+        end: event.end ? { dateTime: event.end } : undefined,
+        location: event.location || undefined,
+        attendees: Array.isArray(event.attendees) 
+          ? event.attendees.map(email => ({ email }))
+          : [],
+        organizer: event.organizer ? { email: event.organizer } : undefined,
+        sequence: 0,
+        reminders: { useDefault: true }
+      };
+      
+      console.log('✅ [transformN8NEvents] Evento transformado:', result);
+      return result;
+    });
+  };
+
+  // Função de teste para simular dados do N8N
+  const testN8NWebhookData = async (professionalProfileId?: string) => {
+    console.log('🧪 [testN8NWebhookData] Iniciando teste com dados mock');
+    
+    const mockWebhookData: N8NWebhookData = {
+      my_email: "nathancwb@gmail.com",
+      count: 1,
+      events: [
+        {
+          id: "test_event_" + Date.now(),
+          summary: "Teste - Treino",
+          start: "2025-03-28T07:45:00-03:00",
+          end: "2025-03-28T09:15:00-03:00",
+          organizer: "nathancwb@gmail.com",
+          attendees: [],
+          htmlLink: "https://test.google.com/calendar/event",
+          location: null
+        }
+      ]
+    };
+    
+    try {
+      const result = await processN8NWebhookData(mockWebhookData, professionalProfileId);
+      console.log('✅ [testN8NWebhookData] Teste concluído com sucesso:', result);
+      toast({
+        title: 'Teste executado',
+        description: `${result} appointment(s) criado(s) no teste.`,
+      });
+      return result;
+    } catch (error) {
+      console.error('💥 [testN8NWebhookData] Erro no teste:', error);
+      toast({
+        title: 'Erro no teste',
+        description: error instanceof Error ? error.message : 'Erro desconhecido no teste',
+        variant: 'destructive',
+      });
+      throw error;
+    }
   };
 
   useEffect(() => {
@@ -470,6 +651,7 @@ export const useGoogleCalendarEvents = () => {
     processN8NWebhookData, // Nova função para processar dados do N8N
     syncGoogleCalendarWithAppointments,
     transformN8NEvents,
+    testN8NWebhookData, // Função de teste para debug
     refetch: fetchGoogleCalendarEvents,
   };
 };
