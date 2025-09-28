@@ -98,7 +98,7 @@ serve(async (req) => {
     console.error('Error cancelling subscription:', error)
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Erro interno do servidor' 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -71,7 +71,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Failed to send profile data to webhook',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error'
       }),
       { 
         status: 500, 
