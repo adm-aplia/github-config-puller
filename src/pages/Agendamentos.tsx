@@ -676,44 +676,6 @@ export default function AgendamentosPage() {
                   <Plus className="h-4 w-4" />
                   <span>Novo Agendamento</span>
                 </Button>
-                
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="flex items-center justify-center gap-2 text-sm whitespace-nowrap"
-                  onClick={async () => {
-                    try {
-                      // Testar com dados reais do formato do usuário
-                      const testData = [
-                        {
-                          "my_email": "nathancwb@gmail.com",
-                          "count": 1,
-                          "events": [
-                            {
-                              "id": "test_real_" + Date.now(),
-                              "summary": "Treino",
-                              "start": "2025-03-28T07:45:00-03:00",
-                              "end": "2025-03-28T09:15:00-03:00",
-                              "organizer": "nathancwb@gmail.com",
-                              "attendees": [],
-                              "htmlLink": "https://www.google.com/calendar/event?eid=test123",
-                              "location": null
-                            }
-                          ]
-                        }
-                      ];
-                      
-                      console.log('🧪 Testando com dados reais do usuário:', testData[0]);
-                      await processN8NWebhookData(testData[0]);
-                      await fetchAppointments();
-                    } catch (error) {
-                      console.error('💥 Erro no teste:', error);
-                    }
-                  }}
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  <span>Teste N8N</span>
-                </Button>
               </div>
             </div>
           </header>
