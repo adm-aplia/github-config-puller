@@ -68,39 +68,39 @@ export function formatPhoneNumber(phoneNumber: string | null | undefined): strin
   
   // Brazilian numbers handling
   if (normalized.startsWith('55')) {
-    // 13 digits: +55 (11) 99999-9999 (complete format)
+    // 13 digits: +55(11)99999-9999 (complete format)
     if (normalized.length === 13) {
       const ddd = normalized.substring(2, 4);
       const firstPart = normalized.substring(4, 9);
       const secondPart = normalized.substring(9, 13);
-      return `+55 (${ddd}) ${firstPart}-${secondPart}`;
+      return `+55(${ddd})${firstPart}-${secondPart}`;
     }
     
-    // 12 digits: +55 (11) 9999-9999 (mobile without leading 9)
+    // 12 digits: +55(11)9999-9999 (mobile without leading 9)
     if (normalized.length === 12) {
       const ddd = normalized.substring(2, 4);
       const number = normalized.substring(4);
       // Add leading 9 for mobile numbers (8-9 digits)
       if (number.length === 8) {
-        return `+55 (${ddd}) 9${number.substring(0, 4)}-${number.substring(4)}`;
+        return `+55(${ddd})9${number.substring(0, 4)}-${number.substring(4)}`;
       }
       // Already has 9 digits
-      return `+55 (${ddd}) ${number.substring(0, 5)}-${number.substring(5)}`;
+      return `+55(${ddd})${number.substring(0, 5)}-${number.substring(5)}`;
     }
     
-    // 11 digits: +55119999999 (without DDD separation)
+    // 11 digits: +55(11)9999-9999 (without DDD separation)
     if (normalized.length === 11) {
       const ddd = normalized.substring(2, 4);
       const number = normalized.substring(4);
       // Add leading 9 for mobile numbers
-      return `+55 (${ddd}) 9${number.substring(0, 4)}-${number.substring(4)}`;
+      return `+55(${ddd})9${number.substring(0, 4)}-${number.substring(4)}`;
     }
     
-    // 10 digits: +5511999999 (short format)
+    // 10 digits: +55(11)9999-999 (short format)
     if (normalized.length === 10) {
       const ddd = normalized.substring(2, 4);
       const number = normalized.substring(4);
-      return `+55 (${ddd}) 9${number.substring(0, 3)}-${number.substring(3)}`;
+      return `+55(${ddd})9${number.substring(0, 3)}-${number.substring(3)}`;
     }
   }
   
