@@ -170,6 +170,14 @@ export default function AgendamentosPage() {
   const applyFilters = () => {
     let filtered = [...appointments]
 
+    // PRIMEIRO: Excluir agendamentos bloqueados SEMPRE
+    filtered = filtered.filter(apt => apt.appointment_type !== 'blocked')
+    
+    // Debug temporário
+    console.log('Total appointments antes dos filtros:', appointments.length)
+    console.log('Appointments after excluding blocked:', filtered.length)
+    console.log('Blocked appointments found:', appointments.filter(apt => apt.appointment_type === 'blocked').length)
+
     // Apply period filter if no manual date range is set
     if (!filters.dateFrom && !filters.dateTo) {
       const periodRange = getPeriodDateRange()
@@ -178,6 +186,7 @@ export default function AgendamentosPage() {
         const aptDateOnly = new Date(aptDate.getFullYear(), aptDate.getMonth(), aptDate.getDate())
         return aptDateOnly >= periodRange.from && aptDateOnly <= periodRange.to
       })
+      console.log('Appointments after period filter:', filtered.length)
     }
 
     // Apply professional filter from professional selector
@@ -215,6 +224,14 @@ export default function AgendamentosPage() {
       )
     }
 
+    console.log('Final filtered appointments:', filtered.length)
+    console.log('Appointments being passed to stats:', filtered.map(apt => ({ 
+      id: apt.id, 
+      type: apt.appointment_type, 
+      status: apt.status, 
+      date: apt.appointment_date 
+    })))
+    
     setFilteredAppointments(filtered)
   }
 
