@@ -61,7 +61,7 @@ export function SelectGoogleAccountModal({
         description: 'A operação demorou mais que o esperado. Tente novamente.',
         variant: 'destructive',
       })
-    }, 60000) // 60 segundos
+    }, 90000) // 90 segundos
     
     try {
       console.log('🔗 Iniciando vinculação da conta Google...');
@@ -75,8 +75,8 @@ export function SelectGoogleAccountModal({
         setSelectedCredentialId(null)
         console.log('✅ Conta vinculada com sucesso');
         toast({
-          title: 'Conta vinculada',
-          description: 'Conta Google vinculada com sucesso e eventos sincronizados.',
+          title: 'Conta vinculada com sucesso',
+          description: 'Conta Google vinculada e eventos sincronizados automaticamente com os agendamentos.',
         })
       }
     } catch (error) {

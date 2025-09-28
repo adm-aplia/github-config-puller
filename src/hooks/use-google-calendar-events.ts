@@ -283,18 +283,13 @@ export const useGoogleCalendarEvents = () => {
 
       // Sync the newly saved events with appointments
       console.log('🔄 Iniciando sincronização com appointments...');
-      await syncGoogleCalendarWithAppointments();
-      console.log('✅ Sincronização com appointments concluída');
+      const appointmentsCreated = await syncGoogleCalendarWithAppointments();
+      console.log(`✅ Sincronização concluída - ${appointmentsCreated} appointments criados`);
 
       toast({
-        title: 'Eventos sincronizados',
-        description: `${eventCount} evento(s) do Google Calendar foram sincronizados.`,
+        title: 'Sincronização completa',
+        description: `${eventCount} evento(s) processados e ${appointmentsCreated || 0} agendamento(s) criado(s).`,
       });
-
-      // After processing events, sync with appointments  
-      console.log('🔄 Iniciando sincronização de appointments...');
-      await syncGoogleCalendarWithAppointments();
-      console.log('✅ Sincronização de appointments concluída');
 
       return eventCount;
     } catch (error) {
@@ -411,11 +406,14 @@ export const useGoogleCalendarEvents = () => {
         console.log(`✅ ${insertedData?.length || 0} appointments criados com sucesso`);
 
         toast({
-          title: 'Agendamentos criados',
-          description: `${appointmentsToCreate.length} agendamento(s) criado(s) a partir do Google Calendar.`,
+          title: 'Agendamentos sincronizados',
+          description: `${appointmentsToCreate.length} agendamento(s) criado(s) automaticamente do Google Calendar.`,
         });
+        
+        return insertedData?.length || 0;
       } else {
         console.log('✅ Todos os eventos já têm appointments correspondentes');
+        return 0;
       }
 
     } catch (error) {
