@@ -170,8 +170,8 @@ export default function AgendamentosPage() {
   const applyFilters = () => {
     let filtered = [...appointments]
 
-    // PRIMEIRO: Excluir agendamentos bloqueados SEMPRE
-    filtered = filtered.filter(apt => apt.appointment_type !== 'blocked')
+    // PRIMEIRO: Excluir agendamentos bloqueados SEMPRE (usando função robusta)
+    filtered = filtered.filter(apt => !isBlocked(apt))
     
     // Debug temporário
     console.log('Total appointments antes dos filtros:', appointments.length)
