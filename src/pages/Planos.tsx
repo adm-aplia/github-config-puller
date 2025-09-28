@@ -121,10 +121,10 @@ export default function Planos() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-6 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Planos & Pagamentos</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+      <div className="container mx-auto px-4 md:px-6 py-6 md:py-8">
+        <div className="text-center mb-8 md:mb-12">
+          <h1 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">Planos & Pagamentos</h1>
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
             Gerencie sua assinatura e histórico de pagamentos
           </p>
         </div>
@@ -136,7 +136,7 @@ export default function Planos() {
           </TabsList>
 
           <TabsContent value="planos" className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 space-y-8">
-            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto mt-6 md:mt-8">
               {plans.map((plan, index) => {
                 const isCurrent = isCurrentPlan(plan.id);
                 const isPopular = index === 1; // Middle card is popular
@@ -168,11 +168,11 @@ export default function Planos() {
                       </div>
                     )}
 
-                    <div className="flex flex-col space-y-1.5 p-6 pb-4 pt-8 px-8">
-                      <div className={`tracking-tight text-2xl font-bold mb-2 ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                    <div className="flex flex-col space-y-1.5 p-4 md:p-6 pb-3 md:pb-4 pt-6 md:pt-8 px-4 md:px-8">
+                      <div className={`tracking-tight text-xl md:text-2xl font-bold mb-2 ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
                         {plan.nome}
                       </div>
-                      <div className={`text-2xl font-bold mb-4 ${isEnterprise ? 'text-red-400' : 'text-foreground'}`}>
+                      <div className={`text-xl md:text-2xl font-bold mb-3 md:mb-4 ${isEnterprise ? 'text-red-400' : 'text-foreground'}`}>
                         R$ {plan.preco}/{plan.periodo === 'monthly' ? 'mês' : 'ano'}
                       </div>
                       <hr className={`border-t-2 mb-4 ${isEnterprise ? 'border-slate-600' : 'border-border'}`} />
@@ -181,7 +181,7 @@ export default function Planos() {
                       </div>
                     </div>
 
-                    <div className="p-6 pt-0 px-8 pb-6 flex-grow">
+                    <div className="p-4 md:p-6 pt-0 px-4 md:px-8 pb-4 md:pb-6 flex-grow">
                       <ul className="space-y-3">
                         {features.map((feature, idx) => (
                           <li key={idx} className="flex items-center gap-3">
@@ -199,7 +199,7 @@ export default function Planos() {
                       </div>
                     </div>
 
-                    <div className="flex items-center p-6 pt-0 px-8 pb-8 mt-auto">
+                    <div className="flex items-center p-4 md:p-6 pt-0 px-4 md:px-8 pb-6 md:pb-8 mt-auto">
                       <Button 
                         className="w-full bg-red-500 hover:bg-red-600 text-white py-3 text-base font-medium rounded-xl transition-colors duration-200 h-10 px-4"
                         disabled={isCurrent}
@@ -213,8 +213,8 @@ export default function Planos() {
               })}
             </div>
 
-            <div className="mt-16 text-center">
-              <div className="flex justify-center items-center gap-8 opacity-60">
+            <div className="mt-12 md:mt-16 text-center">
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 opacity-60">
                 <div className="text-xs text-muted-foreground">🔒 Pagamento Seguro</div>
                 <div className="text-xs text-muted-foreground">✅ Cancele Quando Quiser</div>
                 <div className="text-xs text-muted-foreground">📞 Suporte Especializado</div>
@@ -235,18 +235,18 @@ export default function Planos() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="text-sm text-muted-foreground">
                       Próxima cobrança: {subscription.proxima_cobranca 
                         ? new Date(subscription.proxima_cobranca).toLocaleDateString('pt-BR')
                         : 'N/A'
                       }
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button 
                         variant="outline" 
                         onClick={() => setChangeModalOpen(true)}
-                        className="flex items-center gap-2"
+                        className="flex items-center justify-center gap-2"
                       >
                         <CreditCard className="h-4 w-4" />
                         Alterar Plano
@@ -254,7 +254,7 @@ export default function Planos() {
                       <Button 
                         variant="outline" 
                         onClick={() => setCancelModalOpen(true)}
-                        className="flex items-center gap-2 text-destructive hover:text-destructive"
+                        className="flex items-center justify-center gap-2 text-destructive hover:text-destructive"
                       >
                         <XCircle className="h-4 w-4" />
                         Cancelar
