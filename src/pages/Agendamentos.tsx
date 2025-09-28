@@ -606,10 +606,10 @@ export default function AgendamentosPage() {
               </p>
             </div>
             
-            {/* Controles organizados de forma responsiva */}
-            <div className="space-y-3 sm:space-y-4">
-              {/* Linha 1: Seletor de profissional (sempre em linha própria em mobile) */}
-              <div className="w-full">
+            {/* Controles otimizados para desktop */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              {/* Seletor de profissional - largura fixa no desktop */}
+              <div className="w-full lg:w-80">
                 <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
                   <SelectTrigger className="w-full">
                     <SelectValue>
@@ -628,8 +628,8 @@ export default function AgendamentosPage() {
                 </Select>
               </div>
               
-              {/* Linha 2: Botões de ação em grid responsivo */}
-              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+              {/* Botões de ação - horizontal no desktop */}
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap lg:flex gap-2">
                 <Button 
                   variant="outline" 
                   size="sm" 
