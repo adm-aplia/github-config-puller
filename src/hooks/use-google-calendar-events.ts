@@ -231,7 +231,7 @@ export const useGoogleCalendarEvents = () => {
           user_id: userData.user.id,
           professional_profile_id: professionalProfileId,
           patient_name: event.summary || 'Evento Google Calendar',
-          patient_phone: '', // Google Calendar doesn't provide phone
+          patient_phone: 'Google Calendar', // Required field - using placeholder
           patient_email: firstAttendeeEmail,
           appointment_date: startTime,
           duration_minutes: Math.round(
@@ -354,7 +354,7 @@ export const useGoogleCalendarEvents = () => {
             user_id: userData.user.id,
             professional_profile_id: event.professional_profile_id,
             patient_name: event.summary || 'Evento Google Calendar',
-            patient_phone: '', // Google Calendar doesn't provide phone
+            patient_phone: 'Google Calendar', // Required field - using placeholder
             patient_email: firstAttendeeEmail,
             appointment_date: event.start_time,
             duration_minutes: Math.round(
