@@ -182,10 +182,15 @@ export const useGoogleCalendarEvents = () => {
     webhookEvents: GCalendarWebhookEvent[],
     googleCalendarId = 'primary',
     professionalProfileId?: string
-  ) => {
+  ): Promise<number> => {
+    console.log('📥 Processando webhook do Google Calendar:', webhookEvents);
+    
     try {
       const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user?.id) throw new Error('User not authenticated');
+      if (!userData.user?.id) {
+        console.error('❌ Usuário não autenticado no webhook');
+        throw new Error('User not authenticated');
+      }
 
       const eventsToUpsert: Partial<GoogleCalendarEvent>[] = [];
 
@@ -257,28 +262,36 @@ export const useGoogleCalendarEvents = () => {
         throw new Error('No valid events to upsert');
       }
 
+      console.log(`💾 Inserindo ${validEvents.length} eventos no banco...`);
+
       // Upsert events in Google Calendar events table
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('google_calendar_events')
         .upsert(validEvents, {
           onConflict: 'user_id,google_calendar_id,google_event_id',
           ignoreDuplicates: false,
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao inserir eventos:', error);
+        throw error;
+      }
 
-      // Refresh events
-      await fetchGoogleCalendarEvents();
-      
+      const eventCount = data?.length || 0;
+      console.log(`✅ ${eventCount} eventos inseridos/atualizados com sucesso`);
+
       // Sync the newly saved events with appointments
+      console.log('🔄 Iniciando sincronização com appointments...');
       await syncGoogleCalendarWithAppointments();
+      console.log('✅ Sincronização com appointments concluída');
 
       toast({
         title: 'Eventos sincronizados',
-        description: `${eventsToUpsert.length} evento(s) do Google Calendar foram sincronizados.`,
+        description: `${eventCount} evento(s) do Google Calendar foram sincronizados.`,
       });
 
-      return eventsToUpsert.length;
+      return eventCount;
     } catch (error) {
       console.error('Error processing Google Calendar webhook:', error);
       toast({

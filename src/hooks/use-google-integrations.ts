@@ -188,7 +188,7 @@ export const useGoogleIntegrations = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Eventos sincronizados:', data);
+        console.log('✅ Dados recebidos do N8N:', data);
 
         if (data && data[0] && data[0].response) {
           // Parse da resposta JSON do N8N
@@ -202,6 +202,11 @@ export const useGoogleIntegrations = () => {
             return false;
           }
 
+          if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
+            console.log('ℹ️ Nenhum evento encontrado no Google Calendar');
+            return true; // Sucesso mesmo sem eventos
+          }
+
           console.log(`📅 Eventos recebidos do N8N (${rawEvents.length} eventos):`, rawEvents);
           
           // Transformar eventos do formato N8N para o formato esperado
@@ -211,13 +216,20 @@ export const useGoogleIntegrations = () => {
           // Processar eventos e criar appointments automaticamente
           const eventCount = await processGoogleCalendarWebhook(transformedEvents, "primary", profileId);
           console.log(`✅ ${eventCount} eventos processados e sincronizados com appointments`);
+          
           return true;
+        } else {
+          console.log('ℹ️ Resposta do N8N sem eventos');
+          return true; // Sucesso mesmo sem eventos
         }
       } else {
-        throw new Error(`Erro do servidor: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Erro no servidor N8N:', response.status, errorText);
+        throw new Error(`Erro do servidor N8N: ${response.status} - ${errorText}`);
       }
     } catch (error) {
       console.error('❌ Erro na sincronização automática:', error);
+      // Re-throw para que o handleLink possa capturar e tratar
       throw error;
     }
   };

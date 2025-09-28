@@ -8,6 +8,7 @@ import { GoogleCredential } from "@/hooks/use-google-integrations"
 import { Calendar, Plus, CheckCircle } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { toast } from "@/hooks/use-toast"
 
 interface SelectGoogleAccountModalProps {
   open: boolean
@@ -50,12 +51,40 @@ export function SelectGoogleAccountModal({
     if (!selectedCredentialId) return
     
     setLinking(true)
-    const success = await onLinkAccount(selectedCredentialId, profileId)
-    setLinking(false)
     
-    if (success) {
-      onOpenChange(false)
-      setSelectedCredentialId(null)
+    // Timeout de segurança para evitar modal travado
+    const timeout = setTimeout(() => {
+      console.warn('⚠️ Timeout na vinculação - resetando estado do modal');
+      setLinking(false)
+      toast({
+        title: 'Timeout na vinculação',
+        description: 'A operação demorou mais que o esperado. Tente novamente.',
+        variant: 'destructive',
+      })
+    }, 60000) // 60 segundos
+    
+    try {
+      const success = await onLinkAccount(selectedCredentialId, profileId)
+      clearTimeout(timeout)
+      setLinking(false)
+      
+      if (success) {
+        onOpenChange(false)
+        setSelectedCredentialId(null)
+        toast({
+          title: 'Conta vinculada',
+          description: 'Conta Google vinculada com sucesso e eventos sincronizados.',
+        })
+      }
+    } catch (error) {
+      clearTimeout(timeout)
+      setLinking(false)
+      console.error('❌ Erro na vinculação:', error)
+      toast({
+        title: 'Erro na vinculação',
+        description: 'Houve um erro ao vincular a conta. Tente novamente.',
+        variant: 'destructive',
+      })
     }
   }
 
