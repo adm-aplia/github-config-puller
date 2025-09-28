@@ -97,7 +97,12 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* 1. Informações Básicas */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium border-b pb-2">Informações Básicas</h3>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                1
+              </div>
+              <h3 className="text-lg font-medium">Informações Básicas</h3>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="fullname">Nome Completo *</Label>
@@ -161,7 +166,12 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
           {/* 2. Localização e Atendimento */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium border-b pb-2">Localização e Atendimento</h3>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                2
+              </div>
+              <h3 className="text-lg font-medium">Localização e Atendimento</h3>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Coluna Esquerda */}
               <div className="space-y-4">
@@ -208,7 +218,12 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
           {/* 3. Planos e Pagamentos */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium border-b pb-2">Planos e Pagamentos</h3>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                3
+              </div>
+              <h3 className="text-lg font-medium">Planos e Pagamentos</h3>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="healthinsurance">Convênios Aceitos</Label>

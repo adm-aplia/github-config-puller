@@ -58,6 +58,11 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
 
   const updateSchedule = (newSchedule: DaySchedule) => {
     setSchedule(newSchedule);
+    // Só dispara onChange após salvar explicitamente, não durante edição
+  };
+
+  const confirmUpdateSchedule = (newSchedule: DaySchedule) => {
+    setSchedule(newSchedule);
     onChange?.(JSON.stringify(newSchedule));
   };
 
@@ -88,7 +93,7 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
       newSchedule[editingSlot.day].push(slot);
     }
 
-    updateSchedule(newSchedule);
+    confirmUpdateSchedule(newSchedule);
     setEditingSlot(null);
   };
 
@@ -100,7 +105,7 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
         delete newSchedule[day];
       }
     }
-    updateSchedule(newSchedule);
+    confirmUpdateSchedule(newSchedule);
   };
 
   const editTimeSlot = (day: string, index: number) => {
