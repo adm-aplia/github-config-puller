@@ -557,9 +557,11 @@ export const useGoogleCalendarEvents = () => {
           ? Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60))
           : 60;
         
+        console.log('🆔 [processN8NWebhookData] Usando profileId para appointment:', profileId);
+        
         const appointmentData = {
           user_id: userData.user.id,
-          professional_profile_id: professionalProfileId || null,
+          professional_profile_id: profileId || null,
           patient_name: event.summary || 'Evento Google Calendar',
           patient_phone: 'Google Calendar', // Campo obrigatório - usar placeholder
           patient_email: event.attendees?.[0] || null,
