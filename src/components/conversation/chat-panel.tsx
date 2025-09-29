@@ -8,6 +8,7 @@ import { useMessages } from "@/hooks/use-messages"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
 import { applyMask } from "@/lib/masks"
+import chatBackgroundLight from "@/assets/chat-background-light-new.png"
 
 
 interface ChatPanelProps {
@@ -28,6 +29,12 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
+
+  // Preload da imagem de fundo para carregamento instantâneo
+  useEffect(() => {
+    const img = new Image()
+    img.src = chatBackgroundLight
+  }, [])
 
   const scrollToBottom = (instant = false) => {
     messagesEndRef.current?.scrollIntoView({ behavior: instant ? "auto" : "smooth" })
@@ -173,9 +180,17 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 min-h-0 overflow-hidden relative bg-chat-pattern">
+      <div 
+        className="flex-1 min-h-0 overflow-hidden relative"
+        style={{
+          backgroundImage: `url(${chatBackgroundLight})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
         {/* Overlay for better readability */}
-        <div className="absolute inset-0 bg-background/70 dark:bg-background/30"></div>
+        <div className="absolute inset-0 bg-background/80 dark:bg-background/40"></div>
         <ScrollArea className="h-full px-4 py-3 sm:px-6 sm:py-4 md:px-8 relative z-10">
           <div className="space-y-4">
             {loading && messages.length === 0 ? (
