@@ -324,12 +324,13 @@ export const useGoogleIntegrations = () => {
         return false;
       }
 
-      // Mostrar loading para sincronização
+      // Toast inicial - apenas vinculação
       toast({
-        title: 'Sincronizando eventos...',
-        description: 'Vinculando perfil e importando eventos do Google Calendar.',
+        title: 'Vinculando perfil...',
+        description: 'Conectando perfil com sua conta Google.',
       });
 
+      // 1. Primeiro, fazer apenas a vinculação (rápido)
       const { data, error } = await supabase
         .from('google_profile_links')
         .insert([{
@@ -352,22 +353,28 @@ export const useGoogleIntegrations = () => {
         )
       );
 
-      // Sincronizar eventos automaticamente
-      try {
-        await syncGoogleEventsForProfile(googleCredentialId, professionalProfileId);
-        
-        toast({
-          title: 'Perfil vinculado com sucesso',
-          description: 'Perfil vinculado e eventos sincronizados automaticamente.',
+      // Toast de sucesso da vinculação (rápido)
+      toast({
+        title: 'Perfil vinculado!',
+        description: 'Iniciando sincronização de eventos em segundo plano...',
+      });
+
+      // 2. Agora sincronizar eventos em background (não bloqueia a UI)
+      syncGoogleEventsForProfile(googleCredentialId, professionalProfileId)
+        .then(() => {
+          toast({
+            title: 'Sincronização concluída!',
+            description: 'Todos os eventos do Google Calendar foram importados.',
+          });
+        })
+        .catch((syncError) => {
+          console.error('Erro na sincronização automática:', syncError);
+          toast({
+            title: 'Erro na sincronização',
+            description: 'Perfil vinculado, mas houve erro ao importar eventos. Tente novamente.',
+            variant: 'destructive',
+          });
         });
-      } catch (syncError) {
-        console.error('Erro na sincronização automática:', syncError);
-        toast({
-          title: 'Perfil vinculado',
-          description: 'Perfil vinculado, mas houve erro na sincronização automática de eventos.',
-          variant: 'destructive',
-        });
-      }
 
       return true;
     } catch (error) {
