@@ -150,6 +150,16 @@ html {
     background: linear-gradient(180deg, hsl(var(--aplia-coral)), hsl(var(--aplia-coral) / 0.9));
   }
 
+  /* Chat background pattern - instant loading */
+  .bg-chat-pattern {
+    background-image: 
+      radial-gradient(circle at 25% 25%, hsl(var(--muted) / 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, hsl(var(--muted) / 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, hsl(var(--muted) / 0.2) 0%, transparent 50%);
+    background-size: 40px 40px, 60px 60px, 80px 80px;
+    background-position: 0 0, 20px 20px, 40px 40px;
+  }
+
   /* Subtle variant for nested scroll areas if needed */
   .scrollbar-subtle {
     scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--card));
