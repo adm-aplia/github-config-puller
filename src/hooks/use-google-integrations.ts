@@ -251,19 +251,38 @@ export const useGoogleIntegrations = () => {
         throw calendarError;
       }
 
-      // Deletar appointments relacionados (apenas os vindos do Google Calendar)
-      const { error: appointmentsError } = await supabase
+      // Buscar appointments do Google Calendar para este perfil (usando ambos os filtros)
+      const { data: googleAppointments, error: fetchError } = await supabase
         .from('appointments')
-        .delete()
+        .select('id, patient_name, appointment_date, appointment_type, patient_phone')
         .eq('professional_profile_id', profileId)
-        .eq('appointment_type', 'google_sync');
+        .or(`appointment_type.eq.google_sync,patient_phone.eq.Google Calendar`);
 
-      if (appointmentsError) {
-        console.error('Erro ao deletar appointments:', appointmentsError);
-        throw appointmentsError;
+      if (fetchError) {
+        console.error('Erro ao buscar appointments do Google Calendar:', fetchError);
+        throw fetchError;
       }
 
-      console.log('✅ Eventos deletados com sucesso');
+      console.log(`📋 Encontrados ${googleAppointments?.length || 0} appointments do Google Calendar para deletar`);
+      
+      if (googleAppointments && googleAppointments.length > 0) {
+        // Deletar appointments relacionados (apenas os vindos do Google Calendar)
+        const appointmentIds = googleAppointments.map(app => app.id);
+        
+        const { error: appointmentsError } = await supabase
+          .from('appointments')
+          .delete()
+          .in('id', appointmentIds);
+
+        if (appointmentsError) {
+          console.error('Erro ao deletar appointments:', appointmentsError);
+          throw appointmentsError;
+        }
+
+        console.log(`✅ ${googleAppointments.length} appointments do Google Calendar deletados com sucesso`);
+      } else {
+        console.log('ℹ️ Nenhum appointment do Google Calendar encontrado para deletar');
+      }
       return true;
     } catch (error) {
       console.error('❌ Erro ao deletar eventos:', error);
