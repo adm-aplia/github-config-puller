@@ -119,145 +119,97 @@ export default function Planos() {
               <TabsTrigger value="management" className="text-sm font-medium">Gestão de Pagamentos</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="plans" className="space-y-10">
-              {/* Trust elements */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16 py-6">
-                <div className="flex items-center gap-4 group cursor-default">
-                  <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
-                    <Shield className="h-6 w-6 text-aplia-coral" />
-                  </div>
-                  <span className="font-semibold text-foreground">🔒 Pagamento 100% seguro</span>
-                </div>
-                <div className="flex items-center gap-4 group cursor-default">
-                  <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
-                    <Zap className="h-6 w-6 text-aplia-coral" />
-                  </div>
-                  <span className="font-semibold text-foreground">⚡ Ativação imediata</span>
-                </div>
-                <div className="flex items-center gap-4 group cursor-default">
-                  <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
-                    <HeadphonesIcon className="h-6 w-6 text-aplia-coral" />
-                  </div>
-                  <span className="font-semibold text-foreground">💬 Suporte especializado</span>
-                </div>
-              </div>
-
-              {/* Plans grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 max-w-7xl mx-auto px-4">{" "}
+            <TabsContent value="plans" className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto mt-6 md:mt-8">
                 {plans.map((plan) => {
                   const isPopular = plan.id === mostPopularPlan?.id;
                   const isCurrent = subscription?.plano_id === plan.id;
-                  const isFree = plan.preco === 0;
                   const isEnterprise = plan.preco >= 300;
                   
                   return (
-                    <Card 
-                      key={plan.id} 
-                      className={`relative rounded-3xl transition-all duration-500 group border-2 ${
+                    <div
+                      key={plan.id}
+                      className={`relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${
                         isEnterprise
-                          ? 'border-aplia-dark bg-aplia-dark text-white shadow-xl hover:shadow-2xl hover:scale-[1.02]'
-                          : isPopular 
-                          ? 'border-aplia-coral/30 shadow-xl hover:shadow-2xl scale-[1.02] bg-card' 
-                          : 'border-border/50 hover:border-aplia-coral/30 hover:shadow-xl hover:scale-[1.02] bg-card'
-                      } ${isCurrent ? 'ring-2 ring-aplia-coral ring-offset-4 border-aplia-coral/50' : ''} ${
-                        isFree ? 'bg-muted/50' : ''
-                      }`}
+                          ? 'bg-slate-900 border-slate-700 hover:bg-slate-800/80 hover:border-slate-600'
+                          : 'bg-card border-border hover:bg-white/80 hover:border-gray-200'
+                      } text-card-foreground`}
                     >
-                      {isPopular && (
-                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                          <Badge className="bg-aplia-coral text-white px-5 py-2 shadow-lg font-semibold text-sm border-0">
-                            <Crown className="h-4 w-4 mr-1.5" />
-                            👑 Mais Popular
+                      {/* Badge */}
+                      {isPopular && !isCurrent && (
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                          <Badge className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
+                            Mais popular
                           </Badge>
                         </div>
                       )}
                       
                       {isCurrent && (
-                        <div className="absolute -top-3 right-6 z-10">
-                          <Badge className="bg-aplia-coral text-white px-4 py-2 shadow-lg font-semibold text-sm border-0">
-                            <Check className="h-4 w-4 mr-1.5" />
-                            🌟 Ativo
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                          <Badge className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
+                            Plano Atual
                           </Badge>
                         </div>
                       )}
 
-                      <CardHeader className="pb-8 pt-10">
-                        <div className="text-center space-y-4">
-                          <CardTitle className={`text-2xl md:text-3xl font-bold tracking-tight ${isEnterprise ? 'text-white' : ''}`}>
-                            {plan.nome}
-                          </CardTitle>
-                          <CardDescription className={`text-base leading-relaxed px-2 ${isEnterprise ? 'text-white/80' : 'text-muted-foreground'}`}>
-                            {getPlanDescription(plan)}
-                          </CardDescription>
-                          
-                          <div className="py-6">
-                            <div className="flex items-baseline justify-center gap-1">
-                              {plan.preco === 0 ? (
-                                <span className="text-5xl font-bold text-aplia-coral">
-                                  Grátis
-                                </span>
-                              ) : (
-                                <>
-                                  <span className={`text-lg font-semibold ${isEnterprise ? 'text-white/70' : 'text-muted-foreground'}`}>R$</span>
-                                  <span className={`text-5xl md:text-6xl font-bold ${isEnterprise ? 'text-aplia-coral' : 'text-foreground'}`}>
-                                    {plan.preco.toFixed(0)}
-                                  </span>
-                                  <span className={`text-lg font-medium ${isEnterprise ? 'text-white/70' : 'text-muted-foreground'}`}>/{plan.periodo}</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
+                      {/* Header */}
+                      <div className="flex flex-col space-y-1.5 p-4 md:p-6 pb-3 md:pb-4 pt-6 md:pt-8 px-4 md:px-8">
+                        <div className={`tracking-tight text-xl md:text-2xl font-bold mb-2 ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                          {plan.nome}
                         </div>
-                      </CardHeader>
+                        <div className={`text-xl md:text-2xl font-bold mb-3 md:mb-4 ${isEnterprise ? 'text-red-400' : 'text-foreground'}`}>
+                          R$ {plan.preco}/{plan.periodo}
+                        </div>
+                        <hr className={`border-t-2 mb-4 ${isEnterprise ? 'border-slate-600' : 'border-border'}`} />
+                        <div className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                          {getPlanDescription(plan)}
+                        </div>
+                      </div>
 
-                      <CardContent className="space-y-6 pb-10 px-8">
-                        <div className={`border-t pt-6 ${isEnterprise ? 'border-white/20' : 'border-border/50'}`}>
-                          <ul className="space-y-4">
-                            {getPlanFeatures(plan).map((feature, index) => (
-                              <li key={index} className="flex items-start gap-3">
-                                <div className={`w-6 h-6 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0 shadow-sm ${
-                                  isEnterprise ? 'bg-white/20' : 'bg-aplia-coral/10'
-                                }`}>
-                                  <Check className={`h-3.5 w-3.5 font-bold ${isEnterprise ? 'text-aplia-coral' : 'text-aplia-coral'}`} />
-                                </div>
-                                <span className={`text-sm leading-relaxed font-medium ${isEnterprise ? 'text-white/90' : 'text-foreground/80'}`}>
-                                  {feature}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                      {/* Content */}
+                      <div className="p-4 md:p-6 pt-0 px-4 md:px-8 pb-4 md:pb-6 flex-grow">
+                        <ul className="space-y-3">
+                          {getPlanFeatures(plan).map((feature, index) => (
+                            <li key={index} className="flex items-center gap-3">
+                              <Check className="h-4 w-4 text-red-500" />
+                              <span className={`text-sm ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                                {feature}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
 
-                        <div className={`pt-6 space-y-4 border-t ${isEnterprise ? 'border-white/20' : 'border-border/50'}`}>
-                          {isCurrent ? (
-                            <Button 
-                              disabled 
-                              className="w-full h-14 font-semibold text-base rounded-xl shadow-sm" 
-                              variant="secondary"
-                            >
-                              <Check className="h-5 w-5 mr-2" />
-                              {getButtonText(plan)}
-                            </Button>
-                          ) : (
-                            <Button
-                              onClick={() => handleSelectPlan(plan.id)}
-                              className={`w-full h-14 font-semibold text-base rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.02] ${
-                                isEnterprise 
-                                  ? 'bg-aplia-coral hover:bg-aplia-coral/90 text-white border-0'
-                                  : 'bg-aplia-coral hover:bg-aplia-coral/90 text-white border-0'
-                              }`}
-                            >
-                              {getButtonText(plan)}
-                            </Button>
-                          )}
-                          <p className={`text-xs text-center font-medium pt-1 ${isEnterprise ? 'text-white/70' : 'text-muted-foreground'}`}>
-                            {getFooterText(plan)}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      {/* Footer */}
+                      <div className="flex items-center p-4 md:p-6 pt-0 px-4 md:px-8 pb-6 md:pb-8 mt-auto">
+                        {isCurrent ? (
+                          <Button
+                            disabled
+                            className="w-full bg-red-500 hover:bg-red-600 text-white py-3 text-base font-medium rounded-xl transition-colors duration-200"
+                          >
+                            Plano Atual
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => handleSelectPlan(plan.id)}
+                            className="w-full bg-red-500 hover:bg-red-600 text-white py-3 text-base font-medium rounded-xl transition-colors duration-200"
+                          >
+                            {getButtonText(plan)}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
+              </div>
+
+              {/* Trust elements */}
+              <div className="mt-12 md:mt-16 text-center">
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 opacity-60">
+                  <div className="text-xs text-muted-foreground">🔒 Pagamento Seguro</div>
+                  <div className="text-xs text-muted-foreground">✅ Cancele Quando Quiser</div>
+                  <div className="text-xs text-muted-foreground">📞 Suporte Especializado</div>
+                </div>
               </div>
             </TabsContent>
 
