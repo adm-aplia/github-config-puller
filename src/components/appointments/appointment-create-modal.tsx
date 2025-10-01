@@ -115,6 +115,9 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
       }
 
       // Create the webhook payload in the exact format requested
+      const mappedStatus = mapStatusToEnglish(formData.status);
+      console.log('[appointment-create] Status original:', formData.status, '→ Mapeado:', mappedStatus);
+      
       const queryObj = {
         action: "create",
         user_id: user?.id,
@@ -123,7 +126,7 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
         patient_phone: formattedPhone,
         patient_email: formData.patient_email || "",
         appointment_date: formattedDate,
-        status: mapStatusToEnglish(formData.status),
+        status: mappedStatus,
         summary: `${formData.appointment_type || 'Consulta'} com ${formData.patient_name}`,
         notes: formData.notes || `Paciente: ${formData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${formData.patient_email || 'Não informado'}. Motivo: ${formData.appointment_type || 'consulta'}.`,
         ...(myEmail && { my_email: myEmail })
