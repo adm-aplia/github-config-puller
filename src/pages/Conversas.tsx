@@ -287,7 +287,7 @@ export default function ConversasPage() {
           {/* WhatsApp-style layout */}
           <Card className="h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)] overflow-hidden mx-0 sm:mx-auto">
             <CardContent className="p-0 h-full">
-              <div className={`flex h-full min-h-0 ${selectedConversationId ? 'md:grid md:grid-cols-[360px_1fr]' : 'md:grid md:grid-cols-1'}`}>
+              <div className="flex h-full min-h-0 md:grid md:grid-cols-[360px_1fr]">
                 {/* Conversation List - Left Panel */}
                 <div className={`w-full border-r bg-muted/20 flex flex-col min-h-0 ${showMobileChat ? 'hidden md:flex' : 'flex'} md:flex`}>
                   {/* Search and Filters Header */}
@@ -483,9 +483,9 @@ export default function ConversasPage() {
               </div>
 
               {/* Chat Panel - Right Panel */}
-              <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${selectedConversationId ? 'md:flex' : 'md:hidden'}`}>
+              <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 {selectedConversationId && selectedConversationData ? (
-                  <div className={`flex-1 min-h-0 overflow-hidden ${showMobileChat && 'md:block hidden'}`}>
+                  <div className={`flex-1 min-h-0 overflow-hidden ${showMobileChat ? 'hidden md:block' : ''}`}>
                     <ChatPanel
                       conversationId={selectedConversationId}
                       contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
@@ -502,7 +502,7 @@ export default function ConversasPage() {
                     />
                   </div>
                 ) : (
-                  <div className="flex flex-1 flex-col items-center justify-center">
+                  <div className="hidden md:flex flex-1 flex-col items-center justify-center">
                     {filteredConversations.length === 0 ? (
                       <>
                         <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
