@@ -483,19 +483,7 @@ export const useAppointments = () => {
 
       if (!appointment) throw new Error('Appointment not found');
 
-      // If cancelling, send webhook first
-      if (status === 'cancelled') {
-        await sendCancellationWebhook(appointment);
-      }
-
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status })
-        .eq('id', appointmentId);
-
-      if (error) throw error;
-
-      // If confirming a cancelled appointment, recreate it via webhook
+      // If confirming a cancelled appointment, only send webhook (don't update DB)
       if (status === 'confirmed' && appointment.status === 'cancelled') {
         // Format phone with +55 prefix if not already present
         let formattedPhone = appointment.patient_phone?.replace(/\D/g, '') || '';
@@ -549,9 +537,23 @@ export const useAppointments = () => {
           ...(myEmail && { my_email: myEmail })
         };
         
-        console.log('[appointment-confirm] Enviando webhook de confirmação:', queryObj);
+        console.log('[appointment-confirm] Enviando webhook de confirmação (sem atualizar DB):', queryObj);
         await sendAppointmentToWebhook(queryObj);
+        return; // Don't update DB, just send webhook
       }
+
+      // If cancelling, send webhook first
+      if (status === 'cancelled') {
+        await sendCancellationWebhook(appointment);
+      }
+
+      // Update status in database
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status })
+        .eq('id', appointmentId);
+
+      if (error) throw error;
     } catch (error) {
       console.error('Error updating appointment status:', error);
       throw error;
