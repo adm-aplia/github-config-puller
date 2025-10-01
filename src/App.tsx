@@ -52,7 +52,7 @@ function AppContent() {
           <Route path="/dashboard/whatsapp" element={<ProtectedRoute><WhatsAppPage /></ProtectedRoute>} />
           <Route path="/dashboard/integracoes" element={<ProtectedRoute><IntegracoesPage /></ProtectedRoute>} />
           <Route path="/dashboard/planos" element={<ProtectedRoute><PlanosPage /></ProtectedRoute>} />
-          <Route path="/dashboard/checkout/:planId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+          <Route path="/dashboard/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
           <Route path="/dashboard/configuracoes" element={<ProtectedRoute><ConfiguracoesPage /></ProtectedRoute>} />
           <Route path="/auth/google/callback" element={<AuthGoogleCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

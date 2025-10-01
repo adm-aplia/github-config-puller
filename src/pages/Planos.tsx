@@ -1,21 +1,33 @@
-import React from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Calendar as CalendarIcon, Bot, Users, ChartColumn, Building2, Settings, Mail } from 'lucide-react';
+import { MessageCircle, Calendar as CalendarIcon, Bot, Users, ChartColumn, Building2, Settings, Mail, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { usePlans } from '@/hooks/use-plans';
 import { useSubscription } from '@/hooks/use-subscription';
+import { PlanChangeModal } from '@/components/plans/plan-change-modal';
+import { PlanCancelModal } from '@/components/plans/plan-cancel-modal';
+import { PaymentHistory } from '@/components/payments/payment-history';
 
 export default function Planos() {
   const navigate = useNavigate();
-  const { plans, loading: plansLoading } = usePlans();
-  const { subscription, loading: subscriptionLoading } = useSubscription();
+  const { plans, loading: plansLoading, refetch: refetchPlans } = usePlans();
+  const { subscription, loading: subscriptionLoading, refetch: refetchSubscription } = useSubscription();
+  const [changeModalOpen, setChangeModalOpen] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   const loading = plansLoading || subscriptionLoading;
 
   const handleSelectPlan = (planId: string) => {
     navigate('/dashboard/checkout', { state: { planId } });
+  };
+
+  const handleSuccess = () => {
+    refetchPlans();
+    refetchSubscription();
   };
 
   if (loading) {
@@ -82,112 +94,212 @@ export default function Planos() {
   };
 
   const mostPopularPlan = plans.find(plan => plan.nome === 'Profissional');
+  const hasActiveSubscription = subscription && subscription.status !== 'free';
 
   return (
     <DashboardLayout>
       <div className="container mx-auto px-6 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Nossas Soluções</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Escolha o plano ideal para o seu negócio
-          </p>
-        </div>
+        <Tabs defaultValue="planos" className="w-full">
+          {hasActiveSubscription && (
+            <TabsList className="grid w-full max-w-md mx-auto mb-8" style={{ gridTemplateColumns: '1fr 1fr' }}>
+              <TabsTrigger value="planos">Planos Disponíveis</TabsTrigger>
+              <TabsTrigger value="gestao">Gestão de Pagamentos</TabsTrigger>
+            </TabsList>
+          )}
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
-          {plans.map((plan) => {
-            const isPopular = plan.id === mostPopularPlan?.id;
-            const isCurrent = subscription?.plano_id === plan.id;
-            const isEnterprise = plan.nome === 'Empresarial';
-            const planFeatures = getPlanFeatures(plan.nome);
-            
-            return (
-              <div
-                key={plan.id}
-                className={`relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${
-                  isEnterprise
-                    ? 'bg-slate-900 border-slate-700 hover:bg-slate-800/80 hover:border-slate-600'
-                    : 'bg-card border-border hover:bg-white/80 hover:border-gray-200'
-                } text-card-foreground`}
-              >
-                {/* Badge */}
-                {isPopular && !isCurrent && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
-                      Mais popular
-                    </Badge>
-                  </div>
-                )}
+          {/* Tab: Planos Disponíveis */}
+          <TabsContent value="planos" className="space-y-8">
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold mb-4">Nossas Soluções</h1>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Escolha o plano ideal para o seu negócio
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-8">
+              {plans.map((plan) => {
+                const isPopular = plan.id === mostPopularPlan?.id;
+                const isCurrent = subscription?.plano_id === plan.id;
+                const isEnterprise = plan.nome === 'Empresarial';
+                const planFeatures = getPlanFeatures(plan.nome);
                 
-                {isCurrent && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
-                      Plano Atual
-                    </Badge>
-                  </div>
-                )}
+                return (
+                  <div
+                    key={plan.id}
+                    className={`relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${
+                      isEnterprise
+                        ? 'bg-slate-900 border-slate-700 hover:bg-slate-800/80 hover:border-slate-600'
+                        : 'bg-card border-border hover:bg-white/80 hover:border-gray-200'
+                    } text-card-foreground`}
+                  >
+                    {/* Badge */}
+                    {isPopular && !isCurrent && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <Badge className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
+                          Mais popular
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    {isCurrent && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <Badge className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 text-sm font-medium rounded-full border-transparent">
+                          Plano Atual
+                        </Badge>
+                      </div>
+                    )}
 
-                {/* Header */}
-                <div className="flex flex-col space-y-1.5 p-6 pb-4 pt-8 px-8">
-                  <div className={`tracking-tight text-2xl font-bold mb-2 ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
-                    {plan.nome}
-                  </div>
-                  <div className={`text-2xl font-bold mb-4 ${isEnterprise ? 'text-red-400' : 'text-foreground'}`}>
-                    R$ {plan.preco}/{plan.periodo}
-                  </div>
-                  <hr className={`border-t-2 mb-4 ${isEnterprise ? 'border-slate-600' : 'border-border'}`} />
-                  <div className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
-                    {getPlanDescription(plan.nome)}
-                  </div>
-                </div>
+                    {/* Header */}
+                    <div className="flex flex-col space-y-1.5 p-6 pb-4 pt-8 px-8">
+                      <div className={`tracking-tight text-2xl font-bold mb-2 ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                        {plan.nome}
+                      </div>
+                      <div className={`text-2xl font-bold mb-4 ${isEnterprise ? 'text-red-400' : 'text-foreground'}`}>
+                        R$ {plan.preco}/{plan.periodo}
+                      </div>
+                      <hr className={`border-t-2 mb-4 ${isEnterprise ? 'border-slate-600' : 'border-border'}`} />
+                      <div className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                        {getPlanDescription(plan.nome)}
+                      </div>
+                    </div>
 
-                {/* Content */}
-                <div className="p-6 pt-0 px-8 pb-6 flex-grow">
-                  <ul className="space-y-3">
-                    {planFeatures.map((feature, index) => {
-                      const FeatureIcon = feature.icon;
-                      return (
-                        <li key={index} className="flex items-center gap-3">
-                          <FeatureIcon className="h-4 w-4 text-red-500 flex-shrink-0" />
-                          <span className={`text-sm ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
-                            {feature.text}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
+                    {/* Content */}
+                    <div className="p-6 pt-0 px-8 pb-6 flex-grow">
+                      <ul className="space-y-3">
+                        {planFeatures.map((feature, index) => {
+                          const FeatureIcon = feature.icon;
+                          return (
+                            <li key={index} className="flex items-center gap-3">
+                              <FeatureIcon className="h-4 w-4 text-red-500 flex-shrink-0" />
+                              <span className={`text-sm ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                                {feature.text}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
 
-                {/* Footer */}
-                <div className="flex items-center p-6 pt-0 px-8 pb-8 mt-auto">
-                  {isCurrent ? (
-                    <Button
-                      disabled
-                      className="w-full bg-red-500 hover:bg-red-600 text-white py-3 text-base font-medium rounded-xl transition-colors duration-200 h-10 px-4"
-                    >
-                      Plano Atual
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => handleSelectPlan(plan.id)}
-                      className="w-full bg-red-500 hover:bg-red-600 text-white py-3 text-base font-medium rounded-xl transition-colors duration-200 h-10 px-4"
-                    >
-                      {getButtonText(plan.nome, isCurrent)}
-                    </Button>
-                  )}
+                    {/* Footer */}
+                    <div className="flex items-center p-6 pt-0 px-8 pb-8 mt-auto">
+                      {isCurrent ? (
+                        <Button
+                          disabled
+                          className="w-full bg-red-500 hover:bg-red-600 text-white py-3 text-base font-medium rounded-xl transition-colors duration-200 h-10 px-4"
+                        >
+                          Plano Atual
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => handleSelectPlan(plan.id)}
+                          className="w-full bg-red-500 hover:bg-red-600 text-white py-3 text-base font-medium rounded-xl transition-colors duration-200 h-10 px-4"
+                        >
+                          {getButtonText(plan.nome, isCurrent)}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Trust elements */}
+            <div className="mt-16 text-center">
+              <div className="flex justify-center items-center gap-8 opacity-60">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Shield className="h-4 w-4" />
+                  Pagamento Seguro via Asaas
                 </div>
+                <div className="text-xs text-muted-foreground">✅ Cancele Quando Quiser</div>
+                <div className="text-xs text-muted-foreground">📞 Suporte Especializado</div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          </TabsContent>
 
-        {/* Trust elements */}
-        <div className="mt-16 text-center">
-          <div className="flex justify-center items-center gap-8 opacity-60">
-            <div className="text-xs text-muted-foreground">🔒 Pagamento Seguro</div>
-            <div className="text-xs text-muted-foreground">✅ Cancele Quando Quiser</div>
-            <div className="text-xs text-muted-foreground">📞 Suporte Especializado</div>
-          </div>
-        </div>
+          {/* Tab: Gestão de Pagamentos */}
+          {hasActiveSubscription && (
+            <TabsContent value="gestao" className="space-y-8">
+              <div className="text-center mb-8">
+                <h1 className="text-4xl font-bold mb-4">Gestão de Pagamentos</h1>
+                <p className="text-muted-foreground text-lg">
+                  Gerencie sua assinatura e histórico de pagamentos
+                </p>
+              </div>
+
+              {/* Current Subscription Card */}
+              <Card className="max-w-2xl mx-auto">
+                <CardHeader>
+                  <CardTitle>Assinatura Atual</CardTitle>
+                  <CardDescription>Informações do seu plano ativo</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Plano</p>
+                      <p className="font-medium">{subscription?.plano.nome}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Valor Mensal</p>
+                      <p className="font-medium">R$ {subscription?.plano.preco}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Status</p>
+                      <Badge variant={subscription?.status === 'active' ? 'default' : 'secondary'}>
+                        {subscription?.status === 'active' ? 'Ativo' : subscription?.status === 'cancelled' ? 'Cancelado' : 'Inativo'}
+                      </Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Próxima Cobrança</p>
+                      <p className="font-medium">
+                        {subscription?.proxima_cobranca 
+                          ? new Date(subscription.proxima_cobranca).toLocaleDateString('pt-BR')
+                          : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setChangeModalOpen(true)}
+                    disabled={subscription?.status === 'cancelled'}
+                  >
+                    Alterar Plano
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={() => setCancelModalOpen(true)}
+                    disabled={subscription?.status === 'cancelled'}
+                  >
+                    Cancelar Assinatura
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              {/* Payment History */}
+              <div className="max-w-4xl mx-auto">
+                <PaymentHistory />
+              </div>
+            </TabsContent>
+          )}
+        </Tabs>
+
+        {/* Modals */}
+        <PlanChangeModal
+          open={changeModalOpen}
+          onOpenChange={setChangeModalOpen}
+          plans={plans}
+          currentSubscription={subscription}
+          onSuccess={handleSuccess}
+        />
+        <PlanCancelModal
+          open={cancelModalOpen}
+          onOpenChange={setCancelModalOpen}
+          currentSubscription={subscription}
+          onSuccess={handleSuccess}
+        />
       </div>
     </DashboardLayout>
   );
