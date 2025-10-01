@@ -67,18 +67,26 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[ProfileForm] Iniciando submit com dados:', formData);
     setLoading(true);
     
-    const success = await onSubmit(formData);
-    
-    if (success) {
-      onClose();
+    try {
+      const success = await onSubmit(formData);
+      console.log('[ProfileForm] Resultado do submit:', success);
+      
+      if (success) {
+        console.log('[ProfileForm] Submit bem-sucedido, fechando modal');
+        onClose();
+      }
+    } catch (error) {
+      console.error('[ProfileForm] Erro no submit:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const handleChange = (field: keyof ProfessionalProfile, value: string | boolean | number) => {
+    console.log(`[ProfileForm] Campo alterado: ${field}`, value);
     setFormData(prev => ({
       ...prev,
       [field]: value,

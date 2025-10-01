@@ -133,6 +133,8 @@ export const useProfessionalProfiles = () => {
 
   const updateProfile = async (id: string, profileData: Partial<ProfessionalProfile>) => {
     try {
+      console.log('[updateProfile] Iniciando atualização:', { id, profileData });
+      
       const { data, error } = await supabase
         .from('professional_profiles')
         .update(profileData)
@@ -140,7 +142,12 @@ export const useProfessionalProfiles = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[updateProfile] Erro do Supabase:', error);
+        throw error;
+      }
+
+      console.log('[updateProfile] Perfil atualizado no banco:', data);
 
       setProfiles(prev => 
         prev.map(profile => 
@@ -150,15 +157,17 @@ export const useProfessionalProfiles = () => {
 
       // Send updated profile data to n8n webhook
       try {
+        console.log('[updateProfile] Enviando para webhook:', { profileData: data, action: 'update' });
+        
         await supabase.functions.invoke('profile-webhook', {
           body: { 
             profileData: data,
             action: 'update'
           }
         });
-        console.log('Updated profile data sent to webhook successfully');
+        console.log('[updateProfile] Dados enviados ao webhook com sucesso');
       } catch (webhookError) {
-        console.error('Failed to send updated profile data to webhook:', webhookError);
+        console.error('[updateProfile] Erro ao enviar dados para webhook:', webhookError);
         // Don't fail the profile update if webhook fails
       }
 
@@ -169,7 +178,7 @@ export const useProfessionalProfiles = () => {
 
       return true;
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('[updateProfile] Erro geral:', error);
       toast({
         title: 'Erro ao atualizar perfil',
         description: 'Não foi possível atualizar o perfil profissional.',

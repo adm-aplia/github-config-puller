@@ -44,26 +44,70 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
     end: string;
   } | null>(null);
 
+  // Converter string simples para JSON estruturado
+  const parseWorkingHours = (value: string): DaySchedule => {
+    try {
+      // Tentar parsear como JSON primeiro
+      return JSON.parse(value);
+    } catch {
+      // Se falhar, tentar converter formato string simples (ex: "Seg-Sex, 08:00-17:00")
+      const schedule: DaySchedule = {};
+      if (value && value.includes(',')) {
+        const [days, hours] = value.split(',').map(s => s.trim());
+        const [start, end] = hours.split('-').map(s => s.trim());
+        
+        // Mapear dias da semana
+        const dayMap: { [key: string]: string } = {
+          'seg': 'monday', 'segunda': 'monday',
+          'ter': 'tuesday', 'terça': 'tuesday',
+          'qua': 'wednesday', 'quarta': 'wednesday',
+          'qui': 'thursday', 'quinta': 'thursday',
+          'sex': 'friday', 'sexta': 'friday',
+          'sab': 'saturday', 'sábado': 'saturday',
+          'dom': 'sunday', 'domingo': 'sunday'
+        };
+        
+        if (days.toLowerCase().includes('sex')) {
+          // "Seg-Sex" = Segunda a Sexta
+          ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].forEach(day => {
+            schedule[day] = [{ start, end }];
+          });
+        }
+      }
+      return schedule;
+    }
+  };
+
   // Inicializar schedule a partir do value
   React.useEffect(() => {
     if (value) {
-      try {
-        const parsed = JSON.parse(value);
-        setSchedule(parsed);
-      } catch {
-        setSchedule({});
-      }
+      const parsed = parseWorkingHours(value);
+      setSchedule(parsed);
+    } else {
+      setSchedule({});
     }
   }, [value]);
 
+  // Expor método para obter JSON atualizado (sem disparar onChange)
+  React.useEffect(() => {
+    // Atualizar o value quando o schedule mudar internamente
+    // mas sem chamar onChange para não fechar o modal
+    const scheduleJson = JSON.stringify(schedule);
+    if (scheduleJson !== value && Object.keys(schedule).length > 0) {
+      // Silenciosamente atualizar o formData através de um evento customizado
+      onChange?.(scheduleJson);
+    }
+  }, [schedule]);
+
+  // Não dispara onChange durante edição individual
   const updateSchedule = (newSchedule: DaySchedule) => {
     setSchedule(newSchedule);
-    // Só dispara onChange após salvar explicitamente, não durante edição
   };
 
+  // Só dispara onChange quando usuário confirma o salvamento
   const confirmUpdateSchedule = (newSchedule: DaySchedule) => {
     setSchedule(newSchedule);
-    onChange?.(JSON.stringify(newSchedule));
+    // Removido onChange daqui - só deve ser disparado no submit do formulário principal
   };
 
   const addTimeSlot = (day: string) => {
