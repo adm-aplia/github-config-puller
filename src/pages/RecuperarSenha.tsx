@@ -89,7 +89,7 @@ export default function RecuperarSenha() {
         <div className="bg-card py-8 px-6 shadow-xl sm:rounded-2xl sm:px-10 border border-border">
           <div className="mb-6">
             <Link 
-              to="/login" 
+              to="/" 
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -160,7 +160,7 @@ export default function RecuperarSenha() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Lembrou sua senha?{" "}
-              <Link to="/login" className="font-medium text-accent hover:text-accent/80 underline">
+              <Link to="/" className="font-medium text-accent hover:text-accent/80 underline">
                 Fazer login
               </Link>
             </p>

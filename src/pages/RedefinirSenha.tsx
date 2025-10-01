@@ -34,7 +34,7 @@ export default function RedefinirSenha() {
         description: "O link de recuperação é inválido ou expirou.",
         variant: "destructive"
       })
-      navigate('/login')
+      navigate('/')
     }
   }, [navigate, toast])
 
@@ -83,7 +83,7 @@ export default function RedefinirSenha() {
       })
 
       setTimeout(() => {
-        navigate('/login')
+        navigate('/')
       }, 2000)
     } catch (error) {
       console.error("Password update error:", error)
