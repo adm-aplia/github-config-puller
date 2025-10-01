@@ -121,29 +121,29 @@ export default function Planos() {
 
             <TabsContent value="plans" className="space-y-10">
               {/* Trust elements */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-sm">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <Shield className="h-4 w-4 text-green-600" />
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16 py-6">
+                <div className="flex items-center gap-4 group cursor-default">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
+                    <Shield className="h-6 w-6 text-green-600" />
                   </div>
-                  <span className="font-medium">Pagamento 100% seguro</span>
+                  <span className="font-semibold text-foreground">🔒 Pagamento 100% seguro</span>
                 </div>
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <Zap className="h-4 w-4 text-yellow-600" />
+                <div className="flex items-center gap-4 group cursor-default">
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
+                    <Zap className="h-6 w-6 text-yellow-600" />
                   </div>
-                  <span className="font-medium">Ativação imediata</span>
+                  <span className="font-semibold text-foreground">⚡ Ativação imediata</span>
                 </div>
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <HeadphonesIcon className="h-4 w-4 text-aplia-blue" />
+                <div className="flex items-center gap-4 group cursor-default">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-sky-100 rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
+                    <HeadphonesIcon className="h-6 w-6 text-aplia-blue" />
                   </div>
-                  <span className="font-medium">Suporte especializado</span>
+                  <span className="font-semibold text-foreground">💬 Suporte especializado</span>
                 </div>
               </div>
 
               {/* Plans grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 max-w-7xl mx-auto px-4">{" "}
                 {plans.map((plan) => {
                   const isPopular = plan.id === mostPopularPlan?.id;
                   const isCurrent = subscription?.plano_id === plan.id;
@@ -152,50 +152,52 @@ export default function Planos() {
                   return (
                     <Card 
                       key={plan.id} 
-                      className={`relative transition-all duration-500 hover:shadow-elegant group ${
+                      className={`relative rounded-3xl transition-all duration-500 group border-2 ${
                         isPopular 
-                          ? 'border-aplia-blue shadow-elegant scale-[1.02] bg-gradient-to-b from-card to-aplia-blue/5' 
-                          : 'border-border hover:border-aplia-blue/30 hover:shadow-card'
-                      } ${isCurrent ? 'ring-2 ring-aplia-blue ring-offset-2' : ''} ${
-                        isFree ? 'bg-gradient-to-b from-card to-muted/30' : ''
+                          ? 'border-aplia-blue shadow-xl hover:shadow-2xl scale-[1.02] bg-gradient-to-br from-white via-aplia-blue/5 to-aplia-blue/10 dark:from-card dark:via-aplia-blue/5 dark:to-aplia-blue/10' 
+                          : 'border-border/50 hover:border-aplia-blue/50 hover:shadow-xl hover:scale-[1.02] bg-card'
+                      } ${isCurrent ? 'ring-2 ring-green-500 ring-offset-4 border-green-500/50' : ''} ${
+                        isFree ? 'bg-gradient-to-br from-muted/30 to-muted/50' : ''
                       }`}
                     >
                       {isPopular && (
-                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                          <Badge className="bg-aplia-blue text-white px-4 py-2 shadow-lg">
-                            <Crown className="h-3 w-3 mr-1" />
-                            Mais Popular
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                          <Badge className="bg-gradient-to-r from-aplia-blue to-blue-600 text-white px-5 py-2 shadow-lg font-semibold text-sm border-0">
+                            <Crown className="h-4 w-4 mr-1.5" />
+                            👑 Mais Popular
                           </Badge>
                         </div>
                       )}
                       
                       {isCurrent && (
-                        <div className="absolute -top-4 right-4 z-10">
-                          <Badge className="bg-green-100 text-green-700 border-green-200 px-3 py-1 shadow-sm">
-                            <Check className="h-3 w-3 mr-1" />
-                            Plano Ativo
+                        <div className="absolute -top-3 right-6 z-10">
+                          <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 shadow-lg font-semibold text-sm border-0">
+                            <Check className="h-4 w-4 mr-1.5" />
+                            🌟 Ativo
                           </Badge>
                         </div>
                       )}
 
-                      <CardHeader className="pb-6 pt-8">
-                        <div className="text-center space-y-3">
-                          <CardTitle className="text-2xl font-bold">{plan.nome}</CardTitle>
-                          <CardDescription className="text-base text-muted-foreground">
+                      <CardHeader className="pb-8 pt-10">
+                        <div className="text-center space-y-4">
+                          <CardTitle className="text-2xl md:text-3xl font-bold tracking-tight">{plan.nome}</CardTitle>
+                          <CardDescription className="text-base text-muted-foreground leading-relaxed px-2">
                             {getPlanDescription(plan)}
                           </CardDescription>
                           
-                          <div className="py-4">
-                            <div className="flex items-baseline justify-center">
+                          <div className="py-6">
+                            <div className="flex items-baseline justify-center gap-1">
                               {plan.preco === 0 ? (
-                                <span className="text-4xl font-bold text-green-600">Grátis</span>
+                                <span className="text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                                  Grátis
+                                </span>
                               ) : (
                                 <>
-                                  <span className="text-sm text-muted-foreground">R$</span>
-                                  <span className="text-4xl font-bold text-foreground mx-1">
+                                  <span className="text-lg font-semibold text-muted-foreground">R$</span>
+                                  <span className="text-5xl md:text-6xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
                                     {plan.preco.toFixed(0)}
                                   </span>
-                                  <span className="text-muted-foreground">/{plan.periodo}</span>
+                                  <span className="text-lg text-muted-foreground font-medium">/{plan.periodo}</span>
                                 </>
                               )}
                             </div>
@@ -203,38 +205,44 @@ export default function Planos() {
                         </div>
                       </CardHeader>
 
-                      <CardContent className="space-y-6 pb-8">
-                        <ul className="space-y-3">
-                          {getPlanFeatures(plan).map((feature, index) => (
-                            <li key={index} className="flex items-start gap-3 text-sm">
-                              <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
-                                <Check className="h-3 w-3 text-green-600" />
-                              </div>
-                              <span className="text-muted-foreground leading-relaxed">{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
+                      <CardContent className="space-y-6 pb-10 px-8">
+                        <div className="border-t border-border/50 pt-6">
+                          <ul className="space-y-4">
+                            {getPlanFeatures(plan).map((feature, index) => (
+                              <li key={index} className="flex items-start gap-3">
+                                <div className="w-6 h-6 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0 shadow-sm">
+                                  <Check className="h-3.5 w-3.5 text-green-600 font-bold" />
+                                </div>
+                                <span className="text-sm text-foreground/80 leading-relaxed font-medium">{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
 
-                        <div className="pt-4 space-y-3">
+                        <div className="pt-6 space-y-4 border-t border-border/50">
                           {isCurrent ? (
-                            <Button disabled className="w-full h-12 font-medium" variant="secondary">
-                              <Check className="h-4 w-4 mr-2" />
+                            <Button 
+                              disabled 
+                              className="w-full h-14 font-semibold text-base rounded-xl shadow-sm" 
+                              variant="secondary"
+                            >
+                              <Check className="h-5 w-5 mr-2" />
                               {getButtonText(plan)}
                             </Button>
                           ) : (
                             <Button
                               onClick={() => handleSelectPlan(plan.id)}
-                              className={`w-full h-12 font-medium transition-all duration-300 ${
+                              className={`w-full h-14 font-semibold text-base rounded-xl transition-all duration-300 ${
                                 isPopular 
-                                  ? 'bg-aplia-blue hover:bg-aplia-blue/90 text-white shadow-lg hover:shadow-xl' 
-                                  : 'hover:shadow-lg'
+                                  ? 'bg-gradient-to-r from-aplia-blue to-blue-600 hover:from-aplia-blue/90 hover:to-blue-600/90 text-white shadow-lg hover:shadow-2xl hover:scale-[1.02]' 
+                                  : 'hover:shadow-lg hover:scale-[1.02]'
                               }`}
                               variant={isPopular ? "default" : "outline"}
                             >
                               {getButtonText(plan)}
                             </Button>
                           )}
-                          <p className="text-xs text-muted-foreground text-center">
+                          <p className="text-xs text-muted-foreground text-center font-medium pt-1">
                             {getFooterText(plan)}
                           </p>
                         </div>
