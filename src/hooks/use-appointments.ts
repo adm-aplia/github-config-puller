@@ -497,18 +497,59 @@ export const useAppointments = () => {
 
       // If confirming a cancelled appointment, recreate it via webhook
       if (status === 'confirmed' && appointment.status === 'cancelled') {
+        // Format phone with +55 prefix if not already present
+        let formattedPhone = appointment.patient_phone?.replace(/\D/g, '') || '';
+        if (formattedPhone && !formattedPhone.startsWith('55')) {
+          formattedPhone = `+55${formattedPhone}`;
+        } else if (formattedPhone) {
+          formattedPhone = `+${formattedPhone}`;
+        }
+
+        // Format date as "YYYY-MM-DD HH:mm"
+        const appointmentDate = new Date(appointment.appointment_date);
+        const year = appointmentDate.getFullYear();
+        const month = String(appointmentDate.getMonth() + 1).padStart(2, '0');
+        const day = String(appointmentDate.getDate()).padStart(2, '0');
+        const hour = String(appointmentDate.getHours()).padStart(2, '0');
+        const minute = String(appointmentDate.getMinutes()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day} ${hour}:${minute}`;
+
+        // Resolve Google email if available
+        let myEmail = null;
+        if (appointment.professional_profile_id) {
+          const { data: profileLinks } = await supabase
+            .from('google_profile_links')
+            .select('google_credential_id')
+            .eq('professional_profile_id', appointment.professional_profile_id);
+
+          if (profileLinks && profileLinks.length > 0) {
+            const { data: googleCredentials } = await supabase
+              .from('google_credentials')
+              .select('email')
+              .eq('id', profileLinks[0].google_credential_id)
+              .single();
+
+            if (googleCredentials) {
+              myEmail = googleCredentials.email;
+            }
+          }
+        }
+
         const queryObj = {
           action: "create",
-          nome: appointment.patient_name,
-          telefone: appointment.patient_phone,
-          email: appointment.patient_email || "",
-          datetime: appointment.appointment_date,
-          appointment_type: appointment.appointment_type || "consulta",
-          notes: appointment.notes || "",
-          professional_profile_id: appointment.professional_profile_id,
-          duration_minutes: appointment.duration_minutes || 60
+          user_id: appointment.user_id,
+          agent_id: appointment.professional_profile_id,
+          patient_name: appointment.patient_name,
+          patient_phone: formattedPhone,
+          patient_email: appointment.patient_email || "",
+          appointment_date: formattedDate,
+          status: mapStatusToEnglish('confirmed'),
+          summary: `${appointment.appointment_type || 'Consulta'} com ${appointment.patient_name}`,
+          notes: appointment.notes || `Paciente: ${appointment.patient_name}. Telefone: ${formattedPhone}. E-mail: ${appointment.patient_email || 'Não informado'}. Motivo: ${appointment.appointment_type || 'consulta'}.`,
+          ...(myEmail && { my_email: myEmail })
         };
         
+        console.log('[appointment-confirm] Enviando webhook de confirmação:', queryObj);
         await sendAppointmentToWebhook(queryObj);
       }
     } catch (error) {
