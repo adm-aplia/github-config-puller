@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CalendarDays, RefreshCw, Mail, Check, Trash2 } from "lucide-react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
@@ -94,11 +95,21 @@ export default function IntegracoesPage() {
     return (
       <DashboardLayout>
         <div className="container mx-auto px-6 py-8">
-          <div className="mb-8">
-            <Skeleton className="h-10 w-64 mb-4" />
-            <Skeleton className="h-6 w-96" />
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Integrações</h1>
+                <p className="text-muted-foreground">
+                  Conecte-se com outros serviços e plataformas
+                </p>
+              </div>
+              <Button disabled>
+                <CalendarDays className="mr-2 h-4 w-4" />
+                Conectar Google Agenda
+              </Button>
+            </div>
+            <Skeleton className="h-64 w-full" />
           </div>
-          <Skeleton className="h-96 w-full" />
         </div>
       </DashboardLayout>
     );
@@ -107,125 +118,112 @@ export default function IntegracoesPage() {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Integrações</h1>
-          <p className="text-muted-foreground">
-            Conecte suas ferramentas e sincronize seus dados
-          </p>
-        </div>
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Integrações</h1>
+              <p className="text-muted-foreground">
+                Conecte-se com outros serviços e plataformas
+              </p>
+            </div>
+            <Button onClick={handleConnectGoogle}>
+              <CalendarDays className="mr-2 h-4 w-4" />
+              Conectar Google Agenda
+            </Button>
+          </div>
 
-          {/* Tabs */}
-          <Tabs defaultValue="google" className="w-full">
-            <TabsList className="mb-6">
-              <TabsTrigger value="google">Google Agenda</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="google" className="space-y-6">
-              {/* Integration Card */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <CalendarDays className="h-6 w-6 text-aplia-blue" />
-                      <div>
-                        <CardTitle>Google Agenda</CardTitle>
-                        <CardDescription>
-                          Sincronize seus agendamentos com o Google Agenda
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Button 
-                      onClick={handleConnectGoogle}
-                      className="bg-aplia-blue hover:bg-aplia-blue/90 text-white"
-                    >
-                      <CalendarDays className="mr-2 h-4 w-4" />
-                      Conectar Conta
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Google Agenda</CardTitle>
+                <CardDescription>
+                  Sincronize seus agendamentos com o Google Agenda automaticamente
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent className="space-y-6">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium">Contas Conectadas</h3>
+                    <Button variant="outline" size="sm" onClick={refetch} disabled={refreshing}>
+                      <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                      {refreshing ? 'Atualizando...' : 'Atualizar'}
                     </Button>
                   </div>
-                </CardHeader>
-
-                <CardContent className="pt-6">
-                  <div className="space-y-6">
-                    {/* Connected Accounts Header */}
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">Contas Conectadas</h3>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={refetch} 
-                        disabled={refreshing}
-                        className="border-aplia-blue/20 hover:bg-aplia-blue/5"
-                      >
-                        <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                        {refreshing ? 'Atualizando...' : 'Atualizar'}
+                  
+                  {credentials.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground mb-4">Nenhuma conta Google conectada</p>
+                      <Button onClick={handleConnectGoogle}>
+                        <CalendarDays className="mr-2 h-4 w-4" />
+                        Conectar primeira conta
                       </Button>
                     </div>
-
-                    {/* No Accounts State */}
-                    {credentials.length === 0 ? (
-                      <div className="text-center py-8 border-2 border-dashed rounded-lg">
-                        <CalendarDays className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground mb-4">
-                          Nenhuma conta conectada
-                        </p>
-                        <Button 
-                          onClick={handleConnectGoogle}
-                          variant="outline"
-                        >
-                          <CalendarDays className="mr-2 h-4 w-4" />
-                          Conectar primeira conta
-                        </Button>
-                      </div>
-                    ) : (
-                      /* Connected Accounts List */
-                      <div className="space-y-3">
-                        {credentials.map((credential) => {
-                          const linkedProfiles = profileLinks.filter(link => link.google_credential_id === credential.id);
-                          return (
-                            <div 
-                              key={credential.id} 
-                              className="flex items-center justify-between p-4 border rounded-lg"
-                            >
-                              <div className="flex items-center gap-3 flex-1">
-                                <Mail className="h-5 w-5 text-muted-foreground" />
-                                <div className="flex-1">
+                  ) : (
+                    <div className="border rounded-md">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>Perfis Vinculados</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {credentials.map((credential) => {
+                            const linkedProfiles = profileLinks.filter(link => link.google_credential_id === credential.id);
+                            return (
+                              <TableRow key={credential.id}>
+                                <TableCell className="font-medium">
                                   <div className="flex items-center gap-2">
-                                    <p className="font-medium">{credential.email}</p>
-                                    <Badge variant="outline" className="text-xs">
-                                      <Check className="h-3 w-3 mr-1" />
-                                      Conectado
-                                    </Badge>
+                                    <Avatar className="h-6 w-6">
+                                      <AvatarFallback className="bg-gray-100 dark:bg-gray-800">
+                                        <Mail className="h-3 w-3 text-gray-500" />
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    {credential.email}
                                   </div>
-                                  <p className="text-sm text-muted-foreground">
-                                    {credential.name || 'Nome não informado'}
-                                  </p>
-                                  {linkedProfiles.length > 0 && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      {linkedProfiles.length} {linkedProfiles.length === 1 ? 'perfil vinculado' : 'perfis vinculados'}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => handleDisconnectGoogle(credential.id)}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Desconectar
-                              </Button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                                </TableCell>
+                                <TableCell>{credential.name || 'Nome não informado'}</TableCell>
+                                <TableCell>
+                                  <Badge variant="outline">
+                                    {linkedProfiles.length > 0 ? `${linkedProfiles.length} perfis` : 'Não vinculado'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="secondary">
+                                    <Check className="h-3 w-3 mr-1" />
+                                    Conectado
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex justify-end gap-2">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                      onClick={() => handleDisconnectGoogle(credential.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-1" />
+                                      Desconectar
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
+      </div>
     </DashboardLayout>
   )
 }
