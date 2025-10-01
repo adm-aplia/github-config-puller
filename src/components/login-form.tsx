@@ -152,9 +152,12 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
 
         <div className="flex items-center justify-between">
           <div className="text-sm">
-            <Button variant="link" className="p-0 font-medium text-primary hover:text-primary/80">
+            <Link 
+              to="/recuperar-senha" 
+              className="font-medium text-primary hover:text-primary/80 underline text-sm"
+            >
               Esqueceu sua senha?
-            </Button>
+            </Link>
           </div>
         </div>
 

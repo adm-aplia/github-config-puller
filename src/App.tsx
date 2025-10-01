@@ -12,6 +12,8 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import Index from "./pages/Index";
 import LoginPage from "./pages/Login";
 import CadastroPage from "./pages/Cadastro";
+import RecuperarSenha from "./pages/RecuperarSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import DashboardPage from "./pages/Dashboard";
 import PerfilsPage from "./pages/Perfis";
 import AgendamentosPage from "./pages/Agendamentos";
@@ -43,6 +45,8 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/cadastro" element={<CadastroPage />} />
+          <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenha />} />
           <Route path="/termos" element={<TermosServico />} />
           <Route path="/privacidade" element={<PoliticaPrivacidade />} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
