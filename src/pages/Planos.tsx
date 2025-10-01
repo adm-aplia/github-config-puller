@@ -226,60 +226,67 @@ export default function Planos() {
                 </p>
               </div>
 
-              {/* Current Subscription Card */}
-              <Card className="max-w-2xl mx-auto">
-                <CardHeader>
-                  <CardTitle>Assinatura Atual</CardTitle>
-                  <CardDescription>Informações do seu plano ativo</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Plano</p>
-                      <p className="font-medium">{subscription?.plano.nome}</p>
+              <div className="grid lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
+                {/* Current Subscription Card */}
+                <Card className="border-muted shadow-card flex flex-col">
+                  <CardHeader className="bg-gradient-to-r from-muted/30 to-transparent">
+                    <CardTitle className="flex items-center gap-3 text-xl">
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                        <Settings className="h-5 w-5 text-primary" />
+                      </div>
+                      Assinatura Atual
+                    </CardTitle>
+                    <CardDescription className="text-base">
+                      Informações do seu plano ativo
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6 flex-grow">
+                    <div className="space-y-6">
+                      <div className="border border-muted rounded-lg p-4">
+                        <p className="text-sm text-muted-foreground mb-1">Plano</p>
+                        <p className="font-semibold text-lg text-foreground">{subscription?.plano.nome}</p>
+                      </div>
+                      <div className="border border-muted rounded-lg p-4">
+                        <p className="text-sm text-muted-foreground mb-1">Valor Mensal</p>
+                        <p className="font-semibold text-lg text-foreground">R$ {subscription?.plano.preco}</p>
+                      </div>
+                      <div className="border border-muted rounded-lg p-4">
+                        <p className="text-sm text-muted-foreground mb-2">Status</p>
+                        <Badge variant={subscription?.status === 'active' ? 'default' : 'secondary'} className="text-sm">
+                          {subscription?.status === 'active' ? 'Ativo' : subscription?.status === 'cancelled' ? 'Cancelado' : 'Inativo'}
+                        </Badge>
+                      </div>
+                      <div className="border border-muted rounded-lg p-4">
+                        <p className="text-sm text-muted-foreground mb-1">Próxima Cobrança</p>
+                        <p className="font-semibold text-lg text-foreground">
+                          {subscription?.proxima_cobranca 
+                            ? new Date(subscription.proxima_cobranca).toLocaleDateString('pt-BR')
+                            : 'N/A'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Valor Mensal</p>
-                      <p className="font-medium">R$ {subscription?.plano.preco}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge variant={subscription?.status === 'active' ? 'default' : 'secondary'}>
-                        {subscription?.status === 'active' ? 'Ativo' : subscription?.status === 'cancelled' ? 'Cancelado' : 'Inativo'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Próxima Cobrança</p>
-                      <p className="font-medium">
-                        {subscription?.proxima_cobranca 
-                          ? new Date(subscription.proxima_cobranca).toLocaleDateString('pt-BR')
-                          : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => setChangeModalOpen(true)}
-                    disabled={subscription?.status === 'cancelled'}
-                  >
-                    Alterar Plano
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    className="flex-1"
-                    onClick={() => setCancelModalOpen(true)}
-                    disabled={subscription?.status === 'cancelled'}
-                  >
-                    Cancelar Assinatura
-                  </Button>
-                </CardFooter>
-              </Card>
+                  </CardContent>
+                  <CardFooter className="flex flex-col gap-3 mt-auto">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setChangeModalOpen(true)}
+                      disabled={subscription?.status === 'cancelled'}
+                    >
+                      Alterar Plano
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="w-full"
+                      onClick={() => setCancelModalOpen(true)}
+                      disabled={subscription?.status === 'cancelled'}
+                    >
+                      Cancelar Assinatura
+                    </Button>
+                  </CardFooter>
+                </Card>
 
-              {/* Payment History */}
-              <div className="max-w-4xl mx-auto">
+                {/* Payment History */}
                 <PaymentHistory />
               </div>
             </TabsContent>

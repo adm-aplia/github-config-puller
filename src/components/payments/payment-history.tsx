@@ -93,7 +93,7 @@ export function PaymentHistory() {
   };
 
   return (
-    <Card className="border-muted shadow-card">
+    <Card className="border-muted shadow-card flex flex-col h-full">
       <CardHeader className="bg-gradient-to-r from-muted/30 to-transparent">
         <CardTitle className="flex items-center gap-3 text-xl">
           <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
@@ -105,7 +105,7 @@ export function PaymentHistory() {
           Visualize suas últimas cobranças e faturas
         </CardDescription>
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent className="pt-6 flex-grow overflow-auto">
         {payments.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
@@ -114,35 +114,32 @@ export function PaymentHistory() {
             <p className="text-muted-foreground">Nenhum pagamento encontrado</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {payments.map((payment) => (
-              <div key={payment.id} className="border border-muted rounded-xl p-6 space-y-4 hover:shadow-card transition-shadow duration-300">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <CreditCard className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">{payment.descricao}</p>
-                      <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                        <Calendar className="h-3 w-3" />
-                        Vencimento: {formatDate(payment.data_vencimento)}
-                      </p>
-                    </div>
+              <div key={payment.id} className="border border-muted rounded-lg p-4 space-y-3 hover:shadow-sm transition-shadow duration-200">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-foreground truncate">{payment.descricao}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <Calendar className="h-3 w-3 flex-shrink-0" />
+                      Vencimento: {formatDate(payment.data_vencimento)}
+                    </p>
                   </div>
-                  <div className="text-right space-y-2">
-                    <p className="font-bold text-xl text-foreground">{formatCurrency(payment.valor)}</p>
-                    {getStatusBadge(payment.status)}
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-bold text-lg text-foreground whitespace-nowrap">{formatCurrency(payment.valor)}</p>
+                    <div className="mt-1">
+                      {getStatusBadge(payment.status)}
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-muted">
-                  <div className="text-sm text-muted-foreground space-y-1">
+                <div className="flex items-center justify-between pt-3 border-t border-muted/50">
+                  <div className="text-xs text-muted-foreground space-y-1">
                     {payment.forma_pagamento && (
-                      <div>Forma de pagamento: <span className="font-medium">{translatePaymentMethod(payment.forma_pagamento)}</span></div>
+                      <div><span className="font-medium text-foreground">{translatePaymentMethod(payment.forma_pagamento)}</span></div>
                     )}
                     {payment.data_pagamento && (
-                      <div>Pago em: <span className="font-medium">{formatDate(payment.data_pagamento)}</span></div>
+                      <div>Pago em: {formatDate(payment.data_pagamento)}</div>
                     )}
                   </div>
                   {payment.link_pagamento && (
@@ -150,7 +147,7 @@ export function PaymentHistory() {
                       variant="outline" 
                       size="sm"
                       onClick={() => window.open(payment.link_pagamento, '_blank')}
-                      className="flex items-center gap-2 hover:bg-primary/10 hover:border-primary/30"
+                      className="flex items-center gap-1 h-8 text-xs"
                     >
                       <ExternalLink className="h-3 w-3" />
                       Ver Fatura
