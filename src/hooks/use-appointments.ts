@@ -79,6 +79,17 @@ function parseGoogleDate(dateInput?: string | { dateTime?: string; date?: string
   }
 }
 
+// Map Portuguese status to English for webhook
+const mapStatusToEnglish = (status: string): string => {
+  const statusMap: { [key: string]: string } = {
+    'agendado': 'schedule',
+    'confirmado': 'confirmed',
+    'cancelled': 'cancelled',
+    'blocked': 'blocked',
+  };
+  return statusMap[status] || status;
+};
+
 export const useAppointments = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -413,7 +424,7 @@ export const useAppointments = () => {
         patient_phone: formattedPhone,
         patient_email: appointmentData.patient_email || "",
         appointment_date: formattedDate,
-        status: appointmentData.status || "agendado",
+        status: mapStatusToEnglish(appointmentData.status || "agendado"),
         summary: `Consulta com ${appointmentData.patient_name}`,
         notes: appointmentData.notes || `Paciente: ${appointmentData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${appointmentData.patient_email || 'Não informado'}.`
       };
