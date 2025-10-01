@@ -61,7 +61,7 @@ export function PaymentHistory() {
       case 'cancelled':
         return <Badge className="bg-muted text-muted-foreground border-muted-foreground/20 font-medium">Cancelado</Badge>;
       case 'refunded':
-        return <Badge className="bg-aplia-blue/10 text-aplia-blue border-aplia-blue/20 font-medium">Reembolsado</Badge>;
+        return <Badge className="bg-red-50 text-red-600 border-red-200 font-medium">Reembolsado</Badge>;
       default:
         return <Badge variant="outline" className="font-medium">{status}</Badge>;
     }
@@ -82,12 +82,22 @@ export function PaymentHistory() {
     });
   };
 
+  const translatePaymentMethod = (method: string) => {
+    const methodMap: { [key: string]: string } = {
+      'CREDIT_CARD': 'Cartão de Crédito',
+      'PIX': 'PIX',
+      'BOLETO': 'Boleto',
+      'DEBIT_CARD': 'Cartão de Débito'
+    };
+    return methodMap[method] || method;
+  };
+
   return (
     <Card className="border-muted shadow-card">
       <CardHeader className="bg-gradient-to-r from-muted/30 to-transparent">
         <CardTitle className="flex items-center gap-3 text-xl">
-          <div className="w-10 h-10 bg-aplia-blue/10 rounded-full flex items-center justify-center">
-            <CreditCard className="h-5 w-5 text-aplia-blue" />
+          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+            <CreditCard className="h-5 w-5 text-primary" />
           </div>
           Histórico de Pagamentos
         </CardTitle>
@@ -109,8 +119,8 @@ export function PaymentHistory() {
               <div key={payment.id} className="border border-muted rounded-xl p-6 space-y-4 hover:shadow-card transition-shadow duration-300">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-aplia-blue/10 rounded-full flex items-center justify-center">
-                      <CreditCard className="h-6 w-6 text-aplia-blue" />
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <CreditCard className="h-6 w-6 text-primary" />
                     </div>
                     <div>
                       <p className="font-semibold text-foreground">{payment.descricao}</p>
@@ -129,7 +139,7 @@ export function PaymentHistory() {
                 <div className="flex items-center justify-between pt-4 border-t border-muted">
                   <div className="text-sm text-muted-foreground space-y-1">
                     {payment.forma_pagamento && (
-                      <div>Forma de pagamento: <span className="font-medium">{payment.forma_pagamento}</span></div>
+                      <div>Forma de pagamento: <span className="font-medium">{translatePaymentMethod(payment.forma_pagamento)}</span></div>
                     )}
                     {payment.data_pagamento && (
                       <div>Pago em: <span className="font-medium">{formatDate(payment.data_pagamento)}</span></div>
@@ -140,7 +150,7 @@ export function PaymentHistory() {
                       variant="outline" 
                       size="sm"
                       onClick={() => window.open(payment.link_pagamento, '_blank')}
-                      className="flex items-center gap-2 hover:bg-aplia-blue/10 hover:border-aplia-blue/30"
+                      className="flex items-center gap-2 hover:bg-primary/10 hover:border-primary/30"
                     >
                       <ExternalLink className="h-3 w-3" />
                       Ver Fatura
