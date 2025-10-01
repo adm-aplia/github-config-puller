@@ -16,6 +16,17 @@ import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useAuth } from "@/components/auth-provider"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
 
+// Map Portuguese status to English for webhook
+const mapStatusToEnglish = (status: string): string => {
+  const statusMap: { [key: string]: string } = {
+    'agendado': 'schedule',
+    'confirmado': 'confirmed',
+    'cancelled': 'cancelled',
+    'blocked': 'blocked',
+  };
+  return statusMap[status] || status;
+};
+
 interface AppointmentCreateModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -112,7 +123,7 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
         patient_phone: formattedPhone,
         patient_email: formData.patient_email || "",
         appointment_date: formattedDate,
-        status: formData.status,
+        status: mapStatusToEnglish(formData.status),
         summary: `${formData.appointment_type || 'Consulta'} com ${formData.patient_name}`,
         notes: formData.notes || `Paciente: ${formData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${formData.patient_email || 'Não informado'}. Motivo: ${formData.appointment_type || 'consulta'}.`,
         ...(myEmail && { my_email: myEmail })
