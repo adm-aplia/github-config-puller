@@ -1,9 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { CalendarDays, RefreshCw, Mail, Check, Trash2 } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CalendarDays, RefreshCw, Mail, Check, Trash2, Sparkles } from "lucide-react"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -94,21 +93,14 @@ export default function IntegracoesPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">Integrações</h1>
-                <p className="text-muted-foreground">
-                  Conecte-se com outros serviços e plataformas
-                </p>
-              </div>
-              <Button disabled>
-                <CalendarDays className="mr-2 h-4 w-4" />
-                Conectar Google Agenda
-              </Button>
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+          <div className="container mx-auto px-6 py-8">
+            <div className="text-center mb-12">
+              <Skeleton className="h-6 w-32 mx-auto mb-4" />
+              <Skeleton className="h-10 w-64 mx-auto mb-4" />
+              <Skeleton className="h-6 w-96 mx-auto" />
             </div>
-            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-96 w-full max-w-6xl mx-auto" />
           </div>
         </div>
       </DashboardLayout>
@@ -117,111 +109,158 @@ export default function IntegracoesPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-6 py-8">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Integrações</h1>
-              <p className="text-muted-foreground">
-                Conecte-se com outros serviços e plataformas
-              </p>
-            </div>
-            <Button onClick={handleConnectGoogle}>
-              <CalendarDays className="mr-2 h-4 w-4" />
-              Conectar Google Agenda
-            </Button>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+        <div className="container mx-auto px-6 py-8">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-aplia-blue/10 text-aplia-blue hover:bg-aplia-blue/20 border-aplia-blue/20">
+              <Sparkles className="h-3 w-3 mr-1" />
+              Conexões
+            </Badge>
+            <h1 className="text-4xl font-bold mb-4">Integrações</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Conecte suas ferramentas favoritas e potencialize sua produtividade
+            </p>
           </div>
 
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Google Agenda</CardTitle>
-                <CardDescription>
-                  Sincronize seus agendamentos com o Google Agenda automaticamente
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="space-y-6">
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium">Contas Conectadas</h3>
-                    <Button variant="outline" size="sm" onClick={refetch} disabled={refreshing}>
-                      <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                      {refreshing ? 'Atualizando...' : 'Atualizar'}
+          {/* Tabs */}
+          <Tabs defaultValue="google" className="w-full">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-1 mb-8">
+              <TabsTrigger value="google">Google Agenda</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="google" className="space-y-8">
+              {/* Integration Card */}
+              <Card className="max-w-6xl mx-auto border-2 hover:shadow-lg transition-shadow">
+                <CardHeader className="bg-gradient-to-r from-aplia-blue/5 to-transparent border-b">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-aplia-blue/10 rounded-full">
+                      <CalendarDays className="h-6 w-6 text-aplia-blue" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-2xl">Google Agenda</CardTitle>
+                      <CardDescription className="text-base">
+                        Sincronize seus agendamentos automaticamente com o Google Agenda
+                      </CardDescription>
+                    </div>
+                    <Button 
+                      onClick={handleConnectGoogle}
+                      className="bg-aplia-blue hover:bg-aplia-blue/90 text-white"
+                    >
+                      <CalendarDays className="mr-2 h-4 w-4" />
+                      Conectar Nova Conta
                     </Button>
                   </div>
-                  
-                  {credentials.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground mb-4">Nenhuma conta Google conectada</p>
-                      <Button onClick={handleConnectGoogle}>
-                        <CalendarDays className="mr-2 h-4 w-4" />
-                        Conectar primeira conta
+                </CardHeader>
+
+                <CardContent className="pt-6">
+                  <div className="space-y-6">
+                    {/* Connected Accounts Header */}
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Contas Conectadas</h3>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={refetch} 
+                        disabled={refreshing}
+                        className="border-aplia-blue/20 hover:bg-aplia-blue/5"
+                      >
+                        <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                        {refreshing ? 'Atualizando...' : 'Atualizar'}
                       </Button>
                     </div>
-                  ) : (
-                    <div className="border rounded-md">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Nome</TableHead>
-                            <TableHead>Perfis Vinculados</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {credentials.map((credential) => {
-                            const linkedProfiles = profileLinks.filter(link => link.google_credential_id === credential.id);
-                            return (
-                              <TableRow key={credential.id}>
-                                <TableCell className="font-medium">
-                                  <div className="flex items-center gap-2">
-                                    <Avatar className="h-6 w-6">
-                                      <AvatarFallback className="bg-gray-100 dark:bg-gray-800">
-                                        <Mail className="h-3 w-3 text-gray-500" />
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    {credential.email}
+
+                    {/* No Accounts State */}
+                    {credentials.length === 0 ? (
+                      <div className="text-center py-12 border-2 border-dashed rounded-xl bg-muted/20">
+                        <div className="max-w-md mx-auto space-y-4">
+                          <div className="p-4 bg-aplia-blue/10 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                            <CalendarDays className="h-8 w-8 text-aplia-blue" />
+                          </div>
+                          <h4 className="text-xl font-semibold">Nenhuma conta conectada</h4>
+                          <p className="text-muted-foreground">
+                            Conecte sua conta do Google para sincronizar agendamentos automaticamente
+                          </p>
+                          <Button 
+                            onClick={handleConnectGoogle}
+                            className="bg-aplia-blue hover:bg-aplia-blue/90 text-white mt-4"
+                          >
+                            <CalendarDays className="mr-2 h-4 w-4" />
+                            Conectar primeira conta
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Connected Accounts List */
+                      <div className="grid gap-4">
+                        {credentials.map((credential) => {
+                          const linkedProfiles = profileLinks.filter(link => link.google_credential_id === credential.id);
+                          return (
+                            <Card 
+                              key={credential.id} 
+                              className="border-2 hover:shadow-md transition-all hover:border-aplia-blue/30"
+                            >
+                              <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4 flex-1">
+                                    {/* Avatar */}
+                                    <div className="p-3 bg-aplia-blue/10 rounded-full">
+                                      <Mail className="h-5 w-5 text-aplia-blue" />
+                                    </div>
+                                    
+                                    {/* Info */}
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <h4 className="font-semibold text-lg">{credential.email}</h4>
+                                        <Badge className="bg-green-500/10 text-green-700 border-green-500/20">
+                                          <Check className="h-3 w-3 mr-1" />
+                                          Conectado
+                                        </Badge>
+                                      </div>
+                                      <p className="text-sm text-muted-foreground">
+                                        {credential.name || 'Nome não informado'}
+                                      </p>
+                                      <div className="flex items-center gap-2 mt-2">
+                                        <Badge variant="outline" className="border-aplia-blue/30 text-aplia-blue">
+                                          {linkedProfiles.length > 0 
+                                            ? `${linkedProfiles.length} ${linkedProfiles.length === 1 ? 'perfil vinculado' : 'perfis vinculados'}` 
+                                            : 'Não vinculado a perfis'}
+                                        </Badge>
+                                      </div>
+                                    </div>
                                   </div>
-                                </TableCell>
-                                <TableCell>{credential.name || 'Nome não informado'}</TableCell>
-                                <TableCell>
-                                  <Badge variant="outline">
-                                    {linkedProfiles.length > 0 ? `${linkedProfiles.length} perfis` : 'Não vinculado'}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge variant="secondary">
-                                    <Check className="h-3 w-3 mr-1" />
-                                    Conectado
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <div className="flex justify-end gap-2">
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm"
-                                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                      onClick={() => handleDisconnectGoogle(credential.id)}
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-1" />
-                                      Desconectar
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )}
+
+                                  {/* Actions */}
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
+                                    onClick={() => handleDisconnectGoogle(credential.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Desconectar
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Trust Elements */}
+              <div className="mt-16 text-center">
+                <div className="flex justify-center items-center gap-8 opacity-60">
+                  <div className="text-xs text-muted-foreground">🔒 Conexão Segura</div>
+                  <div className="text-xs text-muted-foreground">✅ Sincronização Automática</div>
+                  <div className="text-xs text-muted-foreground">📞 Suporte Dedicado</div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </DashboardLayout>
