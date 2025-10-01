@@ -97,7 +97,7 @@ export function AppointmentBlockEditModal({ appointment, open, onOpenChange, onU
         all_day: blockType === 'fullday',
         notes: reason,
         patient_name: "Bloqueio",
-        patient_phone: "000000000"
+        patient_phone: "+5500000000000"
       })
       
       onOpenChange(false)

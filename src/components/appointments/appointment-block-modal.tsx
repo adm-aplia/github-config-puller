@@ -292,7 +292,7 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
           user_id: user?.id,
           agent_id: formData.professional_profile_id,
           patient_name: "Bloqueado",
-          patient_phone: "",
+          patient_phone: "+5500000000000",
           patient_email: "",
           appointment_date: formattedDate,
           status: "blocked",
