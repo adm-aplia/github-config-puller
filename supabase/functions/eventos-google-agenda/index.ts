@@ -86,36 +86,47 @@ serve(async (req) => {
     const userId = profile.user_id;
     console.log(`User ID encontrado: ${userId}`);
 
+    // Get all google_event_ids to check for existing appointments in batch
+    const eventIds = events.map(e => e.id);
+    console.log(`🔍 Verificando ${eventIds.length} eventos para duplicatas...`);
+    
+    const { data: existingAppointments } = await supabase
+      .from('appointments')
+      .select('google_event_id')
+      .eq('user_id', userId)
+      .in('google_event_id', eventIds);
+
+    const existingEventIds = new Set(
+      existingAppointments?.map(apt => apt.google_event_id) || []
+    );
+    console.log(`📋 ${existingEventIds.size} eventos já existem no banco`);
+
     // Process each event and create appointments
     const appointments = [];
     let successCount = 0;
     let errorCount = 0;
+    let skippedCount = 0;
 
     for (const event of events) {
       try {
+        // Skip if already exists
+        if (existingEventIds.has(event.id)) {
+          console.log(`⏭️ Pulando evento duplicado: ${event.id}`);
+          skippedCount++;
+          continue;
+        }
+
         // Calculate duration in minutes
         const startTime = new Date(event.start);
         const endTime = new Date(event.end);
         const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
-
-        // Check if appointment already exists
-        const { data: existingAppointment } = await supabase
-          .from('appointments')
-          .select('id')
-          .eq('google_event_id', event.id)
-          .eq('user_id', userId)
-          .single();
-
-        if (existingAppointment) {
-          console.log(`Agendamento já existe para evento: ${event.id}`);
-          continue;
-        }
 
         // Create appointment data
         const appointmentData = {
           user_id: userId,
           professional_profile_id: payload.professionalProfileId,
           google_event_id: event.id,
+          google_calendar_id: 'primary',
           patient_name: event.summary || 'Evento do Google Calendar',
           patient_phone: '',
           patient_email: '',
@@ -130,30 +141,48 @@ serve(async (req) => {
         appointments.push(appointmentData);
         
       } catch (eventError) {
-        console.error(`Erro ao processar evento ${event.id}:`, eventError);
+        console.error(`❌ Erro ao processar evento ${event.id}:`, eventError);
         errorCount++;
       }
     }
 
-    console.log(`Preparados ${appointments.length} agendamentos para inserção`);
+    console.log(`📊 Resumo do processamento: ${appointments.length} novos, ${skippedCount} duplicados, ${errorCount} erros`);
 
-    // Insert appointments in batches
+    // Upsert appointments (insert or update on conflict)
     if (appointments.length > 0) {
+      console.log(`💾 Fazendo upsert de ${appointments.length} agendamentos...`);
+      
       const { data: insertedAppointments, error: insertError } = await supabase
         .from('appointments')
-        .insert(appointments)
+        .upsert(appointments, {
+          onConflict: 'google_event_id',
+          ignoreDuplicates: false
+        })
         .select('id');
 
       if (insertError) {
-        console.error('Erro ao inserir agendamentos:', insertError);
-        return new Response('Error inserting appointments', { 
-          status: 500, 
-          headers: corsHeaders 
-        });
+        // Treat duplicate key error specifically
+        if (insertError.code === '23505') {
+          console.warn('⚠️ Alguns eventos já existem (constraint violation), continuando...');
+          successCount = 0;
+        } else {
+          console.error('❌ Erro ao inserir agendamentos:', insertError);
+          return new Response(JSON.stringify({ 
+            success: false,
+            error: 'Error inserting appointments',
+            details: insertError.message 
+          }), { 
+            status: 500, 
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+            }
+          });
+        }
+      } else {
+        successCount = insertedAppointments?.length || 0;
+        console.log(`✅ ${successCount} agendamentos criados/atualizados com sucesso`);
       }
-
-      successCount = insertedAppointments?.length || 0;
-      console.log(`${successCount} agendamentos inseridos com sucesso`);
     }
 
     const response = {
@@ -162,8 +191,9 @@ serve(async (req) => {
       summary: {
         totalEvents: events.length,
         appointmentsCreated: successCount,
+        duplicatesSkipped: skippedCount,
         errors: errorCount,
-        skipped: events.length - successCount - errorCount
+        processed: successCount + skippedCount + errorCount
       }
     };
 

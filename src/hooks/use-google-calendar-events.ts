@@ -259,7 +259,7 @@ export const useGoogleCalendarEvents = () => {
           .eq('user_id', userData.user.id)
           .eq('google_event_id', event.id)
           .eq('google_calendar_id', googleCalendarId)
-          .single();
+          .maybeSingle();
 
         if (existingAppointment) {
           console.log(`⏭️ Appointment já existe para evento ${event.id}`);
@@ -315,13 +315,25 @@ export const useGoogleCalendarEvents = () => {
       console.log(`💾 Criando ${appointmentsToCreate.length} appointments diretamente...`);
       console.log('📋 Appointments a serem criados:', appointmentsToCreate);
 
-      // Insert appointments directly
+      // Upsert appointments (insert or update on conflict)
       const { data: insertedData, error } = await supabase
         .from('appointments')
-        .insert(appointmentsToCreate)
+        .upsert(appointmentsToCreate, {
+          onConflict: 'google_event_id',
+          ignoreDuplicates: true
+        })
         .select();
 
       if (error) {
+        // Handle duplicate key error specifically
+        if (error.code === '23505') {
+          console.warn('⚠️ Alguns eventos já existem (duplicate key), mas continuando...');
+          toast({
+            title: 'Sincronização parcial',
+            description: 'Alguns eventos já existiam e foram ignorados.',
+          });
+          return 0;
+        }
         console.error('❌ Erro ao inserir appointments:', error);
         throw error;
       }
@@ -430,10 +442,22 @@ export const useGoogleCalendarEvents = () => {
         
         const { data: insertedData, error: insertError } = await supabase
           .from('appointments')
-          .insert(appointmentsToCreate)
+          .upsert(appointmentsToCreate, {
+            onConflict: 'google_event_id',
+            ignoreDuplicates: true
+          })
           .select();
 
         if (insertError) {
+          // Handle duplicate key error specifically
+          if (insertError.code === '23505') {
+            console.warn('⚠️ Alguns eventos já existem (duplicate key), mas continuando...');
+            toast({
+              title: 'Sincronização parcial',
+              description: 'Alguns eventos já existiam e foram ignorados.',
+            });
+            return 0;
+          }
           console.error('❌ Erro ao inserir appointments:', insertError);
           throw insertError;
         }
@@ -593,13 +617,25 @@ export const useGoogleCalendarEvents = () => {
         return 0;
       }
       
-      // Inserir appointments
+      // Inserir appointments usando upsert
       const { data: insertedAppointments, error: appointmentsError } = await supabase
         .from('appointments')
-        .insert(appointmentsToCreate)
+        .upsert(appointmentsToCreate, {
+          onConflict: 'google_event_id',
+          ignoreDuplicates: true
+        })
         .select();
       
       if (appointmentsError) {
+        // Handle duplicate key error specifically
+        if (appointmentsError.code === '23505') {
+          console.warn('⚠️ [processN8NWebhookData] Alguns eventos já existem (duplicate key), mas continuando...');
+          toast({
+            title: 'Sincronização parcial',
+            description: 'Alguns eventos já existiam e foram ignorados.',
+          });
+          return 0;
+        }
         console.error('💥 [processN8NWebhookData] Erro ao inserir appointments:', appointmentsError);
         throw appointmentsError;
       }
