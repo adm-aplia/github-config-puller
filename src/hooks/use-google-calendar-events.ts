@@ -319,7 +319,7 @@ export const useGoogleCalendarEvents = () => {
         const { data: insertedData, error } = await supabase
           .from('appointments')
           .upsert(batch, {
-            onConflict: 'appointments_unique_triple_idx',
+            onConflict: 'google_event_id',
             ignoreDuplicates: false
           })
           .select();
