@@ -70,6 +70,13 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    if (loading) {
+      console.log('[ProfileForm] Submit bloqueado - já está salvando');
+      return;
+    }
+    
     console.log('[ProfileForm] Iniciando submit com dados:', formData);
     setLoading(true);
     

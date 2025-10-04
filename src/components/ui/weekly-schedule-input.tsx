@@ -103,10 +103,14 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
   };
 
   const addTimeSlot = (day: string) => {
+    // Permitir apenas 1 horário por dia
+    const existingSlot = schedule[day]?.[0];
+    
     setEditingSlot({
       day,
-      start: '09:00',
-      end: '17:00'
+      index: existingSlot ? 0 : undefined, // Se já existe, editar; senão criar novo
+      start: existingSlot?.start || '09:00',
+      end: existingSlot?.end || '17:00'
     });
   };
 
@@ -114,20 +118,12 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
     if (!editingSlot) return;
 
     const newSchedule = { ...schedule };
-    if (!newSchedule[editingSlot.day]) {
-      newSchedule[editingSlot.day] = [];
-    }
-
-    const slot = {
+    
+    // Sempre substituir (permitir apenas 1 slot por dia)
+    newSchedule[editingSlot.day] = [{
       start: editingSlot.start,
       end: editingSlot.end
-    };
-
-    if (editingSlot.index !== undefined) {
-      newSchedule[editingSlot.day][editingSlot.index] = slot;
-    } else {
-      newSchedule[editingSlot.day].push(slot);
-    }
+    }];
 
     confirmUpdateSchedule(newSchedule);
     setEditingSlot(null);
@@ -168,13 +164,12 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
             </div>
             
             <div className="flex flex-wrap items-center gap-2">
-              {schedule[weekday.key]?.map((slot, index) => (
+              {schedule[weekday.key]?.[0] ? (
                 <div
-                  key={index}
                   className="group flex items-center gap-1 bg-muted px-2 py-1 rounded text-sm cursor-pointer hover:bg-muted/80"
-                  onClick={() => editTimeSlot(weekday.key, index)}
+                  onClick={() => editTimeSlot(weekday.key, 0)}
                 >
-                  <span>{slot.start}-{slot.end}</span>
+                  <span>{schedule[weekday.key][0].start}-{schedule[weekday.key][0].end}</span>
                   <Button
                     type="button"
                     variant="ghost"
@@ -183,27 +178,27 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      removeTimeSlot(weekday.key, index);
+                      removeTimeSlot(weekday.key, 0);
                     }}
                   >
                     <X className="h-3 w-3" />
                   </Button>
                 </div>
-              ))}
-              
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 w-7 p-0"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  addTimeSlot(weekday.key);
-                }}
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-7 p-0"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addTimeSlot(weekday.key);
+                  }}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              )}
             </div>
           </div>
         ))}
@@ -214,7 +209,7 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
           <CardContent className="p-0">
             <div className="space-y-3">
               <Label className="text-sm font-medium">
-                Adicionar horário - {WEEKDAYS.find(d => d.key === editingSlot.day)?.label}
+                {editingSlot.index !== undefined ? 'Editar' : 'Adicionar'} horário - {WEEKDAYS.find(d => d.key === editingSlot.day)?.label}
               </Label>
               
               <div className="grid grid-cols-2 gap-3">
