@@ -88,16 +88,7 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
     }
   }, [value]);
 
-  // Expor método para obter JSON atualizado (sem disparar onChange)
-  React.useEffect(() => {
-    // Atualizar o value quando o schedule mudar internamente
-    // mas sem chamar onChange para não fechar o modal
-    const scheduleJson = JSON.stringify(schedule);
-    if (scheduleJson !== value && Object.keys(schedule).length > 0) {
-      // Silenciosamente atualizar o formData através de um evento customizado
-      onChange?.(scheduleJson);
-    }
-  }, [schedule]);
+  // Removed automatic onChange trigger to prevent modal closing during edit
 
   // Não dispara onChange durante edição individual
   const updateSchedule = (newSchedule: DaySchedule) => {
@@ -107,7 +98,8 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
   // Só dispara onChange quando usuário confirma o salvamento
   const confirmUpdateSchedule = (newSchedule: DaySchedule) => {
     setSchedule(newSchedule);
-    // Removido onChange daqui - só deve ser disparado no submit do formulário principal
+    const scheduleJson = JSON.stringify(newSchedule);
+    onChange?.(scheduleJson);
   };
 
   const addTimeSlot = (day: string) => {
