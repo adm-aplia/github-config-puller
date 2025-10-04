@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Calendar as CalendarIcon, Bot, Users, ChartColumn, Building2, Settings, Mail, Shield } from 'lucide-react';
+import { MessageCircle, Calendar as CalendarIcon, Bot, Users, ChartColumn, Building2, Settings, Mail, Shield, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,25 +46,32 @@ export default function Planos() {
   const getPlanFeatures = (planName: string) => {
     const featuresMap: { [key: string]: { text: string; icon: any }[] } = {
       'Básico': [
-        { text: '1 Número de whatsapp', icon: MessageCircle },
-        { text: 'Até 300 agendamentos/mês', icon: CalendarIcon },
-        { text: '1 Assistente personalizado', icon: Bot },
+        { text: '1 Número de WhatsApp', icon: MessageCircle },
+        { text: '1 Assistente Personalizado', icon: Bot },
         { text: 'Suporte por e-mail', icon: Mail },
+        { text: 'Agendamentos ilimitados', icon: CalendarIcon },
+        { text: 'Integração Google Agenda', icon: CalendarIcon },
+        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
       ],
       'Profissional': [
         { text: '3 Números de WhatsApp', icon: MessageCircle },
-        { text: 'Até 1.000 agendamentos/mês', icon: CalendarIcon },
-        { text: '3 assistentes personalizados', icon: Bot },
+        { text: '3 Assistentes Personalizados', icon: Bot },
         { text: 'Suporte prioritário', icon: Users },
-        { text: 'Relatórios Avançados', icon: ChartColumn },
+        { text: 'Agendamentos ilimitados', icon: CalendarIcon },
+        { text: 'Lembretes de Consulta Automáticos', icon: Bell },
+        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
+        { text: 'Integração Google Agenda', icon: CalendarIcon },
+        { text: 'Suporte por e-mail', icon: Mail },
       ],
       'Empresarial': [
-        { text: '+10 Números de WhatsApp', icon: MessageCircle },
-        { text: 'Agendamentos ilimitados', icon: CalendarIcon },
-        { text: 'Assistentes ilimitados', icon: Bot },
+        { text: '10 Números de WhatsApp', icon: MessageCircle },
+        { text: '10 Assistentes Personalizados', icon: Bot },
         { text: 'Suporte 24/7 dedicado', icon: Users },
-        { text: 'Integração com sistemas hospitalares', icon: Building2 },
-        { text: 'Personalização avançada', icon: Settings },
+        { text: 'Agendamentos ilimitados', icon: CalendarIcon },
+        { text: 'Lembretes de Consulta Automáticos', icon: Bell },
+        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
+        { text: 'Integração Google Agenda', icon: CalendarIcon },
+        { text: 'Suporte por e-mail', icon: Mail },
       ],
     };
     
