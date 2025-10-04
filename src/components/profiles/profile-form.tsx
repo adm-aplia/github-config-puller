@@ -77,6 +77,11 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       return;
     }
     
+    if (currentStep < 3) {
+      console.log('[ProfileForm] Submit bloqueado - não está na etapa final');
+      return;
+    }
+    
     console.log('[ProfileForm] Iniciando submit com dados:', formData);
     setLoading(true);
     
@@ -338,7 +343,16 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
-                <Button type="submit" disabled={loading}>
+                <Button 
+                  type="button" 
+                  disabled={loading}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('[ProfileForm] Botão Salvar clicado');
+                    handleSubmit(e as any);
+                  }}
+                >
                   {loading ? 'Salvando...' : profile ? 'Atualizar' : 'Salvar'}
                 </Button>
               )}

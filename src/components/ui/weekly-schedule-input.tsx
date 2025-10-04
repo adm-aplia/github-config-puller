@@ -154,8 +154,6 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <Label className="text-base font-medium">Horários de Atendimento</Label>
-      
       <div className="space-y-3">
         {WEEKDAYS.map((weekday) => (
           <div key={weekday.key} className="flex items-center gap-3">
@@ -174,14 +172,14 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100"
+                    className="h-5 w-5 p-0 text-destructive hover:text-destructive/80 transition-colors"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       removeTimeSlot(weekday.key, 0);
                     }}
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               ) : (
