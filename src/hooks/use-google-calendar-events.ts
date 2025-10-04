@@ -316,30 +316,42 @@ export const useGoogleCalendarEvents = () => {
         const batch = appointmentsToCreate.slice(i, i + BATCH_SIZE);
         console.log(`📦 Processando lote ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(appointmentsToCreate.length / BATCH_SIZE)} (${batch.length} appointments)...`);
 
-        const { data: insertedData, error } = await supabase
-          .from('appointments')
-          .upsert(batch, {
-            onConflict: 'google_event_id',
-            ignoreDuplicates: false
-          })
-          .select();
+        try {
+          // 1. Extrair google_event_ids do lote
+          const eventIds = batch.map(a => a.google_event_id).filter(Boolean);
+          
+          // 2. Buscar quais já existem no banco
+          const { data: existing } = await supabase
+            .from('appointments')
+            .select('google_event_id')
+            .in('google_event_id', eventIds);
+          
+          const existingIds = new Set(existing?.map(e => e.google_event_id) || []);
+          
+          // 3. Filtrar apenas novos appointments
+          const newAppointments = batch.filter(a => !existingIds.has(a.google_event_id));
+          
+          // 4. Inserir apenas os novos
+          if (newAppointments.length > 0) {
+            const { data: insertedData, error } = await supabase
+              .from('appointments')
+              .insert(newAppointments)
+              .select();
 
-        if (error) {
-          // Handle duplicate key error specifically
-          if (error.code === '23505') {
-            console.warn('⚠️ Alguns eventos já existem (duplicate key) neste lote, mas continuando...');
-            totalErrors++;
-          } else if (error.code === '23502') {
-            console.error('❌ Erro de campo obrigatório (null value):', error);
-            totalErrors++;
+            if (error) {
+              console.error('❌ Erro ao inserir lote de appointments:', error);
+              totalErrors++;
+            } else {
+              const inserted = insertedData?.length || 0;
+              totalInserted += inserted;
+              console.log(`✅ ${inserted} novos appointments inseridos neste lote`);
+            }
           } else {
-            console.error('❌ Erro ao inserir lote de appointments:', error);
-            totalErrors++;
+            console.log(`ℹ️ Nenhum appointment novo neste lote (todos já existem)`);
           }
-        } else {
-          const inserted = insertedData?.length || 0;
-          totalInserted += inserted;
-          console.log(`✅ ${inserted} appointments processados neste lote`);
+        } catch (error) {
+          console.error('❌ Erro ao processar lote:', error);
+          totalErrors++;
         }
       }
 
