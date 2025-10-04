@@ -22,7 +22,7 @@ export default function Planos() {
   const loading = plansLoading || subscriptionLoading;
 
   const handleSelectPlan = (planId: string) => {
-    navigate('/dashboard/checkout', { state: { planId } });
+    navigate(`/dashboard/checkout/${planId}`);
   };
 
   const handleSuccess = () => {
