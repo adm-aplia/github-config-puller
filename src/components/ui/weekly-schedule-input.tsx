@@ -176,10 +176,12 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
                 >
                   <span>{slot.start}-{slot.end}</span>
                   <Button
+                    type="button"
                     variant="ghost"
                     size="sm"
                     className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       removeTimeSlot(weekday.key, index);
                     }}
@@ -190,10 +192,15 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
               ))}
               
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 className="h-7 w-7 p-0"
-                onClick={() => addTimeSlot(weekday.key)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addTimeSlot(weekday.key);
+                }}
               >
                 <Plus className="h-3 w-3" />
               </Button>
@@ -231,13 +238,26 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
               
               <div className="flex gap-2 justify-end">
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setEditingSlot(null)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setEditingSlot(null);
+                  }}
                 >
                   Cancelar
                 </Button>
-                <Button size="sm" onClick={saveTimeSlot}>
+                <Button 
+                  type="button"
+                  size="sm" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    saveTimeSlot();
+                  }}
+                >
                   Salvar
                 </Button>
               </div>
