@@ -152,10 +152,10 @@ export default function Planos() {
                     {/* Header */}
                     <div className="flex flex-col space-y-1.5 p-6 pb-4 pt-8 px-8">
                       <div className={`tracking-tight text-2xl font-bold mb-2 ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
-                        {plan.nome}
+                      {plan.nome}
                       </div>
                       <div className={`text-2xl font-bold mb-4 ${isEnterprise ? 'text-red-400' : 'text-foreground'}`}>
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.preco)}/mensal
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.preco)}/mês
                       </div>
                       <hr className={`border-t-2 mb-4 ${isEnterprise ? 'border-slate-600' : 'border-border'}`} />
                       <div className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>

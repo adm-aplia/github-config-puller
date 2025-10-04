@@ -506,7 +506,7 @@ export default function CheckoutPage() {
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedPlan.nome}</h3>
                   <div className="text-4xl font-bold text-red-500 mt-2">
-                    R$ {selectedPlan.preco}/mês
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedPlan.preco)}/mês
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                     Cobrança mensal recorrente. <strong className="text-gray-900 dark:text-white">Cancele quando quiser.</strong>
