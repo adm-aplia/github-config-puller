@@ -155,7 +155,7 @@ export default function Planos() {
                         {plan.nome}
                       </div>
                       <div className={`text-2xl font-bold mb-4 ${isEnterprise ? 'text-red-400' : 'text-foreground'}`}>
-                        R$ {plan.preco}/mensal
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.preco)}/mensal
                       </div>
                       <hr className={`border-t-2 mb-4 ${isEnterprise ? 'border-slate-600' : 'border-border'}`} />
                       <div className={`text-sm leading-relaxed ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
@@ -248,11 +248,16 @@ export default function Planos() {
                       </div>
                       <div className="border border-muted rounded-lg p-4">
                         <p className="text-sm text-muted-foreground mb-1">Valor Mensal</p>
-                        <p className="font-semibold text-lg text-foreground">R$ {subscription?.plano.preco}</p>
+                        <p className="font-semibold text-lg text-foreground">
+                          {subscription?.plano.preco ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.plano.preco) : 'N/A'}
+                        </p>
                       </div>
                       <div className="border border-muted rounded-lg p-4">
                         <p className="text-sm text-muted-foreground mb-2">Status</p>
-                        <Badge variant={subscription?.status === 'active' ? 'default' : 'secondary'} className="text-sm">
+                        <Badge 
+                          variant={subscription?.status === 'active' ? 'default' : 'secondary'} 
+                          className={subscription?.status === 'active' ? 'text-sm bg-green-100 text-green-700 border-green-200 hover:bg-green-100/80' : 'text-sm'}
+                        >
                           {subscription?.status === 'active' ? 'Ativo' : subscription?.status === 'cancelled' ? 'Cancelado' : 'Inativo'}
                         </Badge>
                       </div>
