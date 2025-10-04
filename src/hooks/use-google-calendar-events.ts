@@ -247,22 +247,9 @@ export const useGoogleCalendarEvents = () => {
         const startTime = parseGoogleDate(event.start);
         const endTime = parseGoogleDate(event.end);
         
+        // Validar dados essenciais antes de processar
         if (!startTime || !endTime) {
-          console.warn('Skipping event with invalid dates:', event.id);
-          continue;
-        }
-
-        // Check if appointment already exists
-        const { data: existingAppointment } = await supabase
-          .from('appointments')
-          .select('id')
-          .eq('user_id', userData.user.id)
-          .eq('google_event_id', event.id)
-          .eq('google_calendar_id', googleCalendarId)
-          .maybeSingle();
-
-        if (existingAppointment) {
-          console.log(`⏭️ Appointment já existe para evento ${event.id}`);
+          console.warn('⏭️ Pulando evento com datas inválidas:', event.id);
           continue;
         }
 
@@ -274,7 +261,13 @@ export const useGoogleCalendarEvents = () => {
           ? attendees[0]?.email || '' 
           : '';
 
+        // Validar originalStartTime se existir
+        const originalStartTime = event.originalStartTime 
+          ? parseGoogleDate(event.originalStartTime) 
+          : null;
+
         const appointment = {
+          id: crypto.randomUUID(), // Gerar UUID único para cada appointment
           user_id: userData.user.id,
           professional_profile_id: professionalProfileId,
           patient_name: event.summary || 'Evento Google Calendar',
@@ -295,7 +288,7 @@ export const useGoogleCalendarEvents = () => {
           google_event_id: event.id,
           google_calendar_id: googleCalendarId,
           google_recurring_event_id: event.recurringEventId,
-          google_original_start_time: parseGoogleDate(event.originalStartTime),
+          google_original_start_time: originalStartTime,
           timezone: event.start?.timeZone || 'America/Sao_Paulo',
           all_day: isAllDay,
         };
@@ -312,41 +305,55 @@ export const useGoogleCalendarEvents = () => {
         return 0;
       }
 
-      console.log(`💾 Criando ${appointmentsToCreate.length} appointments diretamente...`);
-      console.log('📋 Appointments a serem criados:', appointmentsToCreate);
+      console.log(`💾 Processando ${appointmentsToCreate.length} appointments...`);
 
-      // Upsert appointments (insert or update on conflict)
-      const { data: insertedData, error } = await supabase
-        .from('appointments')
-        .upsert(appointmentsToCreate, {
-          onConflict: 'google_event_id',
-          ignoreDuplicates: true
-        })
-        .select();
+      // Processar em lotes de 50 para evitar timeout
+      const BATCH_SIZE = 50;
+      let totalInserted = 0;
+      let totalErrors = 0;
 
-      if (error) {
-        // Handle duplicate key error specifically
-        if (error.code === '23505') {
-          console.warn('⚠️ Alguns eventos já existem (duplicate key), mas continuando...');
-          toast({
-            title: 'Sincronização parcial',
-            description: 'Alguns eventos já existiam e foram ignorados.',
-          });
-          return 0;
+      for (let i = 0; i < appointmentsToCreate.length; i += BATCH_SIZE) {
+        const batch = appointmentsToCreate.slice(i, i + BATCH_SIZE);
+        console.log(`📦 Processando lote ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(appointmentsToCreate.length / BATCH_SIZE)} (${batch.length} appointments)...`);
+
+        const { data: insertedData, error } = await supabase
+          .from('appointments')
+          .upsert(batch, {
+            onConflict: 'google_event_id',
+            ignoreDuplicates: false
+          })
+          .select();
+
+        if (error) {
+          // Handle duplicate key error specifically
+          if (error.code === '23505') {
+            console.warn('⚠️ Alguns eventos já existem (duplicate key) neste lote, mas continuando...');
+            totalErrors++;
+          } else if (error.code === '23502') {
+            console.error('❌ Erro de campo obrigatório (null value):', error);
+            totalErrors++;
+          } else {
+            console.error('❌ Erro ao inserir lote de appointments:', error);
+            totalErrors++;
+          }
+        } else {
+          const inserted = insertedData?.length || 0;
+          totalInserted += inserted;
+          console.log(`✅ ${inserted} appointments processados neste lote`);
         }
-        console.error('❌ Erro ao inserir appointments:', error);
-        throw error;
       }
 
-      const appointmentCount = insertedData?.length || 0;
-      console.log(`✅ ${appointmentCount} appointments criados com sucesso`);
+      console.log(`✅ Total processado: ${totalInserted} appointments`);
+      if (totalErrors > 0) {
+        console.warn(`⚠️ ${totalErrors} lotes com erros`);
+      }
 
       toast({
         title: 'Agendamentos sincronizados',
-        description: `${appointmentCount} agendamento(s) criado(s) diretamente do Google Calendar.`,
+        description: `${totalInserted} agendamento(s) processado(s) do Google Calendar${totalErrors > 0 ? ` (${totalErrors} lotes com avisos)` : ''}.`,
       });
 
-      return appointmentCount;
+      return totalInserted;
     } catch (error) {
       console.error('Error processing Google Calendar webhook:', error);
       
