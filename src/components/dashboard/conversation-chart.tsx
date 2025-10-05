@@ -65,7 +65,7 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
     )
   }
 
-  const maxValue = Math.max(...chartData.map(d => d.conversations), 100)
+  const maxValue = Math.max(...chartData.map(d => d.conversations), 1)
   
   return (
     <Card className="col-span-1 lg:col-span-4">

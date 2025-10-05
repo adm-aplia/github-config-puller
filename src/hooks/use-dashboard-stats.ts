@@ -110,16 +110,39 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
         const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
 
-        // Buscar conversas que foram criadas OU tiveram mensagens neste dia
-        const { data: dayConversations } = await supabase
+        // Buscar TODAS as conversas do usuário
+        const { data: allUserConversations } = await supabase
           .from('conversations')
           .select('id, contact_phone')
-          .eq('user_id', userData.user.id)
-          .or(`and(created_at.gte.${startOfDay.toISOString()},created_at.lte.${endOfDay.toISOString()}),and(last_message_at.gte.${startOfDay.toISOString()},last_message_at.lte.${endOfDay.toISOString()})`);
+          .eq('user_id', userData.user.id);
 
-        // Contar apenas contatos únicos
+        if (!allUserConversations || allUserConversations.length === 0) {
+          return {
+            date: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+            conversations: 0
+          };
+        }
+
+        const conversationIds = allUserConversations.map(c => c.id);
+
+        // Buscar mensagens que foram criadas neste dia específico
+        const { data: messagesInDay } = await supabase
+          .from('messages')
+          .select('conversation_id')
+          .in('conversation_id', conversationIds)
+          .gte('created_at', startOfDay.toISOString())
+          .lte('created_at', endOfDay.toISOString());
+
+        // Pegar IDs únicos de conversas que tiveram mensagens neste dia
+        const uniqueConversationIds = new Set(
+          messagesInDay?.map(msg => msg.conversation_id) || []
+        );
+
+        // Mapear de volta para contact_phone únicos
         const uniqueContacts = new Set(
-          dayConversations?.map(conv => conv.contact_phone) || []
+          allUserConversations
+            .filter(conv => uniqueConversationIds.has(conv.id))
+            .map(conv => conv.contact_phone)
         );
 
         return {

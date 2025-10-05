@@ -50,8 +50,8 @@ export function RecentConversations() {
           agent_id
         `)
         .eq('user_id', userData.user.id)
-        .order('last_message_at', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false })
+        .not('last_message_at', 'is', null)
+        .order('last_message_at', { ascending: false })
         .limit(4)
 
       if (conversationsError) throw conversationsError
