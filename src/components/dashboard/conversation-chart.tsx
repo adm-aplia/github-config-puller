@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartData } from "@/hooks/use-dashboard-stats"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useState } from "react"
 
 // Função para criar path suave (curvas Bézier)
 function createSmoothPath(points: {x: number, y: number}[]) {
@@ -50,6 +51,7 @@ interface ConversationChartProps {
 
 export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }: ConversationChartProps) {
   const isMobile = useIsMobile()
+  const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; value: number; date: string } | null>(null)
   
   if (loading) {
     return (
@@ -65,7 +67,9 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
     )
   }
 
-  const maxValue = Math.max(...chartData.map(d => d.conversations), 1)
+  // Calcular maxValue com folga inteligente
+  const rawMax = Math.max(...chartData.map(d => d.conversations), 1)
+  const maxValue = rawMax <= 5 ? 5 : Math.ceil(rawMax * 1.2)
   
   return (
     <Card className="col-span-1 lg:col-span-4">
@@ -97,7 +101,12 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
             
             {/* Chart area with smooth lines */}
             <div className="relative h-full ml-8 mr-2">
-              <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <svg 
+                className="w-full h-full" 
+                viewBox="0 0 100 100" 
+                preserveAspectRatio="none"
+                onMouseLeave={() => setHoveredPoint(null)}
+              >
                 {/* Create smooth conversation line */}
                 <path
                   d={createSmoothPath(chartData.map((item, index) => ({
@@ -110,7 +119,52 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
                   className="drop-shadow-sm"
                   style={{ vectorEffect: 'non-scaling-stroke' }}
                 />
+                
+                {/* Pontos interativos */}
+                {chartData.map((item, index) => {
+                  const x = (index / (chartData.length - 1)) * 100
+                  const y = 100 - (item.conversations / maxValue) * 85
+                  return (
+                    <circle
+                      key={index}
+                      cx={x}
+                      cy={y}
+                      r="1.5"
+                      fill="hsl(var(--primary))"
+                      className="cursor-pointer hover:r-2 transition-all"
+                      onMouseEnter={(e) => {
+                        const svg = e.currentTarget.ownerSVGElement
+                        if (svg) {
+                          const rect = svg.getBoundingClientRect()
+                          setHoveredPoint({
+                            x: rect.left + (x / 100) * rect.width,
+                            y: rect.top + (y / 100) * rect.height,
+                            value: item.conversations,
+                            date: item.date
+                          })
+                        }
+                      }}
+                    />
+                  )
+                })}
               </svg>
+              
+              {/* Tooltip */}
+              {hoveredPoint && (
+                <div 
+                  className="fixed z-50 bg-popover text-popover-foreground px-3 py-2 rounded-lg shadow-lg border text-sm pointer-events-none"
+                  style={{
+                    left: `${hoveredPoint.x}px`,
+                    top: `${hoveredPoint.y - 60}px`,
+                    transform: 'translateX(-50%)'
+                  }}
+                >
+                  <div className="font-semibold">{hoveredPoint.date}</div>
+                  <div className="text-muted-foreground">
+                    {hoveredPoint.value} {hoveredPoint.value === 1 ? 'conversa' : 'conversas'}
+                  </div>
+                </div>
+              )}
               
               {/* X-axis labels - dynamically show 4 labels on mobile, 6-8 on desktop */}
               <div className="absolute bottom-0 w-full px-2">
