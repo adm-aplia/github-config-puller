@@ -1,56 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useState } from "react"
 import { ChartData } from "@/hooks/use-dashboard-stats"
 import { useIsMobile } from "@/hooks/use-mobile"
-
-// Dados baseados nas métricas do dashboard com mais pontos para linha suave
-const data7Days = [
-  { date: "Seg", conversations: 147, agendamentos: 86 },
-  { date: "", conversations: 165, agendamentos: 78 },
-  { date: "", conversations: 189, agendamentos: 82 },
-  { date: "Ter", conversations: 198, agendamentos: 92 },
-  { date: "", conversations: 176, agendamentos: 88 },
-  { date: "", conversations: 154, agendamentos: 84 },
-  { date: "Qua", conversations: 165, agendamentos: 78 },
-  { date: "", conversations: 187, agendamentos: 95 },
-  { date: "", conversations: 210, agendamentos: 98 },
-  { date: "Qui", conversations: 234, agendamentos: 105 },
-  { date: "", conversations: 221, agendamentos: 102 },
-  { date: "", conversations: 198, agendamentos: 96 },
-  { date: "Sex", conversations: 189, agendamentos: 88 },
-  { date: "", conversations: 167, agendamentos: 82 },
-  { date: "", conversations: 145, agendamentos: 76 },
-  { date: "Sáb", conversations: 156, agendamentos: 71 },
-  { date: "", conversations: 134, agendamentos: 68 },
-  { date: "", conversations: 118, agendamentos: 63 },
-  { date: "Dom", conversations: 123, agendamentos: 65 }
-]
-
-const data30Days = [
-  { date: "Sem 1", conversations: 1234, agendamentos: 86 },
-  { date: "", conversations: 1345, agendamentos: 92 },
-  { date: "", conversations: 1298, agendamentos: 88 },
-  { date: "Sem 2", conversations: 1456, agendamentos: 98 },
-  { date: "", conversations: 1387, agendamentos: 94 },
-  { date: "", conversations: 1234, agendamentos: 85 },
-  { date: "Sem 3", conversations: 1123, agendamentos: 76 },
-  { date: "", conversations: 1267, agendamentos: 82 },
-  { date: "", conversations: 1445, agendamentos: 95 },
-  { date: "Sem 4", conversations: 1567, agendamentos: 112 }
-]
-
-const data90Days = [
-  { date: "Mês 1", conversations: 4567, agendamentos: 256 },
-  { date: "", conversations: 4234, agendamentos: 245 },
-  { date: "", conversations: 4789, agendamentos: 267 },
-  { date: "", conversations: 4998, agendamentos: 278 },
-  { date: "Mês 2", conversations: 5234, agendamentos: 298 },
-  { date: "", conversations: 5567, agendamentos: 312 },
-  { date: "", conversations: 5123, agendamentos: 289 },
-  { date: "", conversations: 4756, agendamentos: 268 },
-  { date: "Mês 3", conversations: 4891, agendamentos: 234 }
-]
 
 // Função para criar path suave (curvas Bézier)
 function createSmoothPath(points: {x: number, y: number}[]) {

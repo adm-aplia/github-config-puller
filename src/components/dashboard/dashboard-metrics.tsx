@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { MessageSquare, Calendar, Users, Activity } from "lucide-react"
+import { MessageSquare, Calendar, Users, MessageCircle } from "lucide-react"
 import { DashboardStats } from "@/hooks/use-dashboard-stats"
 
 interface MetricCardProps {
@@ -111,7 +111,7 @@ export function DashboardMetrics({ stats, loading, visibleCards }: DashboardMetr
         title="Números WhatsApp"
         value={`${stats?.instancias_ativas || 0}/${stats?.total_instancias || 0}`}
         description="ativas / total"
-        icon={Activity}
+        icon={MessageCircle}
       />
     )
   }

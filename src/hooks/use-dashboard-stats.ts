@@ -49,7 +49,7 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
         const [assistentesData, instanciasData, conversasData, agendamentosData] = await Promise.all([
           supabase.from('professional_profiles').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id),
           supabase.from('whatsapp_instances').select('id, status', { count: 'exact' }).eq('user_id', userData.user.id),
-          supabase.from('conversations').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).or(`last_message_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()},and(last_message_at.is.null,created_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()})`),
+          supabase.from('conversations').select('id, contact_phone').eq('user_id', userData.user.id).or(`last_message_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()},and(last_message_at.is.null,created_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()})`),
           supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).gte('appointment_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()).neq('appointment_type', 'blocked')
         ]);
 
@@ -78,12 +78,17 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
         }
 
         const instanciasAtivas = instanciasData.data?.filter(inst => inst.status === 'connected').length || 0;
+        
+        // Contar contatos únicos para conversas ativas
+        const uniqueActiveContacts = new Set(
+          conversasData.data?.map(conv => conv.contact_phone) || []
+        );
 
         const fallbackStats: DashboardStats = {
           total_assistentes: assistentesData.count || 0,
           total_instancias: instanciasData.count || 0,
           instancias_ativas: instanciasAtivas,
-          conversas_ativas: conversasData.count || 0,
+          conversas_ativas: uniqueActiveContacts.size,
           agendamentos_mes: agendamentosData.count || 0,
           mensagens_hoje: mensagensHoje
         };
@@ -105,16 +110,21 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
         const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
 
-        const { count } = await supabase
+        // Buscar conversas que foram criadas OU tiveram mensagens neste dia
+        const { data: dayConversations } = await supabase
           .from('conversations')
-          .select('*', { count: 'exact', head: true })
+          .select('id, contact_phone')
           .eq('user_id', userData.user.id)
-          .gte('created_at', startOfDay.toISOString())
-          .lte('created_at', endOfDay.toISOString());
+          .or(`and(created_at.gte.${startOfDay.toISOString()},created_at.lte.${endOfDay.toISOString()}),and(last_message_at.gte.${startOfDay.toISOString()},last_message_at.lte.${endOfDay.toISOString()})`);
+
+        // Contar apenas contatos únicos
+        const uniqueContacts = new Set(
+          dayConversations?.map(conv => conv.contact_phone) || []
+        );
 
         return {
           date: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-          conversations: count || 0
+          conversations: uniqueContacts.size
         };
       });
 
