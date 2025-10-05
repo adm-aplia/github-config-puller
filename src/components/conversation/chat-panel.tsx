@@ -24,7 +24,7 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ conversationId, contactName, contactPhone, lastActivity, conversationCreatedAt, conversation, onBack, onEdit, onDelete }: ChatPanelProps) {
-  const { messages, loading, fetchMessages, sendMessage } = useMessages()
+  const { messages, loading, fetchMessages, sendMessage } = useMessages(conversationId)
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)

@@ -239,6 +239,26 @@ export default function ConversasPage() {
     }
   }, [searchParams, conversations, setSearchParams]);
 
+  // Auto-selecionar primeira conversa ao carregar
+  useEffect(() => {
+    const hasUrlParam = searchParams.get('conversation');
+    if (!selectedConversationId && filteredConversations.length > 0 && !loading && !hasUrlParam) {
+      const firstConversation = filteredConversations[0];
+      setSelectedConversationId(firstConversation.id);
+      setSelectedConversationData(firstConversation);
+    }
+  }, [filteredConversations, selectedConversationId, loading, searchParams]);
+
+  // Sincronizar dados da conversa selecionada em tempo real
+  useEffect(() => {
+    if (selectedConversationId) {
+      const updatedConversation = conversations.find(c => c.id === selectedConversationId);
+      if (updatedConversation) {
+        setSelectedConversationData(updatedConversation);
+      }
+    }
+  }, [conversations, selectedConversationId]);
+
   // Clear selection when no conversations match filter
   useEffect(() => {
     if (filteredConversations.length === 0) {

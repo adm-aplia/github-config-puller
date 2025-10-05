@@ -12,7 +12,7 @@ export interface Message {
   created_at: string;
 }
 
-export const useMessages = () => {
+export const useMessages = (conversationId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -108,83 +108,80 @@ export const useMessages = () => {
     let messagesChannel: any = null;
     let conversationsChannel: any = null;
 
-    if (messages.length > 0) {
-      const conversationId = messages[0]?.conversation_id;
-      if (conversationId) {
-        // Subscribe to new messages
-        messagesChannel = supabase
-          .channel(`messages-${conversationId}`)
-          .on(
-            'postgres_changes',
-            {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'messages',
-              filter: `conversation_id=eq.${conversationId}`
-            },
-            (payload) => {
-              console.log('New message received:', payload);
-              const newMessage = payload.new as Message;
-              setMessages(prev => {
-                // Check if message already exists to avoid duplicates
-                if (prev.some(msg => msg.id === newMessage.id)) {
-                  return prev;
-                }
-                return [...prev, newMessage];
-              });
-            }
-          )
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'messages',
-              filter: `conversation_id=eq.${conversationId}`
-            },
-            (payload) => {
-              console.log('Message updated:', payload);
-              const updatedMessage = payload.new as Message;
-              setMessages(prev => prev.map(msg => 
-                msg.id === updatedMessage.id ? updatedMessage : msg
-              ));
-            }
-          )
-          .on(
-            'postgres_changes',
-            {
-              event: 'DELETE',
-              schema: 'public',
-              table: 'messages',
-              filter: `conversation_id=eq.${conversationId}`
-            },
-            (payload) => {
-              console.log('Message deleted:', payload);
-              const deletedMessage = payload.old as Message;
-              setMessages(prev => prev.filter(msg => msg.id !== deletedMessage.id));
-            }
-          )
-          .subscribe();
+    if (conversationId) {
+      // Subscribe to new messages
+      messagesChannel = supabase
+        .channel(`messages-${conversationId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `conversation_id=eq.${conversationId}`
+          },
+          (payload) => {
+            console.log('New message received:', payload);
+            const newMessage = payload.new as Message;
+            setMessages(prev => {
+              // Check if message already exists to avoid duplicates
+              if (prev.some(msg => msg.id === newMessage.id)) {
+                return prev;
+              }
+              return [...prev, newMessage];
+            });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'messages',
+            filter: `conversation_id=eq.${conversationId}`
+          },
+          (payload) => {
+            console.log('Message updated:', payload);
+            const updatedMessage = payload.new as Message;
+            setMessages(prev => prev.map(msg => 
+              msg.id === updatedMessage.id ? updatedMessage : msg
+            ));
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'messages',
+            filter: `conversation_id=eq.${conversationId}`
+          },
+          (payload) => {
+            console.log('Message deleted:', payload);
+            const deletedMessage = payload.old as Message;
+            setMessages(prev => prev.filter(msg => msg.id !== deletedMessage.id));
+          }
+        )
+        .subscribe();
 
-        // Subscribe to conversation updates (for contact name/phone changes)
-        conversationsChannel = supabase
-          .channel(`conversation-${conversationId}`)
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'conversations',
-              filter: `id=eq.${conversationId}`
-            },
-            (payload) => {
-              console.log('Conversation updated:', payload);
-              // This will trigger a re-render of the chat panel with updated contact info
-              // The parent component should handle this by passing updated props
-            }
-          )
-          .subscribe();
-      }
+      // Subscribe to conversation updates (for contact name/phone changes)
+      conversationsChannel = supabase
+        .channel(`conversation-${conversationId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'conversations',
+            filter: `id=eq.${conversationId}`
+          },
+          (payload) => {
+            console.log('Conversation updated:', payload);
+            // This will trigger a re-render of the chat panel with updated contact info
+            // The parent component should handle this by passing updated props
+          }
+        )
+        .subscribe();
     }
 
     return () => {
@@ -195,7 +192,7 @@ export const useMessages = () => {
         supabase.removeChannel(conversationsChannel);
       }
     };
-  }, [messages.length > 0 ? messages[0]?.conversation_id : null]);
+  }, [conversationId]);
 
   return {
     messages,
