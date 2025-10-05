@@ -78,13 +78,21 @@ export default function DashboardPage() {
       if (savedConfig) {
         try {
           const parsedConfig = JSON.parse(savedConfig)
-          setDashboardConfig({ ...defaultConfig, ...parsedConfig })
+          // Force a new object reference to trigger re-render
+          setDashboardConfig({ ...parsedConfig })
         } catch (error) {
           console.error('Error parsing dashboard config:', error)
         }
       }
     }
   }
+
+  // Refetch data when chart period changes
+  useEffect(() => {
+    if (chartDays) {
+      refetch()
+    }
+  }, [chartDays, refetch])
 
   const refreshDashboard = async () => {
     setLoading(true)
