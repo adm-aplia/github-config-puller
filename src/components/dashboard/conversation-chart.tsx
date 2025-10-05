@@ -105,6 +105,35 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
                 className="w-full h-full" 
                 viewBox="0 0 100 100" 
                 preserveAspectRatio="none"
+                onMouseMove={(e) => {
+                  const svg = e.currentTarget
+                  const rect = svg.getBoundingClientRect()
+                  const mouseX = ((e.clientX - rect.left) / rect.width) * 100
+                  
+                  // Encontrar o ponto mais próximo
+                  let closestIndex = 0
+                  let closestDistance = Infinity
+                  
+                  chartData.forEach((item, index) => {
+                    const pointX = (index / (chartData.length - 1)) * 100
+                    const distance = Math.abs(mouseX - pointX)
+                    if (distance < closestDistance) {
+                      closestDistance = distance
+                      closestIndex = index
+                    }
+                  })
+                  
+                  const item = chartData[closestIndex]
+                  const x = (closestIndex / (chartData.length - 1)) * 100
+                  const y = 100 - (item.conversations / maxValue) * 85
+                  
+                  setHoveredPoint({
+                    x: rect.left + (x / 100) * rect.width,
+                    y: rect.top + (y / 100) * rect.height,
+                    value: item.conversations,
+                    date: item.date
+                  })
+                }}
                 onMouseLeave={() => setHoveredPoint(null)}
               >
                 {/* Create smooth conversation line */}
@@ -120,32 +149,26 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
                   style={{ vectorEffect: 'non-scaling-stroke' }}
                 />
                 
-                {/* Pontos interativos */}
-                {chartData.map((item, index) => {
+                {/* Bolinha que aparece apenas no hover */}
+                {hoveredPoint && chartData.map((item, index) => {
                   const x = (index / (chartData.length - 1)) * 100
                   const y = 100 - (item.conversations / maxValue) * 85
-                  return (
-                    <circle
-                      key={index}
-                      cx={x}
-                      cy={y}
-                      r="1.5"
-                      fill="hsl(var(--primary))"
-                      className="cursor-pointer hover:r-2 transition-all"
-                      onMouseEnter={(e) => {
-                        const svg = e.currentTarget.ownerSVGElement
-                        if (svg) {
-                          const rect = svg.getBoundingClientRect()
-                          setHoveredPoint({
-                            x: rect.left + (x / 100) * rect.width,
-                            y: rect.top + (y / 100) * rect.height,
-                            value: item.conversations,
-                            date: item.date
-                          })
-                        }
-                      }}
-                    />
-                  )
+                  const pointX = hoveredPoint.x - (hoveredPoint.x - x)
+                  
+                  // Mostrar apenas a bolinha do ponto hovereado
+                  if (item.date === hoveredPoint.date && item.conversations === hoveredPoint.value) {
+                    return (
+                      <circle
+                        key={index}
+                        cx={x}
+                        cy={y}
+                        r="2"
+                        fill="hsl(var(--primary))"
+                        className="drop-shadow-md"
+                      />
+                    )
+                  }
+                  return null
                 })}
               </svg>
               
