@@ -140,13 +140,14 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
                 <path
                   d={createSmoothPath(chartData.map((item, index) => ({
                     x: (index / (chartData.length - 1)) * 100,
-                    y: 100 - (item.conversations / maxValue) * 85
+                    y: 100 - ((item.conversations || 0) / maxValue) * 85
                   })))}
                   fill="none"
                   stroke="hsl(var(--primary))"
                   strokeWidth="0.8"
                   className="drop-shadow-sm"
                   style={{ vectorEffect: 'non-scaling-stroke' }}
+                  opacity={chartData.some(d => d.conversations > 0) ? 1 : 0.3}
                 />
                 
                 {/* Bolinha que aparece apenas no hover */}
