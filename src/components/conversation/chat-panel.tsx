@@ -40,12 +40,6 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
     messagesEndRef.current?.scrollIntoView({ behavior: instant ? "auto" : "smooth" })
   }
 
-  useEffect(() => {
-    if (conversationId) {
-      fetchMessages(conversationId)
-    }
-  }, [conversationId])
-
   // Auto-scroll to bottom when messages load or change
   useEffect(() => {
     if (messages.length > 0) {

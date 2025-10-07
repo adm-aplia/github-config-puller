@@ -14,7 +14,7 @@ export interface Message {
 
 export const useMessages = (conversationId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!conversationId);
 
   const fetchMessages = async (conversationId: string) => {
     setLoading(true);
@@ -102,6 +102,16 @@ export const useMessages = (conversationId?: string) => {
       console.error('Error sending message:', error);
     }
   };
+
+  // Auto-fetch messages when conversationId changes
+  useEffect(() => {
+    if (conversationId) {
+      fetchMessages(conversationId);
+    } else {
+      setMessages([]);
+      setLoading(false);
+    }
+  }, [conversationId]);
 
   // Set up Realtime subscription for messages
   useEffect(() => {
