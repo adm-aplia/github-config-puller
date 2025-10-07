@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { usePlans } from "@/hooks/use-plans";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Shield, ArrowLeft, MessageSquare, Calendar, Users, Mail, ChartColumn, CircleCheckBig, Lock } from "lucide-react";
+import { CreditCard, Shield, ArrowLeft, MessageCircle, Calendar, Users, Mail, ChartColumn, CircleCheckBig, Lock, Bot, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { applyMask } from "@/lib/masks";
 import { fetchAddressFromCep, debounce } from "@/lib/cep";
@@ -173,6 +173,51 @@ export default function CheckoutPage() {
         variant: "destructive"
       });
     }
+  };
+
+  const getPlanFeatures = (planName: string) => {
+    const featuresMap: { [key: string]: { text: string; icon: any }[] } = {
+      'Básico': [
+        { text: '1 Número de WhatsApp', icon: MessageCircle },
+        { text: '1 Assistente Personalizado', icon: Bot },
+        { text: 'Suporte por e-mail', icon: Mail },
+        { text: 'Agendamentos ilimitados', icon: Calendar },
+        { text: 'Integração Google Agenda', icon: Calendar },
+        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
+      ],
+      'Profissional': [
+        { text: '3 Números de WhatsApp', icon: MessageCircle },
+        { text: '3 Assistentes Personalizados', icon: Bot },
+        { text: 'Suporte prioritário', icon: Users },
+        { text: 'Agendamentos ilimitados', icon: Calendar },
+        { text: 'Lembretes de Consulta Automáticos', icon: Bell },
+        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
+        { text: 'Integração Google Agenda', icon: Calendar },
+        { text: 'Suporte por e-mail', icon: Mail },
+      ],
+      'Empresarial': [
+        { text: '10 Números de WhatsApp', icon: MessageCircle },
+        { text: '10 Assistentes Personalizados', icon: Bot },
+        { text: 'Suporte 24/7 dedicado', icon: Users },
+        { text: 'Agendamentos ilimitados', icon: Calendar },
+        { text: 'Lembretes de Consulta Automáticos', icon: Bell },
+        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
+        { text: 'Integração Google Agenda', icon: Calendar },
+        { text: 'Suporte por e-mail', icon: Mail },
+      ],
+    };
+    
+    return featuresMap[planName] || [];
+  };
+
+  const getPlanDescription = (planName: string) => {
+    const descriptionsMap: { [key: string]: string } = {
+      'Básico': 'Ideal para profissionais e pequenos consultórios que estão começando',
+      'Profissional': 'Perfeito para clínicas em crescimento que precisam de mais recursos',
+      'Empresarial': 'Para grandes clínicas e hospitais com alto volume de atendimentos',
+    };
+    
+    return descriptionsMap[planName] || 'Escolha o plano ideal para você';
   };
 
   const handleSubmit = async () => {
@@ -514,28 +559,20 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {getPlanDescription(selectedPlan.nome)}
+                  </p>
                   <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Benefícios inclusos:</h4>
                   <ul className="space-y-3">
-                    <li className="flex items-center gap-3 text-sm">
-                      <MessageSquare className="h-4 w-4 text-red-500 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">{selectedPlan.max_instancias_whatsapp} Números de WhatsApp</span>
-                    </li>
-                    <li className="flex items-center gap-3 text-sm">
-                      <Calendar className="h-4 w-4 text-red-500 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">Até {selectedPlan.max_agendamentos_mes.toLocaleString()} agendamentos/mês</span>
-                    </li>
-                    <li className="flex items-center gap-3 text-sm">
-                      <Users className="h-4 w-4 text-red-500 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">{selectedPlan.max_assistentes} Assistentes personalizados</span>
-                    </li>
-                    <li className="flex items-center gap-3 text-sm">
-                      <Mail className="h-4 w-4 text-red-500 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">Suporte prioritário</span>
-                    </li>
-                    <li className="flex items-center gap-3 text-sm">
-                      <ChartColumn className="h-4 w-4 text-red-500 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">Relatórios Avançados</span>
-                    </li>
+                    {getPlanFeatures(selectedPlan.nome).map((feature, index) => {
+                      const FeatureIcon = feature.icon;
+                      return (
+                        <li key={index} className="flex items-center gap-3 text-sm">
+                          <FeatureIcon className="h-4 w-4 text-red-500 flex-shrink-0" />
+                          <span className="text-gray-700 dark:text-gray-300">{feature.text}</span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               </CardContent>
