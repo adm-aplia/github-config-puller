@@ -175,7 +175,7 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
 
       {/* Messages Area */}
       <div 
-        className="flex-1 min-h-0 overflow-hidden relative"
+        className="flex-1 h-full min-h-0 overflow-hidden relative"
         style={{
           backgroundImage: `url(${chatBackgroundLight})`,
           backgroundSize: 'cover',
@@ -185,10 +185,10 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
       >
         {/* Overlay for better readability */}
         <div className="absolute inset-0 bg-background/80 dark:bg-background/40"></div>
-        <ScrollArea className="h-full px-4 py-3 sm:px-6 sm:py-4 md:px-8 relative z-10">
+        <ScrollArea className="h-full min-h-0 px-4 py-3 sm:px-6 sm:py-4 md:px-8 relative z-10">
           <div className="space-y-4">
             {loading && messages.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
+              <div className="h-full flex items-center justify-center text-muted-foreground">
                 Carregando mensagens...
               </div>
             ) : messages.length === 0 ? (
