@@ -30,41 +30,19 @@ export const applyMask = {
   phone: (value: string) => {
     const cleanValue = value.replace(/\D/g, '');
     
-    // Se o número já começa com 55, assumir que tem código do país
-    if (cleanValue.startsWith('55') && cleanValue.length >= 12) {
-      const countryCode = cleanValue.substring(0, 2);
-      const areaCode = cleanValue.substring(2, 4);
-      const number = cleanValue.substring(4);
-      
-      if (number.length === 9) {
-        // Celular: +55 (XX) 9XXXX-XXXX
-        return `+${countryCode} (${areaCode}) ${number.substring(0, 5)}-${number.substring(5, 9)}`;
-      } else if (number.length === 8) {
-        // Fixo: +55 (XX) XXXX-XXXX
-        return `+${countryCode} (${areaCode}) ${number.substring(0, 4)}-${number.substring(4, 8)}`;
-      }
+    if (cleanValue.length <= 10) {
+      // Fixo: (XX) XXXX-XXXX
+      return cleanValue
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{4})(\d)/, '$1-$2')
+        .replace(/(-\d{4})\d+?$/, '$1');
+    } else {
+      // Celular: (XX) 9XXXX-XXXX
+      return cleanValue
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+        .replace(/(-\d{4})\d+?$/, '$1');
     }
-    
-    // Número sem código do país - adicionar +55
-    if (cleanValue.length >= 10) {
-      const areaCode = cleanValue.substring(0, 2);
-      const number = cleanValue.substring(2);
-      
-      if (number.length === 9) {
-        // Celular: +55 (XX) 9XXXX-XXXX
-        return `+55 (${areaCode}) ${number.substring(0, 5)}-${number.substring(5, 9)}`;
-      } else if (number.length === 8) {
-        // Fixo: +55 (XX) XXXX-XXXX
-        return `+55 (${areaCode}) ${number.substring(0, 4)}-${number.substring(4, 8)}`;
-      }
-    }
-    
-    // Para números em digitação, aplicar máscara gradualmente
-    return value
-      .replace(/\D/g, '')
-      .replace(/^(\d{2})(\d)/, '+55 ($1) $2')
-      .replace(/(\d{5})(\d)/, '$1-$2')
-      .replace(/(-\d{4})\d+?$/, '$1');
   },
 
   cep: (value: string) => {
