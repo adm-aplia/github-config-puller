@@ -41,8 +41,25 @@ serve(async (req) => {
       )
     }
 
-    const { planId, creditCard } = await req.json()
-    console.log('[create-subscription] Iniciando criação de assinatura para usuário:', user.id, 'plano:', planId)
+    const body = await req.json()
+    const { planId, creditCard } = body
+
+    // Validate required fields
+    if (!planId || typeof planId !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid plan ID' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!creditCard || !creditCard.number || !creditCard.holderName || !creditCard.expiryMonth || !creditCard.expiryYear || !creditCard.ccv) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid credit card information' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('[create-subscription] Iniciando criação de assinatura para usuário:', user.id)
 
     // Buscar dados do plano
     const { data: plan, error: planError } = await supabaseClient
@@ -123,27 +140,13 @@ serve(async (req) => {
       if (!customerResponse.ok) {
         const errorText = await customerResponse.text()
         console.error('[create-subscription] Erro ao criar cliente no Asaas:', errorText)
-        try {
-          const errorData = JSON.parse(errorText)
-          return new Response(
-            JSON.stringify({ 
-              error: 'Erro ao criar cliente no sistema de pagamento',
-              details: errorData.errors || errorData
-            }),
-            { 
-              status: 500, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          )
-        } catch {
-          return new Response(
-            JSON.stringify({ error: 'Erro ao criar cliente no sistema de pagamento' }),
-            { 
-              status: 500, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          )
-        }
+        return new Response(
+          JSON.stringify({ error: 'Unable to process customer registration. Please verify your information.' }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
       }
 
       const customerData = await customerResponse.json()
@@ -163,11 +166,6 @@ serve(async (req) => {
     nextDueDate.setDate(today.getDate() + 30)
 
     console.log('[create-subscription] Criando cobrança imediata no Asaas...')
-    console.log('[create-subscription] Dados do cartão:', JSON.stringify({
-      ...creditCard,
-      number: creditCard.number ? '****' + creditCard.number.slice(-4) : 'não informado',
-      ccv: creditCard.ccv ? '***' : 'não informado'
-    }))
     
     const paymentResponse = await fetch(`${asaasBaseUrl}/payments`, {
       method: 'POST',
@@ -192,27 +190,13 @@ serve(async (req) => {
     if (!paymentResponse.ok) {
       const errorText = await paymentResponse.text()
       console.error('[create-subscription] Erro ao criar cobrança no Asaas:', errorText)
-      try {
-        const errorData = JSON.parse(errorText)
-        return new Response(
-          JSON.stringify({ 
-            error: 'Erro ao processar pagamento',
-            details: errorData.errors || errorData
-          }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        )
-      } catch {
-        return new Response(
-          JSON.stringify({ error: 'Erro ao processar pagamento' }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        )
-      }
+      return new Response(
+        JSON.stringify({ error: 'Payment processing failed. Please verify your card details and try again.' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
 
     const paymentData = await paymentResponse.json()
@@ -342,7 +326,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('[create-subscription] Erro inesperado:', error)
     return new Response(
-      JSON.stringify({ error: 'Erro interno do servidor' }),
+      JSON.stringify({ error: 'An unexpected error occurred. Please try again later.' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

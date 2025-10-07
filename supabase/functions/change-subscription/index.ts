@@ -35,8 +35,18 @@ serve(async (req) => {
       )
     }
 
-    const { newPlanId } = await req.json()
-    console.log('[change-subscription] Mudança de plano solicitada para usuário:', user.id, 'novo plano:', newPlanId)
+    const body = await req.json()
+    const { newPlanId } = body
+
+    // Validate required fields
+    if (!newPlanId || typeof newPlanId !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid plan ID' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('[change-subscription] Mudança de plano solicitada para usuário:', user.id)
 
     // Buscar assinatura atual
     const { data: currentSubscription, error: subError } = await supabaseClient
@@ -165,9 +175,9 @@ serve(async (req) => {
         const errorText = await paymentResponse.text()
         console.error('[change-subscription] Erro ao criar cobrança proporcional:', errorText)
         return new Response(
-          JSON.stringify({ error: 'Erro ao processar cobrança proporcional' }),
+          JSON.stringify({ error: 'Unable to process upgrade payment. Please try again.' }),
           { 
-            status: 500, 
+            status: 400, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         )
@@ -239,7 +249,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('[change-subscription] Erro inesperado:', error)
     return new Response(
-      JSON.stringify({ error: 'Erro interno do servidor' }),
+      JSON.stringify({ error: 'An unexpected error occurred. Please try again later.' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
