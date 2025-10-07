@@ -52,7 +52,16 @@ serve(async (req) => {
       )
     }
 
-    if (!creditCard || !creditCard.number || !creditCard.holderName || !creditCard.expiryMonth || !creditCard.expiryYear || !creditCard.ccv) {
+    console.log('[create-subscription] Validando dados do cartão:', {
+      hasHolderInfo: !!creditCard?.holderInfo,
+      holderName: creditCard?.holderInfo?.name || creditCard?.holderName,
+      hasNumber: !!creditCard?.number,
+      hasExpiry: !!creditCard?.expiryMonth && !!creditCard?.expiryYear,
+      hasCcv: !!creditCard?.ccv
+    });
+
+    const holderName = creditCard?.holderInfo?.name || creditCard?.holderName;
+    if (!creditCard || !creditCard.number || !holderName || !creditCard.expiryMonth || !creditCard.expiryYear || !creditCard.ccv) {
       return new Response(
         JSON.stringify({ error: 'Invalid credit card information' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
