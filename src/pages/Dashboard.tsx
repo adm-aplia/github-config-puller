@@ -62,10 +62,17 @@ export default function DashboardPage() {
     if (savedConfig) {
       try {
         const parsedConfig = JSON.parse(savedConfig)
+        // Merge with default config to ensure all properties exist
         setDashboardConfig({ ...defaultConfig, ...parsedConfig })
+        console.log('Dashboard config loaded:', { ...defaultConfig, ...parsedConfig })
       } catch (error) {
         console.error('Error parsing dashboard config:', error)
+        setDashboardConfig(defaultConfig)
       }
+    } else {
+      // First time user - use default config
+      console.log('Using default dashboard config:', defaultConfig)
+      setDashboardConfig(defaultConfig)
     }
   }, [])
 
