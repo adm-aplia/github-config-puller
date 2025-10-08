@@ -9,6 +9,13 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 import { WeeklyScheduleInput } from '@/components/ui/weekly-schedule-input';
 import { ToggleWithInput } from '@/components/ui/toggle-with-input';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ProfileFormProps {
   profile?: ProfessionalProfile;
@@ -298,12 +305,21 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
                 <div className="space-y-2">
                   <Label htmlFor="consultationduration">Duração da Consulta</Label>
-                  <Input
-                    id="consultationduration"
+                  <Select
                     value={formData.consultationduration || ''}
-                    onChange={(e) => handleChange('consultationduration', e.target.value)}
-                    placeholder="ex: 30 minutos"
-                  />
+                    onValueChange={(value) => handleChange('consultationduration', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a duração" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15 minutos">15 minutos</SelectItem>
+                      <SelectItem value="30 minutos">30 minutos</SelectItem>
+                      <SelectItem value="45 minutos">45 minutos</SelectItem>
+                      <SelectItem value="60 minutos">60 minutos</SelectItem>
+                      <SelectItem value="90 minutos">90 minutos</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
