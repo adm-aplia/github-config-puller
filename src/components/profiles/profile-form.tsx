@@ -128,12 +128,52 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     }));
   };
 
+  const stepTitles = [
+    'Informações Básicas',
+    'Localização e Atendimento',
+    'Planos e Pagamentos'
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {profile ? 'Editar Perfil' : 'Novo Perfil'} - Etapa {currentStep} de 3
+          <DialogTitle className="space-y-3">
+            <div className="text-sm font-normal text-muted-foreground">
+              {profile ? 'Editar Perfil' : 'Novo Perfil'}
+            </div>
+            
+            {/* Progress Indicator */}
+            <div className="flex items-center gap-2">
+              {[1, 2, 3].map((step) => (
+                <React.Fragment key={step}>
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
+                    step === currentStep 
+                      ? 'border-primary bg-primary text-primary-foreground font-semibold' 
+                      : step < currentStep
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-muted-foreground/20 bg-background text-muted-foreground'
+                  }`}>
+                    {step}
+                  </div>
+                  {step < 3 && (
+                    <div className={`h-0.5 flex-1 transition-all ${
+                      step < currentStep ? 'bg-primary' : 'bg-muted-foreground/20'
+                    }`} />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+            
+            {/* Step Title */}
+            <div className="space-y-1">
+              <div className="text-xs font-medium text-muted-foreground">
+                Etapa {currentStep} de 3
+              </div>
+              <div className="text-xl font-bold text-foreground">
+                {stepTitles[currentStep - 1]}
+              </div>
+            </div>
           </DialogTitle>
         </DialogHeader>
 

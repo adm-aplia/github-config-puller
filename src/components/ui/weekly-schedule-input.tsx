@@ -103,14 +103,12 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
   };
 
   const addTimeSlot = (day: string) => {
-    // Permitir apenas 1 horário por dia
-    const existingSlot = schedule[day]?.[0];
-    
+    // Permitir múltiplos horários por dia - sempre adicionar novo
     setEditingSlot({
       day,
-      index: existingSlot ? 0 : undefined, // Se já existe, editar; senão criar novo
-      start: existingSlot?.start || '09:00',
-      end: existingSlot?.end || '17:00'
+      index: undefined, // Sempre criar novo slot
+      start: '09:00',
+      end: '17:00'
     });
   };
 
@@ -119,11 +117,25 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
 
     const newSchedule = { ...schedule };
     
-    // Sempre substituir (permitir apenas 1 slot por dia)
-    newSchedule[editingSlot.day] = [{
-      start: editingSlot.start,
-      end: editingSlot.end
-    }];
+    if (editingSlot.index !== undefined) {
+      // Editando slot existente
+      if (!newSchedule[editingSlot.day]) {
+        newSchedule[editingSlot.day] = [];
+      }
+      newSchedule[editingSlot.day][editingSlot.index] = {
+        start: editingSlot.start,
+        end: editingSlot.end
+      };
+    } else {
+      // Adicionando novo slot
+      if (!newSchedule[editingSlot.day]) {
+        newSchedule[editingSlot.day] = [];
+      }
+      newSchedule[editingSlot.day].push({
+        start: editingSlot.start,
+        end: editingSlot.end
+      });
+    }
 
     confirmUpdateSchedule(newSchedule);
     setEditingSlot(null);
@@ -162,26 +174,44 @@ export const WeeklyScheduleInput: React.FC<WeeklyScheduleInputProps> = ({
             </div>
             
             <div className="flex flex-wrap items-center gap-2">
-              {schedule[weekday.key]?.[0] ? (
-                <div
-                  className="group flex items-center gap-1 bg-muted px-2 py-1 rounded text-sm cursor-pointer hover:bg-muted/80"
-                  onClick={() => editTimeSlot(weekday.key, 0)}
-                >
-                  <span>{schedule[weekday.key][0].start}-{schedule[weekday.key][0].end}</span>
+              {schedule[weekday.key] && schedule[weekday.key].length > 0 ? (
+                <>
+                  {schedule[weekday.key].map((slot, index) => (
+                    <div
+                      key={index}
+                      className="group flex items-center gap-1 bg-muted px-2 py-1 rounded text-sm cursor-pointer hover:bg-muted/80"
+                      onClick={() => editTimeSlot(weekday.key, index)}
+                    >
+                      <span>{slot.start}-{slot.end}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 w-5 p-0 text-destructive hover:text-destructive/80 transition-colors"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          removeTimeSlot(weekday.key, index);
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="h-5 w-5 p-0 text-destructive hover:text-destructive/80 transition-colors"
+                    className="h-7 w-7 p-0"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      removeTimeSlot(weekday.key, 0);
+                      addTimeSlot(weekday.key);
                     }}
                   >
-                    <X className="h-4 w-4" />
+                    <Plus className="h-3 w-3" />
                   </Button>
-                </div>
+                </>
               ) : (
                 <Button
                   type="button"
