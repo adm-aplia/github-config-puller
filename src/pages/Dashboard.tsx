@@ -36,6 +36,12 @@ const defaultConfig: DashboardConfig = {
   },
 }
 
+// Função para resetar config para padrão (limpa localStorage se necessário)
+const resetToDefault = () => {
+  localStorage.removeItem('dashboard-config')
+  return defaultConfig
+}
+
 export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
@@ -62,17 +68,31 @@ export default function DashboardPage() {
     if (savedConfig) {
       try {
         const parsedConfig = JSON.parse(savedConfig)
+        
+        // Validar se o chartPeriod é válido
+        const validPeriods = ["7", "15", "30", "90"]
+        if (parsedConfig.chartPeriod && !validPeriods.includes(parsedConfig.chartPeriod)) {
+          console.warn('Invalid chartPeriod in saved config, resetting to default')
+          const cleanConfig = resetToDefault()
+          setDashboardConfig(cleanConfig)
+          return
+        }
+        
         // Merge with default config to ensure all properties exist
-        setDashboardConfig({ ...defaultConfig, ...parsedConfig })
-        console.log('Dashboard config loaded:', { ...defaultConfig, ...parsedConfig })
+        const mergedConfig = { ...defaultConfig, ...parsedConfig }
+        setDashboardConfig(mergedConfig)
+        console.log('Dashboard config loaded:', mergedConfig)
       } catch (error) {
         console.error('Error parsing dashboard config:', error)
-        setDashboardConfig(defaultConfig)
+        const cleanConfig = resetToDefault()
+        setDashboardConfig(cleanConfig)
       }
     } else {
       // First time user - use default config
-      console.log('Using default dashboard config:', defaultConfig)
+      console.log('Using default dashboard config (7 days):', defaultConfig)
       setDashboardConfig(defaultConfig)
+      // Salvar o default no localStorage para garantir consistência
+      localStorage.setItem('dashboard-config', JSON.stringify(defaultConfig))
     }
   }, [])
 
