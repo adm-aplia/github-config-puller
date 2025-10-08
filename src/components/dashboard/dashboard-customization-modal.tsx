@@ -30,7 +30,7 @@ const defaultConfig: DashboardConfig = {
   showMetrics: true,
   showChart: true,
   showRecentConversations: true,
-  chartPeriod: "7",
+  chartPeriod: "30",
   metricCards: {
     conversations: true,
     appointments: true,

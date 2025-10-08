@@ -27,7 +27,7 @@ const defaultConfig: DashboardConfig = {
   showMetrics: true,
   showChart: true,
   showRecentConversations: true,
-  chartPeriod: "7",
+  chartPeriod: "30",
   metricCards: {
     conversations: true,
     appointments: true,
@@ -62,26 +62,9 @@ export default function DashboardPage() {
     }
   }, [user, navigate])
 
-  // Load dashboard config from localStorage - FORÇAR RESET PARA 7 DIAS
+  // Load dashboard config from localStorage
   useEffect(() => {
-    // TEMPORÁRIO: Limpar localStorage corrompido com valor de 30 dias
     const savedConfig = localStorage.getItem('dashboard-config')
-    if (savedConfig) {
-      try {
-        const parsedConfig = JSON.parse(savedConfig)
-        // Se tiver chartPeriod 30, resetar para 7
-        if (parsedConfig.chartPeriod === "30") {
-          console.log('Detectado config com 30 dias, resetando para 7 dias')
-          localStorage.setItem('dashboard-config', JSON.stringify(defaultConfig))
-          setDashboardConfig(defaultConfig)
-          return
-        }
-      } catch (error) {
-        console.error('Error parsing dashboard config:', error)
-      }
-    }
-    
-    // Carregar config normalmente
     if (savedConfig) {
       try {
         const parsedConfig = JSON.parse(savedConfig)
@@ -94,8 +77,8 @@ export default function DashboardPage() {
         localStorage.setItem('dashboard-config', JSON.stringify(defaultConfig))
       }
     } else {
-      // First time user - use default config (7 days)
-      console.log('Using default dashboard config (7 days):', defaultConfig)
+      // First time user - use default config (30 days)
+      console.log('Using default dashboard config (30 days):', defaultConfig)
       setDashboardConfig(defaultConfig)
       localStorage.setItem('dashboard-config', JSON.stringify(defaultConfig))
     }
