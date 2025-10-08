@@ -131,9 +131,17 @@ export default function RedefinirSenha() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Redefinir senha
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
               Digite sua nova senha abaixo
             </p>
+            <div className="bg-muted/50 p-3 rounded-lg border border-border">
+              <p className="text-xs font-medium text-foreground mb-2">Requisitos da senha:</p>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li>• Mínimo de 6 caracteres</li>
+                <li>• Recomendado: use letras maiúsculas e minúsculas</li>
+                <li>• Recomendado: inclua números e caracteres especiais</li>
+              </ul>
+            </div>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -162,7 +170,6 @@ export default function RedefinirSenha() {
                   )}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground">Mínimo de 6 caracteres</p>
             </div>
 
             <div className="space-y-2">
