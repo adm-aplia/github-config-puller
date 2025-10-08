@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "@/hooks/use-theme"
 import { supabase } from "@/integrations/supabase/client"
-import { Loader2, Eye, EyeOff } from "lucide-react"
+import { Loader2, Eye, EyeOff, Check, X } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const apliaLogoFull = "/lovable-uploads/0baeb265-4d17-458a-b42a-6fc9ce0041a6.png"
 const apliaLogoFullDark = "/lovable-uploads/e9a17318-593a-428d-b166-e4f8be819529.png"
@@ -21,6 +22,29 @@ export default function RedefinirSenha() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Password validation rules
+  const passwordValidation = useMemo(() => {
+    const validations = {
+      hasMinLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    }
+
+    const passedCount = Object.values(validations).filter(Boolean).length
+
+    return { ...validations, isValid: passedCount >= 4 }
+  }, [password])
+
+  const getPasswordRequirements = () => [
+    { text: "Pelo menos 8 caracteres", valid: passwordValidation.hasMinLength },
+    { text: "Uma letra maiúscula", valid: passwordValidation.hasUppercase },
+    { text: "Uma letra minúscula", valid: passwordValidation.hasLowercase },
+    { text: "Um número", valid: passwordValidation.hasNumber },
+    { text: "Um caractere especial (!@#$%^&*)", valid: passwordValidation.hasSpecialChar },
+  ]
 
   useEffect(() => {
     // Verificar se há um token de recuperação na URL
@@ -50,10 +74,10 @@ export default function RedefinirSenha() {
       return
     }
 
-    if (password.length < 6) {
+    if (!passwordValidation.isValid) {
       toast({
-        title: "Senha muito curta",
-        description: "A senha deve ter pelo menos 6 caracteres.",
+        title: "Senha não atende aos requisitos",
+        description: "A senha deve atender a pelo menos 4 dos 5 requisitos de segurança.",
         variant: "destructive"
       })
       return
@@ -131,17 +155,9 @@ export default function RedefinirSenha() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Redefinir senha
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Digite sua nova senha abaixo
             </p>
-            <div className="bg-muted/50 p-3 rounded-lg border border-border">
-              <p className="text-xs font-medium text-foreground mb-2">Requisitos da senha:</p>
-              <ul className="text-xs text-muted-foreground space-y-1">
-                <li>• Mínimo de 6 caracteres</li>
-                <li>• Recomendado: use letras maiúsculas e minúsculas</li>
-                <li>• Recomendado: inclua números e caracteres especiais</li>
-              </ul>
-            </div>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -170,6 +186,32 @@ export default function RedefinirSenha() {
                   )}
                 </button>
               </div>
+              
+              {password && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs font-medium text-foreground">Requisitos da senha:</p>
+                  <div className="space-y-1.5">
+                    {getPasswordRequirements().map((req, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-xs">
+                        {req.valid ? (
+                          <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-500 flex-shrink-0" />
+                        ) : (
+                          <X className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        )}
+                        <span className={cn(
+                          "transition-colors",
+                          req.valid ? "text-green-600 dark:text-green-500 font-medium" : "text-muted-foreground"
+                        )}>
+                          {req.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground italic mt-2">
+                    * A senha deve atender a pelo menos 4 dos 5 requisitos
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
