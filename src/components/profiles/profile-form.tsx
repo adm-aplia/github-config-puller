@@ -144,22 +144,32 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
             </div>
             
             {/* Progress Indicator */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-3 px-4">
               {[1, 2, 3].map((step) => (
                 <React.Fragment key={step}>
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
-                    step === currentStep 
-                      ? 'border-primary bg-primary text-primary-foreground font-semibold' 
+                  <div className={`
+                    flex items-center justify-center 
+                    w-12 h-12 rounded-full 
+                    text-lg font-bold
+                    transition-all duration-300
+                    ${step === currentStep 
+                      ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-110' 
                       : step < currentStep
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-muted-foreground/20 bg-background text-muted-foreground'
-                  }`}>
+                      ? 'bg-red-50 border-2 border-red-500 text-red-500'
+                      : 'bg-gray-100 border-2 border-gray-300 text-gray-400'
+                    }
+                  `}>
                     {step}
                   </div>
                   {step < 3 && (
-                    <div className={`h-0.5 flex-1 transition-all ${
-                      step < currentStep ? 'bg-primary' : 'bg-muted-foreground/20'
-                    }`} />
+                    <div className={`
+                      h-1 flex-1 rounded-full
+                      transition-all duration-300
+                      ${step < currentStep 
+                        ? 'bg-red-500' 
+                        : 'bg-gray-200'
+                      }
+                    `} />
                   )}
                 </React.Fragment>
               ))}
