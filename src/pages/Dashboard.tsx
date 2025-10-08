@@ -62,36 +62,41 @@ export default function DashboardPage() {
     }
   }, [user, navigate])
 
-  // Load dashboard config from localStorage
+  // Load dashboard config from localStorage - FORÇAR RESET PARA 7 DIAS
   useEffect(() => {
+    // TEMPORÁRIO: Limpar localStorage corrompido com valor de 30 dias
     const savedConfig = localStorage.getItem('dashboard-config')
     if (savedConfig) {
       try {
         const parsedConfig = JSON.parse(savedConfig)
-        
-        // Validar se o chartPeriod é válido
-        const validPeriods = ["7", "15", "30", "90"]
-        if (parsedConfig.chartPeriod && !validPeriods.includes(parsedConfig.chartPeriod)) {
-          console.warn('Invalid chartPeriod in saved config, resetting to default')
-          const cleanConfig = resetToDefault()
-          setDashboardConfig(cleanConfig)
+        // Se tiver chartPeriod 30, resetar para 7
+        if (parsedConfig.chartPeriod === "30") {
+          console.log('Detectado config com 30 dias, resetando para 7 dias')
+          localStorage.setItem('dashboard-config', JSON.stringify(defaultConfig))
+          setDashboardConfig(defaultConfig)
           return
         }
-        
-        // Merge with default config to ensure all properties exist
+      } catch (error) {
+        console.error('Error parsing dashboard config:', error)
+      }
+    }
+    
+    // Carregar config normalmente
+    if (savedConfig) {
+      try {
+        const parsedConfig = JSON.parse(savedConfig)
         const mergedConfig = { ...defaultConfig, ...parsedConfig }
         setDashboardConfig(mergedConfig)
         console.log('Dashboard config loaded:', mergedConfig)
       } catch (error) {
         console.error('Error parsing dashboard config:', error)
-        const cleanConfig = resetToDefault()
-        setDashboardConfig(cleanConfig)
+        setDashboardConfig(defaultConfig)
+        localStorage.setItem('dashboard-config', JSON.stringify(defaultConfig))
       }
     } else {
-      // First time user - use default config
+      // First time user - use default config (7 days)
       console.log('Using default dashboard config (7 days):', defaultConfig)
       setDashboardConfig(defaultConfig)
-      // Salvar o default no localStorage para garantir consistência
       localStorage.setItem('dashboard-config', JSON.stringify(defaultConfig))
     }
   }, [])
