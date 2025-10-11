@@ -775,7 +775,7 @@ export default function AgendamentosPage() {
             </Card>
 
             {/* Daily Appointments and Blocks - Responsive Layout */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Regular Appointments */}
               <Card>
                 <CardHeader className="pb-3">
