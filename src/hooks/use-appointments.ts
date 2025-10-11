@@ -719,11 +719,11 @@ export const useAppointments = () => {
         throw new Error('User not authenticated')
       }
 
-      // Format current appointment data
-      const currentDateTime = format(new Date(appointmentToUpdate.appointment_date), "yyyy-MM-dd HH:mm:ss")
+      // Format current appointment data (ISO format without seconds)
+      const currentDateTime = format(new Date(appointmentToUpdate.appointment_date), "yyyy-MM-dd HH:mm")
       
-      // Format new appointment data
-      const newDateTime = format(new Date(updatedData.appointment_date!), "yyyy-MM-dd HH:mm:ss")
+      // Format new appointment data (ISO format without seconds)
+      const newDateTime = format(new Date(updatedData.appointment_date!), "yyyy-MM-dd HH:mm")
 
       const payload = [
         {
@@ -732,26 +732,34 @@ export const useAppointments = () => {
             user_id: userData.data.user.id,
             agent_id: appointmentToUpdate.professional_profile_id,
             appointment_id: appointmentId,
+            google_event_id: appointmentToUpdate.google_event_id || "",
             datetime: currentDateTime,
+            duration_minutes: appointmentToUpdate.duration_minutes || 60,
+            status: "blocked",
+            summary: "Bloqueio de horário",
             appointment_type: "blocked",
-            patient_name: appointmentToUpdate.patient_name,
-            patient_phone: appointmentToUpdate.patient_phone,
             notes: appointmentToUpdate.notes || "",
-            duration_minutes: appointmentToUpdate.duration_minutes || 60
+            patient_name: appointmentToUpdate.patient_name || "Bloqueio",
+            patient_phone: appointmentToUpdate.patient_phone || "000000000",
+            all_day: appointmentToUpdate.all_day || false
           })
         },
         {
           query: JSON.stringify({
             action: "update", 
             user_id: userData.data.user.id,
-            agent_id: updatedData.professional_profile_id,
+            agent_id: updatedData.professional_profile_id || appointmentToUpdate.professional_profile_id,
             appointment_id: appointmentId,
+            google_event_id: appointmentToUpdate.google_event_id || "",
             datetime: newDateTime,
+            duration_minutes: updatedData.duration_minutes || 60,
+            status: "blocked",
+            summary: "Bloqueio de horário (editado)",
             appointment_type: "blocked",
+            notes: updatedData.notes || "",
             patient_name: updatedData.patient_name || "Bloqueio",
             patient_phone: updatedData.patient_phone || "000000000",
-            notes: updatedData.notes || "",
-            duration_minutes: updatedData.duration_minutes || 60
+            all_day: updatedData.all_day || false
           })
         }
       ]
