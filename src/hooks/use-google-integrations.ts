@@ -114,7 +114,21 @@ export const useGoogleIntegrations = () => {
 
   const disconnectGoogleAccount = async (credentialId: string) => {
     try {
-      // Remover todos os links primeiro
+      // Buscar todos os links associados para deletar os eventos
+      const linksToDelete = profileLinks.filter(link => link.google_credential_id === credentialId);
+      
+      // Deletar eventos de todos os perfis vinculados a esta credencial
+      for (const link of linksToDelete) {
+        try {
+          await deleteGoogleEventsForProfile(link.professional_profile_id);
+          console.log(`✅ Eventos do perfil ${link.professional_profile_id} deletados`);
+        } catch (deleteError) {
+          console.error(`❌ Erro ao deletar eventos do perfil ${link.professional_profile_id}:`, deleteError);
+          // Continua mesmo com erro
+        }
+      }
+
+      // Remover todos os links
       await supabase
         .from('google_profile_links')
         .delete()
@@ -133,7 +147,7 @@ export const useGoogleIntegrations = () => {
 
       toast({
         title: 'Conta desconectada',
-        description: 'Conta Google desconectada com sucesso.',
+        description: 'Conta Google e todos os eventos sincronizados foram removidos com sucesso.',
       });
 
       return true;
