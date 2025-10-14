@@ -181,7 +181,7 @@ export function DashboardCustomizationModal({ open, onOpenChange }: DashboardCus
               </div>
               
               <div className="flex items-center justify-between">
-                <Label htmlFor="metric-instances">Instâncias Ativas</Label>
+                <Label htmlFor="metric-instances">Números WhatsApp</Label>
                 <Switch
                   id="metric-instances"
                   checked={config.metricCards.instances}
