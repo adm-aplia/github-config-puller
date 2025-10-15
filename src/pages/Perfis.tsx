@@ -271,12 +271,9 @@ export default function PerfilsPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Seus Perfis</CardTitle>
-                  <CardDescription>
-                    Lista de perfis profissionais cadastrados no sistema
-                  </CardDescription>
-                </div>
+                <CardDescription>
+                  Lista de perfis profissionais cadastrados no sistema
+                </CardDescription>
                 <Button variant="outline" size="sm" className="gap-2" onClick={refetch}>
                   <RefreshCw className="h-4 w-4" />
                 </Button>
