@@ -738,9 +738,7 @@ export const useAppointments = () => {
             status: "blocked",
             summary: "Bloqueio de horário",
             appointment_type: "blocked",
-            notes: appointmentToUpdate.notes || "",
             patient_name: appointmentToUpdate.patient_name || "Bloqueio",
-            patient_phone: appointmentToUpdate.patient_phone || "000000000",
             all_day: appointmentToUpdate.all_day || false
           })
         },
@@ -756,9 +754,7 @@ export const useAppointments = () => {
             status: "blocked",
             summary: "Bloqueio de horário (editado)",
             appointment_type: "blocked",
-            notes: updatedData.notes || "",
             patient_name: updatedData.patient_name || "Bloqueio",
-            patient_phone: updatedData.patient_phone || "000000000",
             all_day: updatedData.all_day || false
           })
         }
