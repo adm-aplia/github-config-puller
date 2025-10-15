@@ -9,6 +9,7 @@ import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
 import { useWhatsAppInstances } from "@/hooks/use-whatsapp-instances"
 import { useSubscription } from "@/hooks/use-subscription"
+import { Switch } from "@/components/ui/switch"
 import { ProfileForm } from "@/components/profiles/profile-form"
 import { CreateInstanceModal } from "@/components/whatsapp/CreateInstanceModal"
 import { QrCodeDialog } from "@/components/whatsapp/QrCodeDialog"
@@ -167,6 +168,13 @@ export default function PerfilsPage() {
     return false
   }
 
+  const handleToggleStatus = async (profileId: string, isActive: boolean) => {
+    const success = await updateProfile(profileId, { is_active: isActive })
+    if (success) {
+      refetch()
+    }
+  }
+
   // Helper functions to check connection status
   const getWhatsAppInfo = (profileId: string) => {
     const linkedInstances = instances.filter(inst => inst.professional_profile_id === profileId)
@@ -297,16 +305,17 @@ export default function PerfilsPage() {
                   {/* Desktop Table */}
                   <div className="hidden md:block relative w-full overflow-auto">
                     <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Nome</TableHead>
-                          <TableHead>Especialidade</TableHead>
-                          <TableHead>WhatsApp</TableHead>
-                          <TableHead>Google</TableHead>
-                          <TableHead>Criação</TableHead>
-                          <TableHead className="text-right">Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Status</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Especialidade</TableHead>
+                <TableHead>WhatsApp</TableHead>
+                <TableHead>Google</TableHead>
+                <TableHead>Criação</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
                       <TableBody>
                        {profiles.map((profile) => {
                             const whatsappInfo = getWhatsAppInfo(profile.id)
@@ -314,6 +323,12 @@ export default function PerfilsPage() {
                             
                             return (
                             <TableRow key={profile.id}>
+                              <TableCell>
+                                <Switch
+                                  checked={profile.is_active ?? true}
+                                  onCheckedChange={(checked) => handleToggleStatus(profile.id, checked)}
+                                />
+                              </TableCell>
                               <TableCell className="font-medium">{profile.fullname}</TableCell>
                               <TableCell>{profile.specialty}</TableCell>
                               <TableCell>
@@ -415,9 +430,17 @@ export default function PerfilsPage() {
                                 <h3 className="font-medium text-base">{profile.fullname}</h3>
                                 <p className="text-sm text-muted-foreground">{profile.specialty}</p>
                               </div>
-                              <span className="text-xs text-muted-foreground">
-                                {format(new Date(profile.created_at), "dd/MM/yy", { locale: ptBR })}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">Status:</span>
+                                <Switch
+                                  checked={profile.is_active ?? true}
+                                  onCheckedChange={(checked) => handleToggleStatus(profile.id, checked)}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="text-xs text-muted-foreground">
+                              {format(new Date(profile.created_at), "dd/MM/yyyy", { locale: ptBR })}
                             </div>
                             
                             <div className="flex flex-wrap gap-2">

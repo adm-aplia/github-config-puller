@@ -21,6 +21,7 @@ export interface ProfessionalProfile {
   consultationduration?: string;
   installment_enabled?: boolean;
   max_installments?: number;
+  is_active?: boolean;
   created_at: string;
   updated_at: string;
 }
