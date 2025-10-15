@@ -82,8 +82,8 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
         </div>
       </CardHeader>
       
-      <CardContent className="pt-2 pb-8">
-        <div className="h-[220px] sm:h-[280px] w-full mb-8">
+      <CardContent className="pt-2 pb-4">
+        <div className="h-[220px] sm:h-[280px] w-full">
           <div className="relative h-full w-full bg-gradient-to-b from-background to-muted/10 rounded-lg p-6">
             {/* Grid lines */}
             <div className="absolute inset-6 flex flex-col justify-between">
