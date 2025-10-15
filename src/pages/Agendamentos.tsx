@@ -142,8 +142,7 @@ export default function AgendamentosPage() {
     status: [],
     professionalIds: [],
     dateFrom: undefined,
-    dateTo: undefined,
-    appointmentType: "all"
+    dateTo: undefined
   })
   const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>([])
 
@@ -220,12 +219,6 @@ export default function AgendamentosPage() {
       )
     }
 
-    if (filters.appointmentType !== "all") {
-      filtered = filtered.filter(apt => 
-        apt.appointment_type === filters.appointmentType
-      )
-    }
-
     console.log('Final filtered appointments:', filtered.length)
     console.log('Appointments being passed to stats:', filtered.map(apt => ({ 
       id: apt.id, 
@@ -282,12 +275,6 @@ export default function AgendamentosPage() {
     if (filters.dateTo) {
       filtered = filtered.filter(apt => 
         new Date(apt.appointment_date) <= filters.dateTo!
-      )
-    }
-
-    if (filters.appointmentType !== "all") {
-      filtered = filtered.filter(apt => 
-        apt.appointment_type === filters.appointmentType
       )
     }
 

@@ -18,7 +18,6 @@ export interface AppointmentFilters {
   professionalIds: string[]
   dateFrom: Date | undefined
   dateTo: Date | undefined
-  appointmentType: string
 }
 
 interface AppointmentFiltersModalProps {
@@ -33,15 +32,6 @@ const statusOptions = [
   { value: "confirmed", label: "Confirmado" },
   { value: "rescheduled", label: "Remarcado" },
   { value: "cancelled", label: "Cancelado" },
-]
-
-const appointmentTypeOptions = [
-  { value: "all", label: "Todos os tipos" },
-  { value: "consultation", label: "Consulta" },
-  { value: "followup", label: "Retorno" },
-  { value: "exam", label: "Exame" },
-  { value: "procedure", label: "Procedimento" },
-  { value: "other", label: "Outro" },
 ]
 
 export function AppointmentFiltersModal({
@@ -79,8 +69,7 @@ export function AppointmentFiltersModal({
       status: [],
       professionalIds: [],
       dateFrom: undefined,
-      dateTo: undefined,
-      appointmentType: "all"
+      dateTo: undefined
     }
     setLocalFilters(clearedFilters)
   }
@@ -96,7 +85,6 @@ export function AppointmentFiltersModal({
     if (localFilters.status.length > 0) count++
     if (localFilters.professionalIds.length > 0) count++
     if (localFilters.dateFrom || localFilters.dateTo) count++
-    if (localFilters.appointmentType !== "all") count++
     return count
   }
 
@@ -247,29 +235,6 @@ export function AppointmentFiltersModal({
             </CardContent>
           </Card>
 
-          {/* Tipo de Agendamento */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Tipo de Agendamento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select 
-                value={localFilters.appointmentType} 
-                onValueChange={(value) => setLocalFilters(prev => ({ ...prev, appointmentType: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {appointmentTypeOptions.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="flex justify-between pt-4">

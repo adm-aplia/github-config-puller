@@ -628,7 +628,7 @@ export const useAppointments = () => {
         google_event_id: appointment.google_event_id || "",
         datetime: formattedDateTime,
         duration_minutes: appointment.duration_minutes || 60,
-        status: "confirmed",
+        status: "reagendado",
         summary: `Consulta ${appointment.appointment_type || 'médica'} (remarcada)`,
         notes: "Reagendado pelo sistema",
         patient_name: appointment.patient_name,
