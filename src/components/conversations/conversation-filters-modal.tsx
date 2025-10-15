@@ -7,18 +7,16 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Slider } from "@/components/ui/slider"
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { CalendarIcon, Filter, X, MessageSquare } from "lucide-react"
+import { CalendarIcon, Filter, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export interface ConversationFilters {
   professionalIds: string[]
   dateFrom: Date | undefined
   dateTo: Date | undefined
-  messageCountRange: [number, number]
 }
 
 interface ConversationFiltersModalProps {
@@ -57,8 +55,7 @@ export function ConversationFiltersModal({
     const clearedFilters: ConversationFilters = {
       professionalIds: [],
       dateFrom: undefined,
-      dateTo: undefined,
-      messageCountRange: [0, 100]
+      dateTo: undefined
     }
     setLocalFilters(clearedFilters)
   }
@@ -73,7 +70,6 @@ export function ConversationFiltersModal({
     let count = 0
     if (localFilters.professionalIds.length > 0) count++
     if (localFilters.dateFrom || localFilters.dateTo) count++
-    if (localFilters.messageCountRange[0] > 0 || localFilters.messageCountRange[1] < 100) count++
     return count
   }
 
@@ -186,34 +182,6 @@ export function ConversationFiltersModal({
                     </PopoverContent>
                   </Popover>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quantidade de Mensagens */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Quantidade de Mensagens
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Mínimo: {localFilters.messageCountRange[0]} mensagens</span>
-                  <span>Máximo: {localFilters.messageCountRange[1] >= 100 ? "100+" : localFilters.messageCountRange[1]} mensagens</span>
-                </div>
-                <Slider
-                  value={localFilters.messageCountRange}
-                  onValueChange={(value) => 
-                    setLocalFilters(prev => ({ ...prev, messageCountRange: value as [number, number] }))
-                  }
-                  max={100}
-                  min={0}
-                  step={1}
-                  className="w-full"
-                />
               </div>
             </CardContent>
           </Card>

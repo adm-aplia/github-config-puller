@@ -48,8 +48,7 @@ export default function ConversasPage() {
   const [filters, setFilters] = useState<ConversationFilters>({
     professionalIds: [],
     dateFrom: undefined,
-    dateTo: undefined,
-    messageCountRange: [0, 100]
+    dateTo: undefined
   });
 
   // Bulk selection states
@@ -212,15 +211,6 @@ export default function ConversasPage() {
       );
     }
 
-    // Apply message count range
-    if (filters.messageCountRange[0] > 0 || filters.messageCountRange[1] < 100) {
-      filtered = filtered.filter(conv => {
-        const messageCount = conv.message_count || 0;
-        return messageCount >= filters.messageCountRange[0] && 
-               (filters.messageCountRange[1] >= 100 ? true : messageCount <= filters.messageCountRange[1]);
-      });
-    }
-
     return filtered;
   }, [conversations, searchTerm, filters]);
 
@@ -269,7 +259,8 @@ export default function ConversasPage() {
   }, [filteredConversations]);
 
   const applyFilters = () => {
-    // Filters are applied automatically via useMemo
+    // Force a re-render by creating a new filters object
+    setFilters({ ...filters });
   };
 
   if (loading) {
