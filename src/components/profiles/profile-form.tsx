@@ -274,7 +274,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           {/* Etapa 2: Localização e Atendimento */}
           {currentStep === 2 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Localização e Atendimento</h3>
               
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -332,7 +331,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           {/* Etapa 3: Planos e Pagamentos */}
           {currentStep === 3 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Planos e Pagamentos</h3>
               
               <div className="space-y-4">
                 <div className="space-y-2">
