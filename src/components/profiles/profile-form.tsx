@@ -8,8 +8,15 @@ import { ProfessionalProfile } from '@/hooks/use-professional-profiles';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { WeeklyScheduleInput } from '@/components/ui/weekly-schedule-input';
 import { ToggleWithInput } from '@/components/ui/toggle-with-input';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
 import { applyMask } from '@/lib/masks';
+import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipTrigger, 
+  TooltipProvider 
+} from '@/components/ui/tooltip';
 import {
   Select,
   SelectContent,
@@ -288,7 +295,20 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="workinghours">Horários de Trabalho</Label>
+                  <TooltipProvider>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="workinghours">Horários de Trabalho</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p>Configure seus horários de trabalho por dia da semana.</p>
+                          <p className="mt-1">Você pode incluir intervalos de almoço (ex: 09:00-12:00, 14:00-18:00) e definir janelas de tempo específicas para cada dia.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TooltipProvider>
                   <WeeklyScheduleInput
                     value={formData.workinghours || ''}
                     onChange={(value) => handleChange('workinghours', value)}
@@ -345,18 +365,47 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="paymentmethods">Formas de Pagamento</Label>
-                  <Textarea
-                    id="paymentmethods"
-                    value={formData.paymentmethods || ''}
-                    onChange={(e) => handleChange('paymentmethods', e.target.value)}
-                    placeholder="ex: PIX, TED, Cartão de Crédito, Cartão de Débito"
-                    rows={3}
-                  />
+                  <Label>Formas de Pagamento</Label>
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    {['Crédito', 'Débito', 'PIX', 'Dinheiro'].map((method) => {
+                      const selectedPayments = formData.paymentmethods 
+                        ? formData.paymentmethods.split(',').map(p => p.trim()) 
+                        : [];
+                      const isChecked = selectedPayments.includes(method);
+                      
+                      return (
+                        <div key={method} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`payment-${method}`}
+                            checked={isChecked}
+                            onCheckedChange={(checked) => {
+                              let current = formData.paymentmethods 
+                                ? formData.paymentmethods.split(',').map(p => p.trim()) 
+                                : [];
+                              
+                              if (checked) {
+                                current.push(method);
+                              } else {
+                                current = current.filter(p => p !== method);
+                              }
+                              
+                              handleChange('paymentmethods', current.join(', '));
+                            }}
+                          />
+                          <label
+                            htmlFor={`payment-${method}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                          >
+                            {method}
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="consultationfees">Valores da Consulta</Label>
+                  <Label htmlFor="consultationfees">Valores</Label>
                   <CurrencyInput
                     value={formData.consultationfees || ''}
                     onChange={(value) => handleChange('consultationfees', value)}
