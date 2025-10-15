@@ -126,7 +126,8 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
         patient_phone: formattedPhone,
         patient_email: formData.patient_email || "",
         appointment_date: formattedDate,
-        status: mappedStatus,
+        duration_minutes: formData.duration,
+        status: formData.status,
         summary: `${formData.appointment_type || 'Consulta'} com ${formData.patient_name}`,
         notes: formData.notes || `Paciente: ${formData.patient_name}. Telefone: ${formattedPhone}. E-mail: ${formData.patient_email || 'Não informado'}. Motivo: ${formData.appointment_type || 'consulta'}.`,
         ...(myEmail && { my_email: myEmail })
