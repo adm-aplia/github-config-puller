@@ -82,18 +82,18 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
         </div>
       </CardHeader>
       
-      <CardContent className="pt-2 pb-4">
-        <div className="h-[220px] sm:h-[280px] w-full">
-          <div className="relative h-full w-full bg-gradient-to-b from-background to-muted/10 rounded-lg p-6">
+      <CardContent className="pt-2 pb-2">
+        <div className="h-[260px] sm:h-[320px] w-full">
+          <div className="relative h-full w-full bg-gradient-to-b from-background to-muted/10 rounded-lg p-4">
             {/* Grid lines */}
-            <div className="absolute inset-6 flex flex-col justify-between">
+            <div className="absolute inset-4 flex flex-col justify-between">
               {[0, 1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="border-t border-border/20"></div>
               ))}
             </div>
             
             {/* Y-axis labels */}
-            <div className="absolute left-0 inset-y-6 flex flex-col justify-between text-xs text-muted-foreground">
+            <div className="absolute left-0 inset-y-4 flex flex-col justify-between text-xs text-muted-foreground">
               {[maxValue, Math.round(maxValue * 0.8), Math.round(maxValue * 0.6), Math.round(maxValue * 0.4), Math.round(maxValue * 0.2), 0].map((value) => (
                 <span key={value}>{value.toLocaleString()}</span>
               ))}
@@ -191,7 +191,7 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
               )}
               
               {/* X-axis labels - dynamically show 4 labels on mobile, 6-8 on desktop */}
-              <div className="absolute bottom-0 w-full px-2">
+              <div className="absolute bottom-[-8px] w-full px-2">
                 {(() => {
                   const labelsToShow = chartData.filter(item => item.date)
                   const maxLabels = isMobile ? 4 : (chartData.length > 20 ? 6 : chartData.length > 10 ? 8 : labelsToShow.length)
