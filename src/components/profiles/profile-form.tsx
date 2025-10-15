@@ -9,6 +9,7 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 import { WeeklyScheduleInput } from '@/components/ui/weekly-schedule-input';
 import { ToggleWithInput } from '@/components/ui/toggle-with-input';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { applyMask } from '@/lib/masks';
 import {
   Select,
   SelectContent,
@@ -198,7 +199,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           {/* Etapa 1: Informações Básicas */}
           {currentStep === 1 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Informações Básicas</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -237,8 +237,12 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                   <Input
                     id="phonenumber"
                     value={formData.phonenumber || ''}
-                    onChange={(e) => handleChange('phonenumber', e.target.value)}
+                    onChange={(e) => {
+                      const masked = applyMask.phone(e.target.value);
+                      handleChange('phonenumber', masked);
+                    }}
                     placeholder="(11) 99999-9999"
+                    maxLength={15}
                   />
                 </div>
 
