@@ -8,7 +8,9 @@ export interface DashboardStats {
   total_instancias: number;
   instancias_ativas: number;
   conversas_ativas: number;
+  conversas_periodo: number;
   agendamentos_mes: number;
+  agendamentos_periodo: number;
   mensagens_hoje: number;
 }
 
@@ -31,7 +33,10 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
 
       // Buscar estatísticas do dashboard usando a função RPC
       const { data: statsData, error: statsError } = await supabase
-        .rpc('get_dashboard_stats', { user_id_param: userData.user.id });
+        .rpc('get_dashboard_stats', { 
+          user_id_param: userData.user.id,
+          days_param: chartDays 
+        });
 
       if (statsError) {
         console.error('Error calling get_dashboard_stats:', statsError);
@@ -46,11 +51,13 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
         // Fallback: buscar dados diretamente das tabelas se a função RPC não funcionar
         console.log('Using fallback stats calculation');
         
+        const startDate = new Date(Date.now() - chartDays * 24 * 60 * 60 * 1000);
+        
         const [assistentesData, instanciasData, conversasData, agendamentosData] = await Promise.all([
           supabase.from('professional_profiles').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id),
           supabase.from('whatsapp_instances').select('id, status', { count: 'exact' }).eq('user_id', userData.user.id),
           supabase.from('conversations').select('id, contact_phone').eq('user_id', userData.user.id).or(`last_message_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()},and(last_message_at.is.null,created_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()})`),
-          supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).gte('appointment_date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()).neq('appointment_type', 'blocked')
+          supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).gte('appointment_date', startDate.toISOString()).neq('appointment_type', 'blocked')
         ]);
 
         // Get conversations for today's messages count
@@ -79,9 +86,47 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
 
         const instanciasAtivas = instanciasData.data?.filter(inst => inst.status === 'connected').length || 0;
         
-        // Contar contatos únicos para conversas ativas
+        // Contar contatos únicos para conversas ativas (últimos 7 dias)
         const uniqueActiveContacts = new Set(
           conversasData.data?.map(conv => conv.contact_phone) || []
+        );
+
+        // Calcular conversas_periodo usando os dados do gráfico
+        const totalConversations = await Promise.all(
+          Array.from({ length: chartDays }, (_, i) => {
+            const date = new Date();
+            date.setDate(date.getDate() - (chartDays - 1 - i));
+            const startOfDay = new Date(date);
+            startOfDay.setHours(0, 0, 0, 0);
+            const endOfDay = new Date(date);
+            endOfDay.setHours(23, 59, 59, 999);
+            
+            return supabase
+              .from('conversations')
+              .select('id, contact_phone')
+              .eq('user_id', userData.user.id)
+              .then(async ({ data: allConvs }) => {
+                if (!allConvs || allConvs.length === 0) return new Set();
+                
+                const { data: msgs } = await supabase
+                  .from('messages')
+                  .select('conversation_id')
+                  .in('conversation_id', allConvs.map(c => c.id))
+                  .gte('created_at', startOfDay.toISOString())
+                  .lte('created_at', endOfDay.toISOString());
+                
+                const convIds = new Set(msgs?.map(m => m.conversation_id) || []);
+                return new Set(
+                  allConvs
+                    .filter(conv => convIds.has(conv.id))
+                    .map(conv => conv.contact_phone)
+                );
+              });
+          })
+        );
+        
+        const uniqueContactsInPeriod = new Set(
+          totalConversations.flatMap(set => Array.from(set))
         );
 
         const fallbackStats: DashboardStats = {
@@ -89,7 +134,9 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
           total_instancias: instanciasData.count || 0,
           instancias_ativas: instanciasAtivas,
           conversas_ativas: uniqueActiveContacts.size,
+          conversas_periodo: uniqueContactsInPeriod.size,
           agendamentos_mes: agendamentosData.count || 0,
+          agendamentos_periodo: agendamentosData.count || 0,
           mensagens_hoje: mensagensHoje
         };
 
@@ -168,7 +215,9 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
         total_instancias: 0,
         instancias_ativas: 0,
         conversas_ativas: 0,
+        conversas_periodo: 0,
         agendamentos_mes: 0,
+        agendamentos_periodo: 0,
         mensagens_hoje: 0
       });
     } finally {

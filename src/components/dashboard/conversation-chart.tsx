@@ -219,17 +219,6 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
             </div>
           </div>
         </div>
-        
-        {/* Legend */}
-        <div className="flex items-center justify-center gap-8 pt-4 border-t">
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 bg-primary rounded-full shadow-sm"></div>
-            <span className="text-sm font-medium">Conversas</span>
-            <span className="text-xs text-muted-foreground">
-              ({chartData.reduce((sum, item) => sum + item.conversations, 0)} total)
-            </span>
-          </div>
-        </div>
       </CardContent>
     </Card>
   )

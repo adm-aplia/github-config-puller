@@ -73,8 +73,8 @@ export function DashboardMetrics({ stats, loading, visibleCards }: DashboardMetr
       <MetricCard
         key="conversations"
         title="Conversas Ativas"
-        value={stats?.conversas_ativas || 0}
-        description="conversas em andamento"
+        value={stats?.conversas_periodo || 0}
+        description="no período selecionado"
         icon={MessageSquare}
       />
     )
@@ -85,8 +85,8 @@ export function DashboardMetrics({ stats, loading, visibleCards }: DashboardMetr
       <MetricCard
         key="appointments"
         title="Agendamentos"
-        value={stats?.agendamentos_mes || 0}
-        description="neste mês"
+        value={stats?.agendamentos_periodo || 0}
+        description="no período selecionado"
         icon={Calendar}
       />
     )

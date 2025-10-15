@@ -1006,7 +1006,9 @@ export type Database = {
         Returns: Json
       }
       get_dashboard_stats: {
-        Args: { user_id_param: string }
+        Args:
+          | { days_param?: number; user_id_param: string }
+          | { user_id_param: string }
         Returns: Json
       }
       get_real_user_usage_summary: {
