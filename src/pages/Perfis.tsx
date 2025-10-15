@@ -405,7 +405,23 @@ export default function PerfilsPage() {
                                       Excluir
                                     </Button>
                                   </AlertDialogTrigger>
-...
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Esta ação não pode ser desfeita. O perfil profissional será permanentemente excluído.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteProfile(profile.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Excluir
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
                                 </AlertDialog>
                                </div>
                              </TableCell>
@@ -517,7 +533,23 @@ export default function PerfilsPage() {
                                     Excluir
                                   </Button>
                                 </AlertDialogTrigger>
-...
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Esta ação não pode ser desfeita. O perfil profissional será permanentemente excluído.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteProfile(profile.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Excluir
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
                               </AlertDialog>
                             </div>
                           </CardContent>
