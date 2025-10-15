@@ -76,8 +76,8 @@ export const useWhatsAppInstances = () => {
       console.error('Error fetching WhatsApp instances:', error);
       if (!silent) {
         toast({
-          title: 'Erro ao carregar instâncias',
-          description: 'Não foi possível carregar as instâncias do WhatsApp.',
+          title: 'Erro ao carregar números',
+          description: 'Não foi possível carregar os números do WhatsApp.',
           variant: 'destructive',
         });
       }
@@ -206,16 +206,16 @@ export const useWhatsAppInstances = () => {
       });
       
       toast({
-        title: 'Instância criada',
-        description: 'Nova instância do WhatsApp criada e configurada com sucesso.',
+        title: 'Número criado',
+        description: 'Novo número do WhatsApp criado e configurado com sucesso.',
       });
 
       return created;
     } catch (error: any) {
       console.error('Error creating instance:', error);
       toast({
-        title: 'Erro ao criar instância',
-        description: error.message || 'Não foi possível criar a instância do WhatsApp.',
+        title: 'Erro ao criar número',
+        description: error.message || 'Não foi possível criar o número do WhatsApp.',
         variant: 'destructive',
       });
       return null;
@@ -240,16 +240,16 @@ export const useWhatsAppInstances = () => {
       );
 
       toast({
-        title: 'Instância atualizada',
-        description: 'Instância do WhatsApp atualizada com sucesso.',
+        title: 'Número atualizado',
+        description: 'Número do WhatsApp atualizado com sucesso.',
       });
 
       return true;
     } catch (error) {
       console.error('Error updating instance:', error);
       toast({
-        title: 'Erro ao atualizar instância',
-        description: 'Não foi possível atualizar a instância do WhatsApp.',
+        title: 'Erro ao atualizar número',
+        description: 'Não foi possível atualizar o número do WhatsApp.',
         variant: 'destructive',
       });
       return false;
@@ -292,18 +292,16 @@ export const useWhatsAppInstances = () => {
       setInstances(prev => prev.filter(instance => instance.id !== id));
 
       toast({
-        title: 'Instância excluída',
-        description: instance?.instance_name 
-          ? `Instância ${instance.instance_name} excluída do sistema e Evolution.`
-          : 'Instância do WhatsApp excluída com sucesso.',
+        title: 'Número excluído com sucesso',
+        description: 'Número excluído com sucesso.',
       });
 
       return true;
     } catch (error) {
       console.error('Error deleting instance:', error);
       toast({
-        title: 'Erro ao excluir instância',
-        description: 'Não foi possível excluir a instância do WhatsApp.',
+        title: 'Erro ao excluir número',
+        description: 'Não foi possível excluir o número do WhatsApp.',
         variant: 'destructive',
       });
       return false;

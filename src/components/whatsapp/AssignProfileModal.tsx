@@ -41,7 +41,7 @@ export function AssignProfileModal({ open, onOpenChange, onSubmit, currentProfil
         <DialogHeader>
           <DialogTitle>Atribuir Perfil</DialogTitle>
           <DialogDescription>
-            Selecione um perfil profissional para vincular a esta instância do WhatsApp.
+            Selecione um perfil profissional para vincular a este número do WhatsApp.
           </DialogDescription>
         </DialogHeader>
         

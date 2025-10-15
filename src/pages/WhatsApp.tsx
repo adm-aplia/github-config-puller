@@ -62,7 +62,7 @@ export default function WhatsAppPage() {
   };
 
   const handleDeleteInstance = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta instância?')) {
+    if (confirm('Tem certeza que deseja excluir este número?')) {
       deleteInstance(id);
     }
   };
@@ -149,7 +149,7 @@ export default function WhatsAppPage() {
   };
 
   const handleDisconnect = async (instance: any) => {
-    if (!confirm('Tem certeza que deseja desconectar esta instância?')) {
+    if (!confirm('Tem certeza que deseja desconectar este número?')) {
       return;
     }
 
@@ -172,8 +172,8 @@ export default function WhatsAppPage() {
       });
 
       toast({
-        title: 'Instância desconectada',
-        description: 'A instância foi desconectada com sucesso.',
+        title: 'Número desconectado',
+        description: 'O número foi desconectado com sucesso.',
       });
 
       refetch();
@@ -181,7 +181,7 @@ export default function WhatsAppPage() {
       console.error('Error disconnecting instance:', error);
       toast({
         title: 'Erro ao desconectar',
-        description: 'Não foi possível desconectar a instância.',
+        description: 'Não foi possível desconectar o número.',
         variant: 'destructive',
       });
     }
@@ -243,8 +243,8 @@ export default function WhatsAppPage() {
             .eq('id', instance.id);
 
           toast({
-            title: 'Instância sincronizada',
-            description: 'Dados da instância atualizados com sucesso.',
+            title: 'Número sincronizado',
+            description: 'Dados do número atualizados com sucesso.',
           });
           refetch();
         } else {
@@ -290,12 +290,12 @@ export default function WhatsAppPage() {
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">WhatsApp</h1>
                 <p className="text-muted-foreground hidden md:block">
-                  Gerencie suas instâncias do WhatsApp Business
+                  Gerencie seus números de WhatsApp Business
                 </p>
               </div>
               <Button disabled>
                 <Plus className="h-4 w-4 mr-2" />
-                Nova Instância
+                Novo Número
               </Button>
             </div>
             <div className="space-y-4">
@@ -317,21 +317,21 @@ export default function WhatsAppPage() {
             <div>
               <h1 className="text-3xl font-bold tracking-tight">WhatsApp</h1>
               <p className="text-muted-foreground hidden md:block">
-                Gerencie suas instâncias do WhatsApp Business
+                Gerencie seus números de WhatsApp Business
               </p>
             </div>
             <Button onClick={handleCreateInstance} className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Nova Instância
+              Novo Número
             </Button>
           </div>
 
           {instances.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">Nenhuma instância encontrada</p>
+              <p className="text-muted-foreground mb-4">Nenhum número encontrado</p>
               <Button onClick={handleCreateInstance}>
                 <Plus className="h-4 w-4 mr-2" />
-                Criar primeira instância
+                Criar primeiro número
               </Button>
             </div>
           ) : (

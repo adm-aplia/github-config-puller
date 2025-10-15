@@ -33,7 +33,7 @@ export function EditInstanceNameModal({
     if (!name.trim()) {
       toast({
         title: "Nome obrigatório",
-        description: "O nome da instância não pode estar vazio.",
+        description: "O nome do número não pode estar vazio.",
         variant: "destructive",
       })
       return
@@ -67,24 +67,24 @@ export function EditInstanceNameModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Pen className="h-4 w-4" />
-            Editar Nome da Instância
+            Editar Nome do Número
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="instance-name">Nome da Instância</Label>
+            <Label htmlFor="instance-name">Nome do Número</Label>
             <Input
               id="instance-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Digite o nome da instância"
+              placeholder="Digite o nome do número"
               disabled={loading}
               autoFocus
             />
             <p className="text-xs text-muted-foreground">
-              Esta alteração é apenas cosmética e não afeta a instância no WhatsApp
+              Esta alteração é apenas cosmética e não afeta o número no WhatsApp
             </p>
           </div>
         </div>

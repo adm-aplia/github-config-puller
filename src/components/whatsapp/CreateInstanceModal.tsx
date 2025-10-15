@@ -43,7 +43,7 @@ export function CreateInstanceModal({ open, onOpenChange, onSubmit }: CreateInst
       <DialogContent className="max-w-md">
         <div className="p-6 pb-0">
           <DialogHeader>
-            <DialogTitle className="text-xl">Criar instância do WhatsApp</DialogTitle>
+            <DialogTitle className="text-xl">Adicionar número do WhatsApp</DialogTitle>
             <DialogDescription>
               Informe o nome de exibição que será mostrado no painel.
             </DialogDescription>

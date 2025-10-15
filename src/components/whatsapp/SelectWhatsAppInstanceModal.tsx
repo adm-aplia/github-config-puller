@@ -111,7 +111,7 @@ export function SelectWhatsAppInstanceModal({
             Conectar WhatsApp
           </DialogTitle>
           <DialogDescription>
-            Selecione uma instância do WhatsApp já configurada ou crie uma nova para vincular ao perfil.
+            Selecione um número do WhatsApp já configurado ou crie um novo para vincular ao perfil.
           </DialogDescription>
         </DialogHeader>
 
@@ -119,7 +119,7 @@ export function SelectWhatsAppInstanceModal({
           {linkedInstances.length > 0 && (
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground">
-                Instâncias vinculadas ({linkedInstances.length}):
+                Números vinculados ({linkedInstances.length}):
               </h4>
               {linkedInstances.map((instance) => (
                 <Card key={instance.id}>
@@ -159,7 +159,7 @@ export function SelectWhatsAppInstanceModal({
 
           {availableInstances.length > 0 ? (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground">Instâncias disponíveis:</h4>
+              <h4 className="text-sm font-medium text-muted-foreground">Números disponíveis:</h4>
               {availableInstances.map((instance) => (
                 <Card 
                   key={instance.id}
@@ -209,9 +209,9 @@ export function SelectWhatsAppInstanceModal({
           ) : linkedInstances.length === 0 ? (
             <div className="text-center py-6">
               <MessageCircle className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-              <h4 className="font-medium mb-2">Nenhuma instância disponível</h4>
+              <h4 className="font-medium mb-2">Nenhum número disponível</h4>
               <p className="text-sm text-muted-foreground">
-                Crie uma nova instância do WhatsApp para conectar ao perfil.
+                Crie um novo número do WhatsApp para conectar ao perfil.
               </p>
             </div>
           ) : null}
@@ -225,7 +225,7 @@ export function SelectWhatsAppInstanceModal({
                 disabled={linking || unlinking}
               >
                 <Plus className="h-4 w-4" />
-                {linkedInstances.length > 0 ? 'Criar nova instância' : 'Criar instância'}
+                {linkedInstances.length > 0 ? 'Criar novo número' : 'Criar número'}
               </Button>
             </div>
           )}
@@ -244,7 +244,7 @@ export function SelectWhatsAppInstanceModal({
               onClick={handleLink}
               disabled={!selectedInstanceId || linking || unlinking}
             >
-              {linking ? 'Vinculando...' : 'Vincular Instância'}
+              {linking ? 'Vinculando...' : 'Vincular Número'}
             </Button>
           )}
         </DialogFooter>
