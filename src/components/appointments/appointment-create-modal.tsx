@@ -326,7 +326,6 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
                 <SelectContent>
                   <SelectItem value="agendado">Agendado</SelectItem>
                   <SelectItem value="confirmado">Confirmado</SelectItem>
-                  <SelectItem value="pendente">Pendente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
