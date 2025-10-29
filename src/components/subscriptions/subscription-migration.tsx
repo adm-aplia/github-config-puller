@@ -156,7 +156,9 @@ export function SubscriptionMigration() {
                         <span className="font-mono">{r.assinatura_id.slice(0, 8)}...</span>
                       </div>
                       {r.message && (
-                        <p className="text-muted-foreground mt-1">{r.message}</p>
+                        <p className="text-muted-foreground mt-1">
+                          {typeof r.message === 'string' ? r.message : JSON.stringify(r.message)}
+                        </p>
                       )}
                     </div>
                   ))}

@@ -11,7 +11,6 @@ import { useSubscription } from '@/hooks/use-subscription';
 import { PlanChangeModal } from '@/components/plans/plan-change-modal';
 import { PlanCancelModal } from '@/components/plans/plan-cancel-modal';
 import { PaymentHistory } from '@/components/payments/payment-history';
-import { SubscriptionMigration } from '@/components/subscriptions/subscription-migration';
 
 export default function Planos() {
   const navigate = useNavigate();
@@ -235,9 +234,6 @@ export default function Planos() {
               </div>
 
               <div className="space-y-6 max-w-7xl mx-auto">
-                {/* Migration Card */}
-                <SubscriptionMigration />
-
                 <div className="grid lg:grid-cols-2 gap-6">
                   {/* Current Subscription Card */}
                   <Card className="border-muted shadow-card flex flex-col">
