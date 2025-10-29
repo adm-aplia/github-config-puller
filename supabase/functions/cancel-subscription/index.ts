@@ -74,11 +74,41 @@ serve(async (req) => {
     // DO NOT reset user limits immediately - they should keep access until data_fim
     // Limits will be reset automatically when the subscription expires
 
-    // TODO: Integrate with Asaas API to cancel recurring billing if needed
-    // This would require calling Asaas API with the subscription ID
+    // Cancel recurring subscription in Asaas
     if (currentSubscription.asaas_subscription_id) {
-      console.log('Would cancel Asaas subscription:', currentSubscription.asaas_subscription_id)
-      // const asaasResponse = await cancelAsaasSubscription(currentSubscription.asaas_subscription_id)
+      console.log('[cancel-subscription] Cancelling Asaas subscription:', currentSubscription.asaas_subscription_id)
+      
+      const asaasApiKey = Deno.env.get('ASAAS_ENV') === 'production' 
+        ? Deno.env.get('ASAAS_API_KEY')
+        : Deno.env.get('ASAAS_SANDBOX_API_KEY')
+      
+      const asaasBaseUrl = Deno.env.get('ASAAS_ENV') === 'production' 
+        ? 'https://www.asaas.com/api/v3'
+        : 'https://sandbox.asaas.com/api/v3'
+      
+      try {
+        const cancelResponse = await fetch(
+          `${asaasBaseUrl}/subscriptions/${currentSubscription.asaas_subscription_id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'access_token': asaasApiKey,
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+
+        if (!cancelResponse.ok) {
+          const errorData = await cancelResponse.json()
+          console.error('[cancel-subscription] Error cancelling in Asaas:', errorData)
+          throw new Error(`Failed to cancel subscription in Asaas: ${JSON.stringify(errorData)}`)
+        }
+        
+        console.log('[cancel-subscription] Subscription successfully cancelled in Asaas')
+      } catch (error) {
+        console.error('[cancel-subscription] Error calling Asaas API:', error)
+        throw new Error(`Error cancelling subscription in Asaas: ${error.message}`)
+      }
     }
 
     console.log('Subscription cancelled successfully for user:', user.id)
