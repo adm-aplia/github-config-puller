@@ -11,6 +11,7 @@ import { useSubscription } from '@/hooks/use-subscription';
 import { PlanChangeModal } from '@/components/plans/plan-change-modal';
 import { PlanCancelModal } from '@/components/plans/plan-cancel-modal';
 import { PaymentHistory } from '@/components/payments/payment-history';
+import { SubscriptionMigration } from '@/components/subscriptions/subscription-migration';
 
 export default function Planos() {
   const navigate = useNavigate();
@@ -233,9 +234,13 @@ export default function Planos() {
                 </p>
               </div>
 
-              <div className="grid lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
-                {/* Current Subscription Card */}
-                <Card className="border-muted shadow-card flex flex-col">
+              <div className="space-y-6 max-w-7xl mx-auto">
+                {/* Migration Card */}
+                <SubscriptionMigration />
+
+                <div className="grid lg:grid-cols-2 gap-6">
+                  {/* Current Subscription Card */}
+                  <Card className="border-muted shadow-card flex flex-col">
                   <CardHeader className="bg-gradient-to-r from-muted/30 to-transparent">
                     <CardTitle className="flex items-center gap-3 text-xl">
                       <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
@@ -298,8 +303,9 @@ export default function Planos() {
                   </CardFooter>
                 </Card>
 
-                {/* Payment History */}
-                <PaymentHistory />
+                  {/* Payment History */}
+                  <PaymentHistory />
+                </div>
               </div>
             </TabsContent>
           )}
