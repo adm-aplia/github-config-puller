@@ -174,9 +174,10 @@ serve(async (req) => {
     const nextDueDate = new Date(today)
     nextDueDate.setDate(today.getDate() + 30)
 
-    console.log('[create-subscription] Criando cobrança imediata no Asaas...')
+    console.log('[create-subscription] Criando assinatura recorrente no Asaas...')
     
-    const paymentResponse = await fetch(`${asaasBaseUrl}/payments`, {
+    // Create recurring subscription in Asaas
+    const subscriptionResponse = await fetch(`${asaasBaseUrl}/subscriptions`, {
       method: 'POST',
       headers: {
         'access_token': asaasApiKey,
@@ -185,9 +186,10 @@ serve(async (req) => {
       body: JSON.stringify({
         customer: asaasCustomerId,
         billingType: 'CREDIT_CARD',
-        dueDate: today.toISOString().split('T')[0],
+        nextDueDate: today.toISOString().split('T')[0],
         value: plan.preco,
-        description: `Ativação do plano ${plan.nome}`,
+        cycle: 'MONTHLY', // ⭐ RECORRÊNCIA MENSAL
+        description: `Assinatura ${plan.nome}`,
         creditCard: {
           ...creditCard,
           holderName: creditCard.holderInfo?.name || creditCard.holderName
@@ -196,9 +198,9 @@ serve(async (req) => {
       }),
     })
 
-    if (!paymentResponse.ok) {
-      const errorText = await paymentResponse.text()
-      console.error('[create-subscription] Erro ao criar cobrança no Asaas:', errorText)
+    if (!subscriptionResponse.ok) {
+      const errorText = await subscriptionResponse.text()
+      console.error('[create-subscription] Erro ao criar assinatura no Asaas:', errorText)
       return new Response(
         JSON.stringify({ error: 'Payment processing failed. Please verify your card details and try again.' }),
         { 
@@ -208,24 +210,27 @@ serve(async (req) => {
       )
     }
 
-    const paymentData = await paymentResponse.json()
-    console.log('[create-subscription] Cobrança criada no Asaas:', paymentData.id, 'Status:', paymentData.status)
+    const subscriptionData = await subscriptionResponse.json()
+    console.log('[create-subscription] Assinatura recorrente criada no Asaas:', subscriptionData.id, 'Status:', subscriptionData.status)
 
     // Salvar token do cartão se fornecido
-    if (paymentData.creditCard?.creditCardToken) {
+    if (subscriptionData.creditCard?.creditCardToken) {
       await supabaseClient
         .from('clientes')
-        .update({ asaas_card_token: paymentData.creditCard.creditCardToken })
+        .update({ 
+          asaas_customer_id: asaasCustomerId,
+          asaas_card_token: subscriptionData.creditCard.creditCardToken 
+        })
         .eq('id', cliente.id)
       console.log('[create-subscription] Token do cartão salvo')
     }
 
-    // Mapear status do Asaas para determinar se está pago
-    const paidStatuses = ['CONFIRMED', 'RECEIVED', 'RECEIVED_IN_CASH', 'RECEIVED_IN_CHECK']
-    const isPaid = paidStatuses.includes(paymentData.status)
+    // Mapear status do Asaas para determinar se está ativo
+    const activeStatuses = ['ACTIVE']
+    const isPaid = activeStatuses.includes(subscriptionData.status)
     const subscriptionStatus = isPaid ? 'active' : 'pending'
     
-    console.log('[create-subscription] Status do pagamento mapeado:', paymentData.status, '-> isPaid:', isPaid, '-> subscriptionStatus:', subscriptionStatus)
+    console.log('[create-subscription] Status da assinatura mapeado:', subscriptionData.status, '-> isPaid:', isPaid, '-> subscriptionStatus:', subscriptionStatus)
 
     // Calcular próxima cobrança baseada no período do plano
     const proximaCobranca = new Date(today)
@@ -244,7 +249,7 @@ serve(async (req) => {
         status: subscriptionStatus,
         data_inicio: today.toISOString().split('T')[0],
         proxima_cobranca: proximaCobranca.toISOString().split('T')[0],
-        asaas_subscription_id: null, // Não criamos assinatura recorrente ainda
+        asaas_subscription_id: subscriptionData.id, // ✅ Salvar ID da assinatura recorrente
       })
       .select()
       .single()
@@ -262,7 +267,8 @@ serve(async (req) => {
 
     console.log('[create-subscription] Assinatura criada:', subscription.id, 'Status:', subscription.status)
 
-    // Criar registro na tabela de cobranças
+    // Criar registro da primeira cobrança
+    // Nota: Cobranças mensais subsequentes serão criadas via webhook PAYMENT_CREATED
     const { data: cobranca, error: cobrancaError } = await supabaseAdmin
       .from('cobrancas')
       .insert({
@@ -270,12 +276,12 @@ serve(async (req) => {
         assinatura_id: subscription.id,
         valor: plan.preco,
         status: isPaid ? 'paid' : 'pending',
-        descricao: `Ativação do plano ${plan.nome}`,
-        data_vencimento: paymentData.dueDate || today.toISOString().split('T')[0],
-        data_pagamento: isPaid ? (paymentData.paymentDate || paymentData.clientPaymentDate || today.toISOString().split('T')[0]) : null,
+        descricao: `Primeira cobrança - Assinatura ${plan.nome}`,
+        data_vencimento: subscriptionData.nextDueDate || today.toISOString().split('T')[0],
+        data_pagamento: isPaid ? today.toISOString().split('T')[0] : null,
         forma_pagamento: 'CREDIT_CARD',
-        link_pagamento: paymentData.invoiceUrl,
-        asaas_payment_id: paymentData.id
+        link_pagamento: subscriptionData.invoiceUrl,
+        asaas_payment_id: subscriptionData.id
       })
       .select()
       .single()
@@ -315,10 +321,10 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         subscription: subscription,
-        payment: {
-          id: paymentData.id,
-          status: paymentData.status,
-          invoiceUrl: paymentData.invoiceUrl
+        asaasSubscription: {
+          id: subscriptionData.id,
+          status: subscriptionData.status,
+          invoiceUrl: subscriptionData.invoiceUrl
         },
         cobranca: cobranca ? {
           id: cobranca.id,

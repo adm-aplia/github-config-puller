@@ -143,26 +143,56 @@ serve(async (req) => {
       )
     }
 
-    let paymentData = null
+    const asaasBaseUrl = Deno.env.get('ASAAS_ENV') === 'production' 
+      ? 'https://www.asaas.com/api/v3'
+      : 'https://sandbox.asaas.com/api/v3'
 
-    // Criar cobrança proporcional se for upgrade
+    // Cancelar assinatura antiga no Asaas
+    if (currentSubscription.asaas_subscription_id) {
+      console.log('[change-subscription] Cancelando assinatura antiga no Asaas...')
+      
+      try {
+        const cancelResponse = await fetch(
+          `${asaasBaseUrl}/subscriptions/${currentSubscription.asaas_subscription_id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'access_token': asaasApiKey,
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+
+        if (!cancelResponse.ok) {
+          const errorData = await cancelResponse.json()
+          console.error('[change-subscription] Erro ao cancelar no Asaas:', errorData)
+        } else {
+          console.log('[change-subscription] Assinatura cancelada no Asaas')
+        }
+      } catch (error) {
+        console.error('[change-subscription] Erro ao chamar API Asaas:', error)
+      }
+    }
+
+    let subscriptionData = null
+
+    // Criar nova assinatura recorrente se for upgrade com cobrança proporcional
     if (isUpgrade && prorationAmount > 0) {
-      console.log('[change-subscription] Criando cobrança proporcional no Asaas...')
+      console.log('[change-subscription] Criando cobrança proporcional imediata...')
       
       const paymentPayload: any = {
         customer: cliente.asaas_customer_id,
         billingType: 'CREDIT_CARD',
         dueDate: new Date().toISOString().split('T')[0],
-        value: Math.round(prorationAmount * 100) / 100, // Arredondar para 2 casas decimais
+        value: Math.round(prorationAmount * 100) / 100,
         description: `Upgrade para plano ${newPlan.nome} - Cobrança proporcional`,
       }
 
-      // Usar token do cartão salvo se disponível
       if (cliente.asaas_card_token) {
         paymentPayload.creditCardToken = cliente.asaas_card_token
       }
 
-      const paymentResponse = await fetch('https://sandbox.asaas.com/api/v3/payments', {
+      const paymentResponse = await fetch(`${asaasBaseUrl}/payments`, {
         method: 'POST',
         headers: {
           'access_token': asaasApiKey,
@@ -183,17 +213,54 @@ serve(async (req) => {
         )
       }
 
-      paymentData = await paymentResponse.json()
+      const paymentData = await paymentResponse.json()
       console.log('[change-subscription] Cobrança proporcional criada:', paymentData.id)
     }
 
-    // Atualizar assinatura atual para inativa
+    // Criar nova assinatura recorrente no Asaas
+    console.log('[change-subscription] Criando nova assinatura recorrente no Asaas...')
+    
+    const newSubscriptionResponse = await fetch(`${asaasBaseUrl}/subscriptions`, {
+      method: 'POST',
+      headers: {
+        'access_token': asaasApiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        customer: cliente.asaas_customer_id,
+        billingType: 'CREDIT_CARD',
+        nextDueDate: currentSubscription.proxima_cobranca,
+        value: newPlan.preco,
+        cycle: 'MONTHLY',
+        description: isUpgrade ? `Upgrade para ${newPlan.nome}` : `Downgrade para ${newPlan.nome}`,
+        creditCard: {
+          creditCardToken: cliente.asaas_card_token
+        }
+      }),
+    })
+
+    if (!newSubscriptionResponse.ok) {
+      const errorText = await newSubscriptionResponse.text()
+      console.error('[change-subscription] Erro ao criar assinatura:', errorText)
+      return new Response(
+        JSON.stringify({ error: 'Unable to create new subscription. Please try again.' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    subscriptionData = await newSubscriptionResponse.json()
+    console.log('[change-subscription] Nova assinatura recorrente criada:', subscriptionData.id)
+
+    // Atualizar assinatura atual para cancelada
     await supabaseClient
       .from('assinaturas')
       .update({ status: 'cancelled' })
       .eq('id', currentSubscription.id)
 
-    // Criar nova assinatura
+    // Criar nova assinatura no banco
     const { data: newSubscription, error: newSubError } = await supabaseClient
       .from('assinaturas')
       .insert({
@@ -201,8 +268,8 @@ serve(async (req) => {
         plano_id: newPlanId,
         status: 'active',
         data_inicio: new Date().toISOString().split('T')[0],
-        proxima_cobranca: currentSubscription.proxima_cobranca, // Mantém a data de cobrança
-        asaas_subscription_id: null,
+        proxima_cobranca: currentSubscription.proxima_cobranca,
+        asaas_subscription_id: subscriptionData.id, // ✅ Salvar ID da nova assinatura recorrente
       })
       .select()
       .single()

@@ -2,3 +2,6 @@ project_id = "vmqxzkukyfxxgxekkdem"
 
 [functions.eventos-google-agenda]
 verify_jwt = false
+
+[functions.asaas-webhook]
+verify_jwt = false
