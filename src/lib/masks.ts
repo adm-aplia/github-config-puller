@@ -30,19 +30,18 @@ export const applyMask = {
   phone: (value: string) => {
     const cleanValue = value.replace(/\D/g, '');
     
-    if (cleanValue.length <= 10) {
-      // Fixo: (XX) XXXX-XXXX
-      return cleanValue
-        .replace(/^(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{4})(\d)/, '$1-$2')
-        .replace(/(-\d{4})\d+?$/, '$1');
-    } else {
-      // Celular: (XX) 9XXXX-XXXX
-      return cleanValue
-        .replace(/^(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{5})(\d)/, '$1-$2')
-        .replace(/(-\d{4})\d+?$/, '$1');
+    // Extract last 8-9 digits (local number)
+    const localNumber = cleanValue.length > 9 ? cleanValue.slice(-9) : cleanValue.slice(-8);
+    
+    if (localNumber.length === 9) {
+      // 9 digits: XXXXX-XXXX
+      return localNumber.replace(/(\d{5})(\d{4})/, '$1-$2');
+    } else if (localNumber.length === 8) {
+      // 8 digits: XXXX-XXXX
+      return localNumber.replace(/(\d{4})(\d{4})/, '$1-$2');
     }
+    
+    return localNumber;
   },
 
   cep: (value: string) => {
