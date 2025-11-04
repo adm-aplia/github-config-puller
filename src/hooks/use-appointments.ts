@@ -460,6 +460,100 @@ export const useAppointments = () => {
 
   const updateAppointment = async (appointmentId: string, updates: Partial<Appointment>) => {
     try {
+      // 1. Buscar dados atuais do agendamento
+      const { data: currentAppointment, error: fetchError } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('id', appointmentId)
+        .single();
+
+      if (fetchError) throw fetchError;
+      if (!currentAppointment) throw new Error('Agendamento não encontrado');
+
+      // 2. Verificar se houve mudança na data/hora
+      const oldDate = new Date(currentAppointment.appointment_date).getTime();
+      const newDate = updates.appointment_date 
+        ? new Date(updates.appointment_date).getTime() 
+        : oldDate;
+      const dateChanged = oldDate !== newDate;
+
+      // 3. Verificar se houve mudança na duração
+      const oldDuration = currentAppointment.duration_minutes;
+      const newDuration = updates.duration_minutes !== undefined 
+        ? updates.duration_minutes 
+        : oldDuration;
+      const durationChanged = oldDuration !== newDuration;
+
+      // 4. Se mudou data OU duração, enviar para webhook de remarcar
+      if (dateChanged || durationChanged) {
+        console.log('🔄 Data ou duração alterada, enviando para webhook de remarcar...');
+        
+        // Formatar data antiga
+        const oldDateTime = format(new Date(currentAppointment.appointment_date), 'yyyy-MM-dd HH:mm');
+        
+        // Formatar nova data (pode ser a mesma se só mudou a duração)
+        const newDateTime = updates.appointment_date 
+          ? format(new Date(updates.appointment_date), 'yyyy-MM-dd HH:mm')
+          : oldDateTime;
+        
+        // Payload para webhook (igual ao rescheduleAppointment)
+        const webhookPayload = [
+          {
+            action: "current",
+            user_id: currentAppointment.user_id,
+            agent_id: currentAppointment.professional_profile_id,
+            appointment_id: currentAppointment.id,
+            google_event_id: currentAppointment.google_event_id,
+            datetime: oldDateTime,
+            duration_minutes: currentAppointment.duration_minutes,
+            status: currentAppointment.status,
+            summary: currentAppointment.appointment_type,
+            notes: currentAppointment.notes,
+            patient_name: currentAppointment.patient_name,
+            patient_phone: currentAppointment.patient_phone 
+              ? `+55${currentAppointment.patient_phone.replace(/\D/g, '')}` 
+              : null,
+            patient_email: currentAppointment.patient_email
+          },
+          {
+            action: "update",
+            user_id: currentAppointment.user_id,
+            agent_id: updates.professional_profile_id || currentAppointment.professional_profile_id,
+            appointment_id: currentAppointment.id,
+            google_event_id: currentAppointment.google_event_id,
+            datetime: newDateTime,
+            duration_minutes: newDuration,
+            status: "reagendado",
+            summary: updates.appointment_type || currentAppointment.appointment_type,
+            notes: updates.notes || currentAppointment.notes,
+            patient_name: updates.patient_name || currentAppointment.patient_name,
+            patient_phone: updates.patient_phone 
+              ? `+55${updates.patient_phone.replace(/\D/g, '')}` 
+              : (currentAppointment.patient_phone ? `+55${currentAppointment.patient_phone.replace(/\D/g, '')}` : null),
+            patient_email: updates.patient_email || currentAppointment.patient_email
+          }
+        ];
+
+        // Enviar para webhook
+        try {
+          const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/remarcar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(webhookPayload)
+          });
+
+          if (!response.ok) {
+            console.error('Erro ao enviar webhook de remarcar:', response.statusText);
+          } else {
+            console.log('✅ Webhook de remarcar enviado com sucesso');
+          }
+        } catch (webhookError) {
+          console.error('Erro ao enviar webhook:', webhookError);
+          // Não bloqueia a atualização no banco
+        }
+      }
+
+      // 5. Atualizar no banco de dados
       const { error } = await supabase
         .from('appointments')
         .update({ ...updates, updated_at: new Date().toISOString() })
