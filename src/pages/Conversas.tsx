@@ -496,7 +496,7 @@ export default function ConversasPage() {
               {/* Chat Panel - Right Panel */}
               <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 {selectedConversationId && selectedConversationData ? (
-                  <div className={`flex-1 min-h-0 overflow-hidden ${showMobileChat ? 'hidden md:block' : ''}`}>
+                  <div className="flex-1 min-h-0 overflow-hidden hidden md:block">
                     <ChatPanel
                       conversationId={selectedConversationId}
                       contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}

@@ -30,18 +30,46 @@ export const applyMask = {
   phone: (value: string) => {
     const cleanValue = value.replace(/\D/g, '');
     
-    // Extract last 8-9 digits (local number)
-    const localNumber = cleanValue.length > 9 ? cleanValue.slice(-9) : cleanValue.slice(-8);
-    
-    if (localNumber.length === 9) {
-      // 9 digits: XXXXX-XXXX
-      return localNumber.replace(/(\d{5})(\d{4})/, '$1-$2');
-    } else if (localNumber.length === 8) {
-      // 8 digits: XXXX-XXXX
-      return localNumber.replace(/(\d{4})(\d{4})/, '$1-$2');
+    // Número internacional brasileiro (+55...)
+    if (cleanValue.length >= 12 && cleanValue.startsWith('55')) {
+      // Remove o código do país (55)
+      const withoutCountryCode = cleanValue.substring(2);
+      
+      // Extrai DDD (2 primeiros dígitos)
+      const ddd = withoutCountryCode.substring(0, 2);
+      
+      // Extrai número local (resto dos dígitos)
+      const localNumber = withoutCountryCode.substring(2);
+      
+      if (localNumber.length === 9) {
+        // Celular: (XX) 9XXXX-XXXX
+        return `(${ddd}) ${localNumber.substring(0, 5)}-${localNumber.substring(5, 9)}`;
+      } else if (localNumber.length === 8) {
+        // Fixo: (XX) XXXX-XXXX
+        return `(${ddd}) ${localNumber.substring(0, 4)}-${localNumber.substring(4, 8)}`;
+      }
+      
+      // Se não tiver 8 ou 9 dígitos, retorna com DDD
+      return `(${ddd}) ${localNumber}`;
     }
     
-    return localNumber;
+    // Número local (10-11 dígitos)
+    if (cleanValue.length === 11) {
+      // Celular: (XX) 9XXXX-XXXX
+      return cleanValue
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+        .replace(/(-\d{4})\d+?$/, '$1');
+    } else if (cleanValue.length === 10) {
+      // Fixo: (XX) XXXX-XXXX
+      return cleanValue
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{4})(\d)/, '$1-$2')
+        .replace(/(-\d{4})\d+?$/, '$1');
+    }
+    
+    // Se não se encaixar em nenhum formato, retorna apenas os dígitos
+    return cleanValue;
   },
 
   cep: (value: string) => {
