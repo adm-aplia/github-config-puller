@@ -106,15 +106,15 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
                 dataKey="conversations" 
                 stackId="a"
                 fill="hsl(356, 78%, 62%)"
-                radius={[0, 0, 0, 0]}
+                radius={[4, 4, 0, 0]}
                 name="conversations"
               />
               
-              {/* Barra de Agendamentos - Azul Escuro #172138 */}
+              {/* Barra de Agendamentos - Azul Escuro #172138 (mais claro) */}
               <Bar 
                 dataKey="appointments" 
                 stackId="a"
-                fill="hsl(218, 42%, 15%)"
+                fill="hsl(218, 42%, 22%)"
                 radius={[4, 4, 0, 0]}
                 name="appointments"
               />
