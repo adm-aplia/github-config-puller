@@ -117,17 +117,17 @@ export function RecentConversations() {
 
   if (loading) {
     return (
-      <Card className="col-span-1 lg:col-span-3">
+      <Card className="col-span-1 lg:col-span-3 h-full">
         <CardHeader>
-          <CardTitle>Conversas Recentes</CardTitle>
-          <CardDescription>Últimas conversas registradas</CardDescription>
+          <CardTitle className="text-fluid-lg">Conversas Recentes</CardTitle>
+          <CardDescription className="text-fluid-xs sm:text-fluid-sm">Últimas conversas registradas</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex items-start space-x-4">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="space-y-2 flex-1">
+              <div key={i} className="flex items-start space-x-3 sm:space-x-4">
+                <Skeleton className="h-9 w-9 sm:h-10 sm:w-10 rounded-full flex-shrink-0" />
+                <div className="space-y-2 flex-1 min-w-0">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-3 w-1/2" />
                   <Skeleton className="h-3 w-full" />
@@ -142,43 +142,43 @@ export function RecentConversations() {
   }
 
   return (
-    <Card className="col-span-1 lg:col-span-3">
+    <Card className="col-span-1 lg:col-span-3 h-full">
       <CardHeader>
-        <CardTitle>Conversas Recentes</CardTitle>
-        <CardDescription>Últimas conversas registradas</CardDescription>
+        <CardTitle className="text-fluid-lg">Conversas Recentes</CardTitle>
+        <CardDescription className="text-fluid-xs sm:text-fluid-sm">Últimas conversas registradas</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="divide-y">
           {conversations.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>Nenhuma conversa encontrada</p>
-              <p className="text-sm">As conversas aparecerão aqui conforme forem criadas</p>
+            <div className="text-center py-6 sm:py-8 text-muted-foreground">
+              <p className="text-fluid-sm">Nenhuma conversa encontrada</p>
+              <p className="text-fluid-xs mt-1">As conversas aparecerão aqui conforme forem criadas</p>
             </div>
           ) : (
             conversations.map((conversation) => (
               <div 
                 key={conversation.id} 
-                className="flex items-start space-x-4 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                className="flex items-start space-x-3 sm:space-x-4 p-2 sm:p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
                 onClick={() => navigate(`/dashboard/conversas?conversation=${conversation.id}`)}
               >
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
+                <Avatar className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                     {(conversation.contact_name || conversation.contact_phone).charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-1 flex-1 min-w-0">
-                  <p className="text-sm font-medium leading-none">
+                  <p className="text-fluid-sm font-medium leading-none truncate">
                     {conversation.contact_name || conversation.contact_phone}
                   </p>
                   {conversation.professional_profile && (
-                    <p className="text-sm text-muted-foreground font-medium">
+                    <p className="text-fluid-xs text-muted-foreground font-medium truncate">
                       {conversation.professional_profile.fullname} - {conversation.professional_profile.specialty}
                     </p>
                   )}
-                  <p className="text-sm text-muted-foreground truncate">
+                  <p className="text-fluid-xs text-muted-foreground truncate">
                     {conversation.latest_message?.content || 'Nenhuma mensagem'}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">
                     {formatTimestamp(conversation.latest_message?.created_at || conversation.created_at)}
                   </p>
                 </div>

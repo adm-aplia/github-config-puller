@@ -124,19 +124,19 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
+      <div className="max-w-[1600px] mx-auto">
         {/* Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6 sm:mb-10">
+        <header className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-fluid-lg">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-fluid-2xl sm:text-fluid-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-fluid-sm text-muted-foreground mt-2">
               Visão geral da sua plataforma Aplia
-              <span className="text-xs ml-2">
+              <span className="text-xs ml-2 block sm:inline mt-1 sm:mt-0">
                 Última atualização: {lastUpdated.toLocaleTimeString('pt-BR')}
               </span>
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <Button
               variant="outline"
               size="sm"
@@ -145,7 +145,7 @@ export default function DashboardPage() {
               className="flex items-center gap-2 bg-transparent"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              <span className="sr-only md:not-sr-only">Atualizar</span>
+              <span className="hidden xs:inline">Atualizar</span>
             </Button>
             
             <Button 
@@ -155,12 +155,13 @@ export default function DashboardPage() {
               onClick={() => setCustomizationOpen(true)}
             >
               <Settings2 className="h-4 w-4" />
-              Personalizar Dashboard
+              <span className="hidden sm:inline">Personalizar</span>
+              <span className="sm:hidden">Config</span>
             </Button>
           </div>
         </header>
 
-        <div className="space-y-6 sm:space-y-8">
+        <div className="space-y-fluid-md sm:space-y-fluid-lg">
           {dashboardConfig.showMetrics && (
             <DashboardMetrics 
               stats={stats} 
@@ -170,7 +171,7 @@ export default function DashboardPage() {
           )}
 
           {/* Charts and Activity */}
-          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-7">
+          <div className="grid gap-fluid-sm sm:gap-fluid-md grid-cols-1 lg:grid-cols-7">
             {dashboardConfig.showChart && (
               <ConversationChart 
                 chartData={chartData} 

@@ -12,12 +12,49 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem',
+			padding: {
+				DEFAULT: 'var(--spacing-md)',
+				sm: 'var(--spacing-md)',
+				md: 'var(--spacing-lg)',
+				lg: 'var(--spacing-lg)',
+				xl: 'var(--spacing-xl)',
+				'2xl': 'var(--spacing-xl)',
+			},
 			screens: {
-				'2xl': '1400px'
+				sm: '640px',
+				md: '768px',
+				lg: '1024px',
+				xl: '1280px',
+				'2xl': '1440px',
 			}
 		},
+		screens: {
+			'xs': '480px',
+			'sm': '640px',
+			'md': '768px',
+			'lg': '1024px',
+			'xl': '1280px',
+			'2xl': '1440px',
+			'3xl': '1920px',
+		},
 		extend: {
+			spacing: {
+				'fluid-xs': 'var(--spacing-xs)',
+				'fluid-sm': 'var(--spacing-sm)',
+				'fluid-md': 'var(--spacing-md)',
+				'fluid-lg': 'var(--spacing-lg)',
+				'fluid-xl': 'var(--spacing-xl)',
+				'fluid-2xl': 'var(--spacing-2xl)',
+			},
+			fontSize: {
+				'fluid-xs': 'var(--font-xs)',
+				'fluid-sm': 'var(--font-sm)',
+				'fluid-base': 'var(--font-base)',
+				'fluid-lg': 'var(--font-lg)',
+				'fluid-xl': 'var(--font-xl)',
+				'fluid-2xl': 'var(--font-2xl)',
+				'fluid-3xl': 'var(--font-3xl)',
+			},
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
 			},

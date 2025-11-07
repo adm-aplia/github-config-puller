@@ -55,13 +55,13 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
   
   if (loading) {
     return (
-      <Card className="col-span-1 lg:col-span-4">
+      <Card className="col-span-1 lg:col-span-4 h-full">
         <CardHeader>
-          <div className="h-6 w-32 bg-muted animate-pulse rounded" />
-          <div className="h-4 w-48 bg-muted animate-pulse rounded" />
+          <div className="h-5 sm:h-6 w-32 bg-muted animate-pulse rounded" />
+          <div className="h-3 sm:h-4 w-48 bg-muted animate-pulse rounded mt-2" />
         </CardHeader>
         <CardContent>
-          <div className="h-[220px] sm:h-[280px] w-full bg-muted animate-pulse rounded" />
+          <div className="h-[220px] sm:h-[280px] lg:h-[320px] w-full bg-muted animate-pulse rounded" />
         </CardContent>
       </Card>
     )
@@ -72,18 +72,18 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
   const maxValue = rawMax <= 5 ? 5 : Math.ceil(rawMax * 1.2)
   
   return (
-    <Card className="col-span-1 lg:col-span-4">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
+    <Card className="col-span-1 lg:col-span-4 h-full">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 sm:pb-6">
         <div>
-          <CardTitle className="text-lg font-semibold">Conversas dos Últimos {periodLabel}</CardTitle>
-          <CardDescription className="mt-2">
+          <CardTitle className="text-fluid-lg font-semibold">Conversas dos Últimos {periodLabel}</CardTitle>
+          <CardDescription className="mt-1 sm:mt-2 text-fluid-xs sm:text-fluid-sm">
             Evolução das conversas por dia
           </CardDescription>
         </div>
       </CardHeader>
       
       <CardContent className="pt-2 pb-2">
-        <div className="h-[260px] sm:h-[320px] w-full">
+        <div className="h-[260px] sm:h-[320px] lg:h-[360px] w-full">
           <div className="relative h-full w-full bg-gradient-to-b from-background to-muted/10 rounded-lg p-4">
             {/* Grid lines */}
             <div className="absolute inset-4 flex flex-col justify-between">
@@ -93,7 +93,7 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
             </div>
             
             {/* Y-axis labels */}
-            <div className="absolute left-0 inset-y-4 flex flex-col justify-between text-xs text-muted-foreground">
+            <div className="absolute left-0 inset-y-4 flex flex-col justify-between text-[10px] sm:text-xs text-muted-foreground">
               {[maxValue, Math.round(maxValue * 0.8), Math.round(maxValue * 0.6), Math.round(maxValue * 0.4), Math.round(maxValue * 0.2), 0].map((value) => (
                 <span key={value}>{value.toLocaleString()}</span>
               ))}
