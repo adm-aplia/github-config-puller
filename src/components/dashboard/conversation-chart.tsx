@@ -106,7 +106,7 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
                 dataKey="conversations" 
                 stackId="a"
                 fill="hsl(356, 78%, 62%)"
-                radius={[4, 4, 0, 0]}
+                radius={((data: any) => data.appointments > 0 ? [0, 0, 0, 0] : [4, 4, 0, 0]) as any}
                 name="conversations"
               />
               
