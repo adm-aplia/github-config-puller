@@ -25,6 +25,24 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
     )
   }
 
+  if (!chartData || chartData.length === 0) {
+    return (
+      <Card className="col-span-1 lg:col-span-4 h-full">
+        <CardHeader>
+          <CardTitle className="text-fluid-lg font-semibold">Conversas e Agendamentos dos Últimos {periodLabel}</CardTitle>
+          <CardDescription className="mt-1 sm:mt-2 text-fluid-xs sm:text-fluid-sm">
+            Sem dados para exibir
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[280px] sm:h-[340px] lg:h-[380px] w-full flex items-center justify-center text-muted-foreground">
+            Nenhum dado disponível
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="col-span-1 lg:col-span-4 h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 sm:pb-6">
