@@ -54,12 +54,12 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
         </div>
       </CardHeader>
       
-      <CardContent className="pt-2 pb-4">
-        <div className="h-[280px] sm:h-[340px] lg:h-[380px] w-full">
+      <CardContent className="pt-0 pb-2">
+        <div className="h-[320px] sm:h-[380px] lg:h-[420px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
               data={chartData}
-              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
             >
               <CartesianGrid 
                 strokeDasharray="3 3" 
@@ -95,24 +95,26 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
               />
               
               <Legend 
+                verticalAlign="bottom"
+                align="center"
                 formatter={(value) => value === 'conversations' ? 'Conversas' : 'Agendamentos'}
-                wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }}
+                wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}
               />
               
-              {/* Barra de Conversas - Verde/Ciano */}
+              {/* Barra de Conversas - Coral Aplia */}
               <Bar 
                 dataKey="conversations" 
                 stackId="a"
-                fill="hsl(180, 70%, 55%)"
+                fill="hsl(356, 75%, 62%)"
                 radius={[0, 0, 0, 0]}
                 name="conversations"
               />
               
-              {/* Barra de Agendamentos - Azul */}
+              {/* Barra de Agendamentos - Azul Aplia */}
               <Bar 
                 dataKey="appointments" 
                 stackId="a"
-                fill="hsl(210, 90%, 60%)"
+                fill="hsl(217, 91%, 60%)"
                 radius={[4, 4, 0, 0]}
                 name="appointments"
               />
