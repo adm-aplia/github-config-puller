@@ -17,6 +17,7 @@ export interface DashboardStats {
 export interface ChartData {
   date: string;
   conversations: number;
+  appointments: number;
 }
 
 export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
@@ -166,7 +167,8 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
         if (!allUserConversations || allUserConversations.length === 0) {
           return {
             date: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-            conversations: 0
+            conversations: 0,
+            appointments: 0
           };
         }
 
@@ -192,9 +194,19 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
             .map(conv => conv.contact_phone)
         );
 
+        // Buscar agendamentos criados neste dia (excluindo bloqueios)
+        const { data: appointmentsInDay } = await supabase
+          .from('appointments')
+          .select('id')
+          .eq('user_id', userData.user.id)
+          .neq('appointment_type', 'blocked')
+          .gte('created_at', startOfDay.toISOString())
+          .lte('created_at', endOfDay.toISOString());
+
         return {
           date: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-          conversations: uniqueContacts.size
+          conversations: uniqueContacts.size,
+          appointments: appointmentsInDay?.length || 0
         };
       });
 
