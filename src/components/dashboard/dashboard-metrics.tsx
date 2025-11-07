@@ -18,7 +18,7 @@ function MetricCard({ title, value, description, icon: Icon, trend }: MetricCard
         <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="text-fluid-xl sm:text-fluid-2xl font-bold">{value}</div>
+        <div className="text-fluid-lg sm:text-fluid-xl font-bold">{value}</div>
         <p className="text-fluid-xs text-muted-foreground mt-1">
           {trend && <span className="text-green-600">{trend}</span>} {description}
         </p>
