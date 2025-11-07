@@ -21,6 +21,10 @@ export interface ProfessionalProfile {
   consultationduration?: string;
   installment_enabled?: boolean;
   max_installments?: number;
+  instagram?: string;
+  reminders_enabled?: boolean;
+  reminder_message?: string;
+  reminder_hours_before?: number;
   is_active?: boolean;
   created_at: string;
   updated_at: string;

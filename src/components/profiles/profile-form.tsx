@@ -5,25 +5,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ProfessionalProfile } from '@/hooks/use-professional-profiles';
-import { CurrencyInput } from '@/components/ui/currency-input';
 import { WeeklyScheduleInput } from '@/components/ui/weekly-schedule-input';
-import { ToggleWithInput } from '@/components/ui/toggle-with-input';
-import { ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { applyMask } from '@/lib/masks';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipTrigger, 
-  TooltipProvider 
-} from '@/components/ui/tooltip';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ClickableStepIndicator } from './clickable-step-indicator';
+import { ProcedureListInput, Procedure } from './procedure-list-input';
+import { ReminderSettings } from './reminder-settings';
 
 interface ProfileFormProps {
   profile?: ProfessionalProfile;
@@ -31,6 +20,22 @@ interface ProfileFormProps {
   onClose: () => void;
   onSubmit: (data: Partial<ProfessionalProfile>) => Promise<boolean>;
 }
+
+// EXEMPLOS PRÉ-PREENCHIDOS
+const DEFAULT_PROCEDURES: Procedure[] = [
+  { id: '1', name: 'Consulta Padrão', duration: 60, value: '150,00', hideValue: false },
+  { id: '2', name: 'Retorno', duration: 30, hideValue: true },
+  { id: '3', name: 'Outro', customName: 'ECG', duration: 15, value: '50,00', hideValue: false }
+];
+
+const DEFAULT_WORKING_HOURS = JSON.stringify({
+  monday: [{ start: '08:00', end: '18:00' }],
+  tuesday: [{ start: '08:00', end: '18:00' }],
+  wednesday: [{ start: '08:00', end: '18:00' }],
+  thursday: [{ start: '08:00', end: '18:00' }],
+  friday: [{ start: '08:00', end: '18:00' }],
+  saturday: [{ start: '08:00', end: '13:00' }]
+});
 
 export const ProfileForm: React.FC<ProfileFormProps> = ({
   profile,
@@ -40,74 +45,71 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<Partial<ProfessionalProfile>>({
-    fullname: '',
-    specialty: '',
-    professionalid: '',
-    phonenumber: '',
-    email: '',
-    education: '',
-    locations: '',
-    workinghours: '',
-    procedures: '',
-    consultationduration: '',
-    healthinsurance: '',
-    paymentmethods: '',
-    consultationfees: '',
-    installment_enabled: false,
-    max_installments: 1,
-  });
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [formData, setFormData] = useState<Partial<ProfessionalProfile & {
+    procedures_json?: Procedure[];
+  }>>({});
 
   useEffect(() => {
     if (profile) {
-      setFormData(profile);
+      let proceduresJson = DEFAULT_PROCEDURES;
+      if (profile.procedures) {
+        try {
+          proceduresJson = JSON.parse(profile.procedures);
+        } catch {
+          proceduresJson = DEFAULT_PROCEDURES;
+        }
+      }
+
+      setFormData({
+        ...profile,
+        procedures_json: proceduresJson
+      });
     } else {
       setFormData({
-        fullname: '',
-        specialty: '',
-        professionalid: '',
-        phonenumber: '',
-        email: '',
-        education: '',
-        locations: '',
-        workinghours: '',
-        procedures: '',
-        consultationduration: '',
-        healthinsurance: '',
-        paymentmethods: '',
-        consultationfees: '',
-        installment_enabled: false,
-        max_installments: 1,
+        fullname: 'Dra. Claudia Silva',
+        specialty: 'Cardiologia',
+        professionalid: 'CRM 12345/SP',
+        phonenumber: '(11) 98765-4321',
+        email: 'claudia@exemplo.com',
+        education: 'Medicina - USP, Cardiologia - Hospital A.C. Camargo',
+        instagram: '@dra.claudia.cardio',
+        locations: 'Consultório Centro - Rua das Flores, 123, Sala 45',
+        workinghours: DEFAULT_WORKING_HOURS,
+        procedures_json: DEFAULT_PROCEDURES,
+        healthinsurance: 'Unimed, SulAmérica, Amil, Bradesco Saúde',
+        paymentmethods: 'Crédito, Débito, PIX, Dinheiro',
+        max_installments: 12,
+        reminders_enabled: false,
+        reminder_message: '',
+        reminder_hours_before: 24
       });
     }
     setCurrentStep(1);
+    setCompletedSteps([]);
   }, [profile, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (loading) {
-      console.log('[ProfileForm] Submit bloqueado - já está salvando');
-      return;
-    }
+    if (loading || currentStep < 4) return;
     
-    if (currentStep < 3) {
-      console.log('[ProfileForm] Submit bloqueado - não está na etapa final');
-      return;
-    }
-    
-    console.log('[ProfileForm] Iniciando submit com dados:', formData);
     setLoading(true);
     
     try {
-      const success = await onSubmit(formData);
-      console.log('[ProfileForm] Resultado do submit:', success);
+      const dataToSubmit = {
+        ...formData,
+        procedures: JSON.stringify(formData.procedures_json || [])
+      };
+      delete dataToSubmit.procedures_json;
+
+      const success = await onSubmit(dataToSubmit);
       
       if (success) {
-        console.log('[ProfileForm] Submit bem-sucedido, fechando modal');
         onClose();
         setCurrentStep(1);
+        setCompletedSteps([]);
       }
     } catch (error) {
       console.error('[ProfileForm] Erro no submit:', error);
@@ -117,7 +119,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   };
 
   const handleNext = () => {
-    if (currentStep < 3) {
+    if (currentStep < 4 && canProceed()) {
+      setCompletedSteps(prev => [...prev, currentStep]);
       setCurrentStep(currentStep + 1);
     }
   };
@@ -129,14 +132,34 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   };
 
   const canProceed = () => {
-    if (currentStep === 1) {
-      return formData.fullname && formData.specialty;
+    switch(currentStep) {
+      case 1:
+        return formData.fullname && formData.specialty && formData.email;
+      case 2:
+        return true;
+      case 3:
+        return formData.procedures_json && formData.procedures_json.length > 0;
+      case 4:
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const canNavigateToStep = (step: number) => {
+    if (step < currentStep) return true;
+    if (step > currentStep) {
+      for (let i = 1; i < step; i++) {
+        if (!completedSteps.includes(i) && i !== currentStep) {
+          return false;
+        }
+      }
+      return canProceed();
     }
     return true;
   };
 
-  const handleChange = (field: keyof ProfessionalProfile, value: string | boolean | number) => {
-    console.log(`[ProfileForm] Campo alterado: ${field}`, value);
+  const handleChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -144,87 +167,72 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   };
 
   const stepTitles = [
-    'Informações Básicas',
-    'Localização e Atendimento',
-    'Planos e Pagamentos'
+    { number: 1, title: 'Informações Gerais' },
+    { number: 2, title: 'Localização e Atendimento' },
+    { number: 3, title: 'Procedimentos' },
+    { number: 4, title: 'Formas de Pagamento' }
   ];
+
+  const steps = stepTitles.map(step => ({
+    ...step,
+    completed: completedSteps.includes(step.number)
+  }));
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="space-y-3">
+          <DialogTitle className="space-y-4">
             <div className="text-sm font-normal text-muted-foreground">
               {profile ? 'Editar Perfil' : 'Novo Perfil'}
             </div>
             
-            {/* Progress Indicator */}
-            <div className="flex items-center justify-between gap-3 px-4">
-              {[1, 2, 3].map((step) => (
-                <React.Fragment key={step}>
-                  <div className={`
-                    flex items-center justify-center 
-                    w-12 h-12 rounded-full 
-                    text-lg font-bold
-                    transition-all duration-300
-                    ${step === currentStep 
-                      ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-110' 
-                      : step < currentStep
-                      ? 'bg-red-50 border-2 border-red-500 text-red-500'
-                      : 'bg-gray-100 border-2 border-gray-300 text-gray-400'
-                    }
-                  `}>
-                    {step}
-                  </div>
-                  {step < 3 && (
-                    <div className={`
-                      h-1 flex-1 rounded-full
-                      transition-all duration-300
-                      ${step < currentStep 
-                        ? 'bg-red-500' 
-                        : 'bg-gray-200'
-                      }
-                    `} />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
+            <ClickableStepIndicator
+              currentStep={currentStep}
+              steps={steps}
+              onStepClick={setCurrentStep}
+              canNavigateToStep={(step) => !!canNavigateToStep(step)}
+            />
             
-            {/* Step Title */}
             <div className="space-y-1">
               <div className="text-xs font-medium text-muted-foreground">
-                Etapa {currentStep} de 3
+                Etapa {currentStep} de 4
               </div>
               <div className="text-xl font-bold text-foreground">
-                {stepTitles[currentStep - 1]}
+                {stepTitles[currentStep - 1].title}
               </div>
             </div>
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Etapa 1: Informações Básicas */}
+          
+          {/* ETAPA 1: INFORMAÇÕES GERAIS */}
           {currentStep === 1 && (
-            <div className="space-y-4">
-              
+            <div className="space-y-4 animate-fade-in">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullname">Nome Completo *</Label>
+                  <Label htmlFor="fullname">
+                    Nome Completo <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="fullname"
                     value={formData.fullname || ''}
                     onChange={(e) => handleChange('fullname', e.target.value)}
+                    placeholder="Dra. Claudia Silva"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="specialty">Especialidade *</Label>
+                  <Label htmlFor="specialty">
+                    Especialidade <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="specialty"
                     value={formData.specialty || ''}
                     onChange={(e) => handleChange('specialty', e.target.value)}
-                    placeholder="ex: Urologista; Ortodontista; Cardiologista"
+                    placeholder="Cardiologia"
                     required
                   />
                 </div>
@@ -235,7 +243,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                     id="professionalid"
                     value={formData.professionalid || ''}
                     onChange={(e) => handleChange('professionalid', e.target.value)}
-                    placeholder="ex: CRM/SP 123456; CRO/12345"
+                    placeholder="CRM 12345/SP"
                   />
                 </div>
 
@@ -248,19 +256,32 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                       const masked = applyMask.phone(e.target.value);
                       handleChange('phonenumber', masked);
                     }}
-                    placeholder="(11) 99999-9999"
+                    placeholder="(11) 98765-4321"
                     maxLength={15}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">
+                    Email <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="email"
                     type="email"
                     value={formData.email || ''}
                     onChange={(e) => handleChange('email', e.target.value)}
-                    placeholder="exemplo@email.com"
+                    placeholder="claudia@exemplo.com"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <Input
+                    id="instagram"
+                    value={formData.instagram || ''}
+                    onChange={(e) => handleChange('instagram', e.target.value)}
+                    placeholder="@aplia.ia"
                   />
                 </div>
 
@@ -270,7 +291,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                     id="education"
                     value={formData.education || ''}
                     onChange={(e) => handleChange('education', e.target.value)}
-                    placeholder="ex: Graduação em Medicina pela UFRJ e Residência em Cardiologia pelo Hospital Albert Einstein"
+                    placeholder="Medicina - USP, Cardiologia - Hospital A.C. Camargo"
                     rows={3}
                   />
                 </div>
@@ -278,94 +299,62 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
             </div>
           )}
 
-          {/* Etapa 2: Localização e Atendimento */}
+          {/* ETAPA 2: LOCALIZAÇÃO E ATENDIMENTO */}
           {currentStep === 2 && (
-            <div className="space-y-4">
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="locations">Locais de Atendimento</Label>
-                  <Textarea
-                    id="locations"
-                    value={formData.locations || ''}
-                    onChange={(e) => handleChange('locations', e.target.value)}
-                    placeholder="ex: Consultório Centro - Rua das Flores, 123, Sala 45"
-                    rows={3}
-                  />
-                </div>
+            <div className="space-y-4 animate-fade-in">
+              <div className="space-y-2">
+                <Label htmlFor="locations">Locais de Atendimento</Label>
+                <Textarea
+                  id="locations"
+                  value={formData.locations || ''}
+                  onChange={(e) => handleChange('locations', e.target.value)}
+                  placeholder="Consultório Centro - Rua das Flores, 123, Sala 45"
+                  rows={3}
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <TooltipProvider>
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="workinghours">Horários de Trabalho</Label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <p>Configure seus horários de trabalho por dia da semana.</p>
-                          <p className="mt-1">Você pode incluir intervalos de almoço (ex: 09:00-12:00, 14:00-18:00) e definir janelas de tempo específicas para cada dia.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </TooltipProvider>
-                  <WeeklyScheduleInput
-                    value={formData.workinghours || ''}
-                    onChange={(value) => handleChange('workinghours', value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="procedures">Procedimentos Realizados</Label>
-                  <Textarea
-                    id="procedures"
-                    value={formData.procedures || ''}
-                    onChange={(e) => handleChange('procedures', e.target.value)}
-                    placeholder="ex: Consultas, Cirurgias, Exames"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="consultationduration">Duração da Consulta</Label>
-                  <Select
-                    value={formData.consultationduration || ''}
-                    onValueChange={(value) => handleChange('consultationduration', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a duração" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15 minutos">15 minutos</SelectItem>
-                      <SelectItem value="30 minutos">30 minutos</SelectItem>
-                      <SelectItem value="45 minutos">45 minutos</SelectItem>
-                      <SelectItem value="60 minutos">60 minutos</SelectItem>
-                      <SelectItem value="90 minutos">90 minutos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="workinghours">Horários de Trabalho</Label>
+                <WeeklyScheduleInput
+                  value={formData.workinghours || ''}
+                  onChange={(value) => handleChange('workinghours', value)}
+                />
               </div>
             </div>
           )}
 
-          {/* Etapa 3: Planos e Pagamentos */}
+          {/* ETAPA 3: PROCEDIMENTOS */}
           {currentStep === 3 && (
-            <div className="space-y-4">
-              
-              <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in">
+              <ProcedureListInput
+                value={formData.procedures_json || []}
+                onChange={(procedures) => handleChange('procedures_json', procedures)}
+              />
+            </div>
+          )}
+
+          {/* ETAPA 4: FORMAS DE PAGAMENTO */}
+          {currentStep === 4 && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* SEÇÃO A: Convênios Aceitos */}
                 <div className="space-y-2">
-                  <Label htmlFor="healthinsurance">Convênios Aceitos</Label>
+                  <Label htmlFor="healthinsurance" className="text-base font-semibold">
+                    Convênios Aceitos
+                  </Label>
                   <Textarea
                     id="healthinsurance"
                     value={formData.healthinsurance || ''}
                     onChange={(e) => handleChange('healthinsurance', e.target.value)}
-                    placeholder="ex: Bradesco, Sulamérica, Omint, Unimed Nacional"
-                    rows={3}
+                    placeholder="Unimed, SulAmérica, Amil, Bradesco Saúde"
+                    rows={4}
                   />
                 </div>
 
+                {/* SEÇÃO B: Formas de Pagamento */}
                 <div className="space-y-2">
-                  <Label>Formas de Pagamento</Label>
+                  <Label className="text-base font-semibold">Formas de Pagamento Aceitas</Label>
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     {['Crédito', 'Débito', 'PIX', 'Dinheiro'].map((method) => {
                       const selectedPayments = formData.paymentmethods 
@@ -404,31 +393,32 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                   </div>
                 </div>
 
+                {/* SEÇÃO C: Parcelamento */}
                 <div className="space-y-2">
-                  <Label htmlFor="consultationfees">Valores</Label>
-                  <CurrencyInput
-                    value={formData.consultationfees || ''}
-                    onChange={(value) => handleChange('consultationfees', value)}
-                    placeholder="350,00"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <ToggleWithInput
-                    label="Parcelamento?"
-                    toggleValue={formData.installment_enabled || false}
-                    onToggleChange={(value) => handleChange('installment_enabled', value)}
-                    inputValue={formData.max_installments?.toString() || ''}
-                    onInputChange={(value) => handleChange('max_installments', parseInt(value) || 1)}
-                    inputPlaceholder="Até quantas vezes?"
-                    inputType="number"
-                  />
+                  <Label htmlFor="max_installments" className="text-base font-semibold">
+                    Máximo de Parcelas
+                  </Label>
+                  <Select
+                    value={formData.max_installments?.toString() || '1'}
+                    onValueChange={(value) => handleChange('max_installments', parseInt(value))}
+                  >
+                    <SelectTrigger id="max_installments">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({length: 12}, (_, i) => i + 1).map(num => (
+                        <SelectItem key={num} value={num.toString()}>
+                          Até {num}x
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Navegação */}
+          {/* NAVEGAÇÃO */}
           <div className="flex justify-between gap-2 pt-4 border-t">
             <Button 
               type="button" 
@@ -450,7 +440,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </Button>
               )}
 
-              {currentStep < 3 ? (
+              {currentStep < 4 ? (
                 <Button
                   type="button"
                   onClick={handleNext}
@@ -466,7 +456,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('[ProfileForm] Botão Salvar clicado');
                     handleSubmit(e as any);
                   }}
                 >
@@ -475,6 +464,16 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
               )}
             </div>
           </div>
+
+          {/* SEÇÃO BÔNUS: LEMBRETES */}
+          <ReminderSettings
+            remindersEnabled={formData.reminders_enabled || false}
+            onRemindersEnabledChange={(enabled) => handleChange('reminders_enabled', enabled)}
+            reminderMessage={formData.reminder_message || ''}
+            onReminderMessageChange={(message) => handleChange('reminder_message', message)}
+            reminderHoursBefore={formData.reminder_hours_before || 24}
+            onReminderHoursBeforeChange={(hours) => handleChange('reminder_hours_before', hours)}
+          />
         </form>
       </DialogContent>
     </Dialog>
