@@ -101,20 +101,20 @@ export function ConversationChart({ chartData, loading, periodLabel = "7 dias" }
                 wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}
               />
               
-              {/* Barra de Conversas - Coral Aplia */}
+              {/* Barra de Conversas - Coral #EA545F */}
               <Bar 
                 dataKey="conversations" 
                 stackId="a"
-                fill="hsl(356, 75%, 62%)"
+                fill="hsl(356, 78%, 62%)"
                 radius={[0, 0, 0, 0]}
                 name="conversations"
               />
               
-              {/* Barra de Agendamentos - Azul Aplia */}
+              {/* Barra de Agendamentos - Azul Escuro #172138 */}
               <Bar 
                 dataKey="appointments" 
                 stackId="a"
-                fill="hsl(217, 91%, 60%)"
+                fill="hsl(218, 42%, 15%)"
                 radius={[4, 4, 0, 0]}
                 name="appointments"
               />
