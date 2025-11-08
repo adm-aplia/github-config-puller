@@ -722,29 +722,29 @@ export default function AgendamentosPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-2 sm:p-3 lg:p-6 overflow-x-auto">
-                <div className="w-full max-w-full min-w-0">
+              <CardContent className="p-3 sm:p-4 lg:p-6">
+                <div className="w-full">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    className="w-full max-w-full rounded-md border mx-auto"
+                    className="w-full rounded-md border"
                     locale={ptBR}
                     classNames={{
                       months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
-                      month: "space-y-4 w-full",
-                      caption: "flex justify-center pt-1 relative items-center",
-                      caption_label: "text-sm font-medium",
+                      month: "space-y-2 sm:space-y-4 w-full",
+                      caption: "flex justify-center pt-1 relative items-center px-8",
+                      caption_label: "text-xs sm:text-sm font-medium",
                       nav: "space-x-1 flex items-center",
-                      nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                      nav_button: "h-6 w-6 sm:h-7 sm:w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
                       nav_button_previous: "absolute left-1",
                       nav_button_next: "absolute right-1",
-                      table: "w-full border-collapse space-y-1",
+                      table: "w-full border-collapse",
                       head_row: "flex w-full",
-                      head_cell: "text-muted-foreground rounded-md w-full font-normal text-xs sm:text-sm text-center",
-                      row: "flex w-full mt-1 sm:mt-2",
-                      cell: "h-12 sm:h-14 md:h-16 lg:h-20 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
-                      day: "h-12 sm:h-14 md:h-16 lg:h-20 w-full p-1 sm:p-1.5 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
+                      head_cell: "text-muted-foreground rounded-md flex-1 font-normal text-[10px] sm:text-xs text-center py-1",
+                      row: "flex w-full mt-0.5 sm:mt-1",
+                      cell: "h-10 sm:h-14 md:h-16 lg:h-20 flex-1 text-center text-xs sm:text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
+                      day: "h-10 sm:h-14 md:h-16 lg:h-20 w-full p-0.5 sm:p-1.5 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
                       day_range_end: "day-range-end",
                       day_selected: "bg-red-500 text-white hover:bg-red-600 focus:bg-red-600",
                       day_today: "bg-transparent text-foreground",
