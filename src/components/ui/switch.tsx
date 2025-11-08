@@ -19,8 +19,8 @@ const Switch = React.forwardRef<
       className={cn(
         "pointer-events-none block rounded-full bg-background shadow-lg ring-0 transition-all duration-300 ease-in-out",
         // Use custom CSS variables if provided, otherwise default sizes
-        "h-[var(--switch-thumb-size,20px)] w-[var(--switch-thumb-size,20px)]",
-        "data-[state=checked]:translate-x-[var(--switch-translate,20px)] data-[state=unchecked]:translate-x-0"
+        "h-[var(--switch-thumb-size,12px)] w-[var(--switch-thumb-size,12px)] sm:h-[var(--switch-thumb-size,20px)] sm:w-[var(--switch-thumb-size,20px)]",
+        "data-[state=checked]:translate-x-[var(--switch-translate,12px)] sm:data-[state=checked]:translate-x-[var(--switch-translate,20px)] data-[state=unchecked]:translate-x-0"
       )}
     />
   </SwitchPrimitives.Root>

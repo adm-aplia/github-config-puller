@@ -453,7 +453,7 @@ export default function PerfilsPage() {
                                 <Switch
                                   checked={profile.is_active ?? true}
                                   onCheckedChange={(checked) => handleToggleStatus(profile.id, checked)}
-                                  className="h-4 w-7 border-0"
+                                  className="h-4 w-7 sm:h-6 sm:w-11 border-0"
                                   style={{
                                     '--switch-thumb-size': '12px',
                                     '--switch-translate': '12px',

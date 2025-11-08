@@ -262,13 +262,24 @@
   height: clamp(28px, 3.5vw, 36px);
 }
 
-/* Navigation buttons positioning - more space on mobile */
+/* Navigation buttons positioning - close on mobile, more space on desktop */
 .rdp-nav_button_previous {
   left: 0.25rem !important;
 }
 
 .rdp-nav_button_next {
   right: 0.25rem !important;
+}
+
+/* Desktop: more space for navigation arrows (768px+) */
+@media (min-width: 768px) {
+  .rdp-nav_button_previous {
+    left: 1rem !important;
+  }
+  
+  .rdp-nav_button_next {
+    right: 1rem !important;
+  }
 }
 
 .rdp-caption_label {
