@@ -565,15 +565,37 @@ export default function AgendamentosPage() {
     const hasBlocked = blockedAppointments.length > 0
     
     return (
-      <div className="relative w-full h-full flex flex-col items-center justify-start p-1">
-        <span className="text-sm sm:text-base font-medium mb-auto">{date.getDate()}</span>
+      <div 
+        className="relative w-full h-full flex flex-col items-center justify-start" 
+        style={{ padding: 'var(--spacing-xs)' }}
+      >
+        <span 
+          className="font-medium mb-auto" 
+          style={{ fontSize: 'var(--font-sm)' }}
+        >
+          {date.getDate()}
+        </span>
         {(hasAppointments || hasBlocked) && (
-          <div className="flex gap-1 mt-auto pb-1">
+          <div className="flex mt-auto pb-1" style={{ gap: 'var(--spacing-xs)' }}>
             {hasAppointments && (
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full" title="Agendamentos" />
+              <div 
+                className="bg-primary rounded-full" 
+                style={{ 
+                  width: 'clamp(6px, 0.8vw, 8px)', 
+                  height: 'clamp(6px, 0.8vw, 8px)' 
+                }} 
+                title="Agendamentos" 
+              />
             )}
             {hasBlocked && (
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground rounded-full" title="Bloqueios" />
+              <div 
+                className="bg-muted-foreground rounded-full" 
+                style={{ 
+                  width: 'clamp(6px, 0.8vw, 8px)', 
+                  height: 'clamp(6px, 0.8vw, 8px)' 
+                }} 
+                title="Bloqueios" 
+              />
             )}
           </div>
         )}
@@ -583,8 +605,15 @@ export default function AgendamentosPage() {
 
   return (
     <DashboardLayout>
-      <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+      <div 
+        className="w-full" 
+        style={{ 
+          padding: 'var(--spacing-md)',
+          paddingTop: 'var(--spacing-sm)',
+          paddingBottom: 'var(--spacing-sm)'
+        }}
+      >
+        <div className="w-full" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
           {/* Header */}
           <header className="space-y-4">
             <div>
@@ -742,8 +771,8 @@ export default function AgendamentosPage() {
                       head_row: "flex w-full",
                       head_cell: "text-muted-foreground rounded-md w-full font-normal text-xs sm:text-sm text-center",
                       row: "flex w-full mt-1 sm:mt-2",
-                      cell: "h-14 sm:h-16 md:h-18 lg:h-20 w-full text-center text-sm p-0 relative border-r border-b border-border/20 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
-                      day: "h-14 sm:h-16 md:h-18 lg:h-20 w-full p-0 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white hover:bg-accent/50 transition-colors",
+                      cell: "w-full text-center p-0 relative border-r border-b border-border/20 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
+                      day: "w-full p-0 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white hover:bg-accent/50 transition-colors",
                       day_range_end: "day-range-end",
                       day_selected: "bg-red-500 text-white hover:bg-red-600 focus:bg-red-600",
                       day_today: "bg-accent/30 text-foreground font-bold",
@@ -752,8 +781,15 @@ export default function AgendamentosPage() {
                       day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
                       day_hidden: "invisible",
                     }}
+                    style={{
+                      '--cell-height': 'clamp(56px, 8vh, 96px)',
+                    } as React.CSSProperties}
                     components={{
-                      DayContent: ({ date }) => renderDayContent(date)
+                      Day: ({ date, ...props }) => (
+                        <div {...props} style={{ height: 'var(--cell-height)' }}>
+                          {renderDayContent(date)}
+                        </div>
+                      )
                     }}
                   />
                 </div>

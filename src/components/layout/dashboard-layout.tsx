@@ -18,9 +18,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <AppSidebar />
         <main className="flex-1 overflow-auto">
           {/* Header com botão de tema e trigger do sidebar */}
-          <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center justify-between gap-2 sm:gap-4 px-fluid-md lg:px-fluid-lg border-b border-border/30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header 
+            className="sticky top-0 z-40 flex items-center justify-between border-b border-border/30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+            style={{
+              height: 'var(--spacing-2xl)',
+              paddingLeft: 'var(--spacing-md)',
+              paddingRight: 'var(--spacing-md)',
+              gap: 'var(--spacing-sm)',
+            }}
+          >
             <SidebarTrigger />
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center" style={{ gap: 'var(--spacing-sm)' }}>
               <Button
                 variant="outline"
                 size="icon"
@@ -36,7 +44,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </Button>
             </div>
           </header>
-          <div className="p-fluid-md lg:p-fluid-lg max-w-[1600px] mx-auto w-full">
+          <div 
+            className="w-full"
+            style={{
+              padding: 'var(--spacing-md)',
+            }}
+          >
             {children}
           </div>
         </main>

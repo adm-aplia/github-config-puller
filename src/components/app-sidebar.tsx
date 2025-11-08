@@ -135,18 +135,28 @@ export function AppSidebar() {
 
   return (
     <Sidebar 
-      className={`${state === "collapsed" ? "w-14" : "w-64"} bg-background`} 
+      style={{
+        width: state === "collapsed" ? 'var(--sidebar-width-collapsed)' : 'var(--sidebar-width-full)',
+      }}
+      className="bg-background"
       collapsible="icon"
     >
       <SidebarHeader className="bg-background">
-        <div className="flex h-14 items-center px-4">
+        <div 
+          className="flex items-center"
+          style={{ 
+            height: 'var(--spacing-2xl)',
+            paddingLeft: 'var(--spacing-md)',
+            paddingRight: 'var(--spacing-md)',
+          }}
+        >
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               {state !== "collapsed" ? (
                 <img 
                   src={theme === 'dark' ? apliaLogoFullDark : apliaLogoFull} 
                   alt="Aplia" 
-                  className="h-8 w-auto"
+                  style={{ height: 'clamp(24px, 3vw, 32px)', width: 'auto' }}
                   decoding="async"
                   loading="eager"
                 />
@@ -154,7 +164,7 @@ export function AppSidebar() {
                 <img 
                   src={theme === 'dark' ? apliaLogoIconDark : apliaLogoIcon} 
                   alt="Aplia" 
-                  className="h-8 w-8"
+                  style={{ height: 'clamp(24px, 3vw, 32px)', width: 'clamp(24px, 3vw, 32px)' }}
                   decoding="async"
                   loading="eager"
                 />
@@ -190,13 +200,24 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-2 bg-background">
+      <SidebarFooter 
+        className="bg-background"
+        style={{ padding: 'var(--spacing-xs)' }}
+      >
         {state !== "collapsed" ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:text-accent-foreground w-full justify-between px-3 py-2 h-auto text-left hover:bg-muted"
+                className="inline-flex items-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:text-accent-foreground w-full justify-between h-auto text-left hover:bg-muted"
+                style={{
+                  gap: 'var(--spacing-xs)',
+                  paddingLeft: 'var(--spacing-sm)',
+                  paddingRight: 'var(--spacing-sm)',
+                  paddingTop: 'var(--spacing-xs)',
+                  paddingBottom: 'var(--spacing-xs)',
+                  fontSize: 'var(--font-sm)',
+                }}
               >
                 <div className="flex flex-col items-start min-w-0 flex-1">
                   {!loading && (
@@ -248,8 +269,22 @@ export function AppSidebar() {
         ) : (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-8 h-8 rounded-full p-0">
-                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+              <Button 
+                variant="ghost" 
+                className="rounded-full p-0"
+                style={{
+                  width: 'clamp(32px, 4vw, 40px)',
+                  height: 'clamp(32px, 4vw, 40px)',
+                }}
+              >
+                <div 
+                  className="rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    fontSize: 'var(--font-sm)',
+                  }}
+                >
                   {userName.charAt(0).toUpperCase()}
                 </div>
               </Button>
