@@ -252,28 +252,26 @@ export default function PerfilsPage() {
                 <Badge variant="secondary" className="w-fit">
                   {subscription?.plano?.nome || 'Gratuito'}
                 </Badge>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm">
-                    <span className="font-medium">{formatUsage(profiles.length, limits?.max_assistentes || 0)}</span> perfis utilizados
+                <span className="text-sm">
+                  <span className="font-medium">{formatUsage(profiles.length, limits?.max_assistentes || 0)}</span> perfis utilizados
+                </span>
+                {limits && canCreateMore(profiles.length, limits.max_assistentes) && !isUnlimited(limits.max_assistentes) && (
+                  <span className="text-sm text-green-600">
+                    <span className="font-medium">{limits.max_assistentes - profiles.length}</span> perfis disponíveis
                   </span>
-                  {limits && canCreateMore(profiles.length, limits.max_assistentes) && !isUnlimited(limits.max_assistentes) && (
-                    <span className="text-sm text-green-600">
-                      <span className="font-medium">{limits.max_assistentes - profiles.length}</span> perfis disponíveis
-                    </span>
-                  )}
-                  {limits && isUnlimited(limits.max_assistentes) && (
-                    <span className="text-sm text-green-600 flex items-center gap-1">
-                      <CheckCircle className="h-4 w-4" />
-                      Perfis ilimitados
-                    </span>
-                  )}
-                  {limits && !canCreateMore(profiles.length, limits.max_assistentes) && !isUnlimited(limits.max_assistentes) && (
-                    <div className="flex items-center gap-2 text-sm text-amber-600">
-                      <AlertCircle className="h-4 w-4" />
-                      <span>Limite atingido</span>
-                    </div>
-                  )}
-                </div>
+                )}
+                {limits && isUnlimited(limits.max_assistentes) && (
+                  <span className="text-sm text-green-600 flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4" />
+                    Perfis ilimitados
+                  </span>
+                )}
+                {limits && !canCreateMore(profiles.length, limits.max_assistentes) && !isUnlimited(limits.max_assistentes) && (
+                  <div className="flex items-center gap-2 text-sm text-amber-600">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>Limite atingido</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -453,11 +451,6 @@ export default function PerfilsPage() {
                                 <Switch
                                   checked={profile.is_active ?? true}
                                   onCheckedChange={(checked) => handleToggleStatus(profile.id, checked)}
-                                  className="h-4 w-7 sm:h-6 sm:w-11 border-0"
-                                  style={{
-                                    '--switch-thumb-size': '12px',
-                                    '--switch-translate': '12px',
-                                  } as React.CSSProperties}
                                 />
                               </div>
                             </div>

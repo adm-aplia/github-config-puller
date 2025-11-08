@@ -561,43 +561,22 @@ export default function AgendamentosPage() {
   const renderDayContent = (date: Date) => {
     const dayAppointments = getAppointmentsForDate(date)
     const blockedAppointments = getBlockedAppointmentsForDate(date)
-    const hasAppointments = dayAppointments.length > 0
+    const appointmentCount = dayAppointments.length
     const hasBlocked = blockedAppointments.length > 0
     
     return (
-      <div 
-        className="relative w-full h-full flex flex-col items-center justify-start" 
-        style={{ padding: 'var(--spacing-xs)' }}
-      >
-        <span 
-          className="font-medium mb-auto" 
-          style={{ fontSize: 'var(--font-sm)' }}
-        >
-          {date.getDate()}
-        </span>
-        {(hasAppointments || hasBlocked) && (
-          <div className="flex mt-auto pb-1" style={{ gap: 'var(--spacing-xs)' }}>
-            {hasAppointments && (
-              <div 
-                className="bg-primary rounded-full" 
-                style={{ 
-                  width: 'clamp(6px, 0.8vw, 8px)', 
-                  height: 'clamp(6px, 0.8vw, 8px)' 
-                }} 
-                title="Agendamentos" 
-              />
-            )}
-            {hasBlocked && (
-              <div 
-                className="bg-muted-foreground rounded-full" 
-                style={{ 
-                  width: 'clamp(6px, 0.8vw, 8px)', 
-                  height: 'clamp(6px, 0.8vw, 8px)' 
-                }} 
-                title="Bloqueios" 
-              />
-            )}
+      <div className="relative w-full h-full flex flex-col justify-between p-1 sm:p-1.5">
+        <span className="text-xs sm:text-sm font-medium text-left">{date.getDate()}</span>
+        {appointmentCount > 0 && (
+          <div className="w-full">
+            <div className="text-[10px] sm:text-xs md:text-sm px-1 py-0.5 bg-gray-200 text-gray-700 rounded text-center font-medium">
+              {appointmentCount}
+              <span className="hidden sm:inline"> consulta{appointmentCount > 1 ? 's' : ''}</span>
+            </div>
           </div>
+        )}
+        {hasBlocked && (
+          <div className="absolute top-1 right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-gray-500 rounded-full" title="Dia com bloqueios" />
         )}
       </div>
     )
@@ -605,15 +584,8 @@ export default function AgendamentosPage() {
 
   return (
     <DashboardLayout>
-      <div 
-        className="w-full" 
-        style={{ 
-          padding: 'var(--spacing-md)',
-          paddingTop: 'var(--spacing-sm)',
-          paddingBottom: 'var(--spacing-sm)'
-        }}
-      >
-        <div className="w-full" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+      <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
           {/* Header */}
           <header className="space-y-4">
             <div>
@@ -771,25 +743,18 @@ export default function AgendamentosPage() {
                       head_row: "flex w-full",
                       head_cell: "text-muted-foreground rounded-md w-full font-normal text-xs sm:text-sm text-center",
                       row: "flex w-full mt-1 sm:mt-2",
-                      cell: "w-full text-center p-0 relative border-r border-b border-border/20 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
-                      day: "w-full p-0 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white hover:bg-accent/50 transition-colors",
+                      cell: "h-12 sm:h-14 md:h-16 lg:h-20 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
+                      day: "h-12 sm:h-14 md:h-16 lg:h-20 w-full p-1 sm:p-1.5 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
                       day_range_end: "day-range-end",
                       day_selected: "bg-red-500 text-white hover:bg-red-600 focus:bg-red-600",
-                      day_today: "bg-accent/30 text-foreground font-bold",
+                      day_today: "bg-transparent text-foreground",
                       day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
                       day_disabled: "text-muted-foreground opacity-50",
                       day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
                       day_hidden: "invisible",
                     }}
-                    style={{
-                      '--cell-height': 'clamp(56px, 8vh, 96px)',
-                    } as React.CSSProperties}
                     components={{
-                      Day: ({ date, ...props }) => (
-                        <div {...props} style={{ height: 'var(--cell-height)' }}>
-                          {renderDayContent(date)}
-                        </div>
-                      )
+                      DayContent: ({ date }) => renderDayContent(date)
                     }}
                   />
                 </div>
