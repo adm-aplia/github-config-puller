@@ -443,32 +443,17 @@ export default function PerfilsPage() {
                       return (
                         <Card key={profile.id} className="border border-border/50">
                           <CardContent className="p-4 space-y-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1">
                                 <h3 className="font-medium text-base">{profile.fullname}</h3>
                                 <p className="text-sm text-muted-foreground">{profile.specialty}</p>
                               </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">Status:</span>
-                                <div 
-                                  className="relative inline-flex items-center justify-center rounded-full" 
-                                  style={{ 
-                                    width: 'clamp(32px, 4vw, 40px)', 
-                                    height: 'clamp(32px, 4vw, 40px)',
-                                    backgroundColor: (profile.is_active ?? true) ? 'hsl(var(--primary))' : 'hsl(var(--muted))'
-                                  }}
-                                >
-                                  <Switch
-                                    checked={profile.is_active ?? true}
-                                    onCheckedChange={(checked) => handleToggleStatus(profile.id, checked)}
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                  />
-                                  {(profile.is_active ?? true) ? (
-                                    <CheckCircle className="h-4 w-4 text-primary-foreground" />
-                                  ) : (
-                                    <XCircle className="h-4 w-4 text-muted-foreground" />
-                                  )}
-                                </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">Status:</span>
+                                <Switch
+                                  checked={profile.is_active ?? true}
+                                  onCheckedChange={(checked) => handleToggleStatus(profile.id, checked)}
+                                />
                               </div>
                             </div>
                             
