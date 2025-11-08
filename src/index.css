@@ -289,3 +289,94 @@
     font-size: 0.875rem;
   }
 }
+
+/* Mobile-only global overrides (não afeta desktop) */
+@media (max-width: 768px) {
+  /* Base */
+  html, body {
+    font-size: clamp(12px, 2.8vw, 14px);
+    overflow-x: hidden;
+  }
+
+  /* Token de padding lateral único para o app */
+  .app-root { --mobile-px: clamp(8px, 3vw, 16px); }
+
+  /* Containers centrais – ocupar 100% e remover centralização */
+  .app-root .container,
+  .app-root .page,
+  .app-root .content,
+  .app-root .section,
+  .app-root .card,
+  .app-root .wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: var(--mobile-px) !important;
+    padding-right: var(--mobile-px) !important;
+  }
+
+  /* Utilities de centralização/limite vindas do Tailwind ou classes custom */
+  .app-root .mx-auto { margin-left: 0 !important; margin-right: 0 !important; }
+  .app-root [class*="max-w-"] { max-width: 100% !important; }
+
+  /* Grids – sempre 1 coluna no mobile */
+  .app-root .grid { gap: clamp(8px, 2vw, 12px) !important; }
+  .app-root .grid[class*="grid-cols-"] { grid-template-columns: 1fr !important; }
+  .app-root [class*="col-span-"] { grid-column: span 1 / span 1 !important; }
+
+  /* Flex rows viram colunas (evita itens espremidos) */
+  .app-root .flex-row { flex-direction: column !important; }
+  .app-root .justify-between { justify-content: flex-start !important; }
+  .app-root .items-center { align-items: stretch !important; }
+
+  /* Cards e elementos clicáveis – área amigável ao toque */
+  .app-root .btn, 
+  .app-root button, 
+  .app-root .chip, 
+  .app-root .badge {
+    min-height: 44px; /* touch-friendly */
+  }
+
+  /* Tipografia e espaçamentos fluidos */
+  .app-root h1 { font-size: clamp(18px, 5vw, 22px) !important; }
+  .app-root h2 { font-size: clamp(16px, 4.2vw, 20px) !important; }
+  .app-root p, 
+  .app-root li, 
+  .app-root label, 
+  .app-root input, 
+  .app-root textarea {
+    font-size: clamp(12px, 3.2vw, 14px) !important;
+  }
+
+  /* Inputs e selects */
+  .app-root input, 
+  .app-root select, 
+  .app-root textarea {
+    height: clamp(36px, 5.5vh, 48px) !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Sidebar – largura colapsada fluida no mobile */
+  .app-root #app-sidebar,
+  .app-root [data-sidebar],
+  .app-root .sidebar {
+    width: clamp(48px, 6vw, 64px) !important;
+    flex: 0 0 auto !important;
+  }
+
+  /* Mídias sempre fluídas */
+  .app-root img, 
+  .app-root video, 
+  .app-root canvas, 
+  .app-root svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Tira possíveis barras horizontais em wrappers */
+  .app-root, 
+  .app-root * {
+    max-width: 100% !important;
+  }
+}
