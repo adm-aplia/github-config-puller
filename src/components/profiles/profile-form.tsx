@@ -182,26 +182,14 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="space-y-4">
-            <div className="text-sm font-normal text-muted-foreground">
-              {profile ? 'Editar Perfil' : 'Novo Perfil'}
-            </div>
-            
+          <DialogTitle className="space-y-6">
+            {/* Navegação de Etapas */}
             <ClickableStepIndicator
               currentStep={currentStep}
               steps={steps}
               onStepClick={setCurrentStep}
               canNavigateToStep={(step) => !!canNavigateToStep(step)}
             />
-            
-            <div className="space-y-1">
-              <div className="text-xs font-medium text-muted-foreground">
-                Etapa {currentStep} de 4
-              </div>
-              <div className="text-xl font-bold text-foreground">
-                {stepTitles[currentStep - 1].title}
-              </div>
-            </div>
           </DialogTitle>
         </DialogHeader>
 

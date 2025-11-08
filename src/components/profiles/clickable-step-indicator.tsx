@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check } from 'lucide-react';
+import { Circle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Step {
@@ -21,53 +21,84 @@ export const ClickableStepIndicator: React.FC<ClickableStepIndicatorProps> = ({
   onStepClick,
   canNavigateToStep
 }) => {
+  const getStepIcon = (step: Step) => {
+    if (step.completed && step.number !== currentStep) {
+      return <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />;
+    }
+    if (step.number === currentStep) {
+      return <Circle className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />;
+    }
+    return <Circle className="w-4 h-4 sm:w-5 sm:h-5" />;
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Progress Bar com Círculos */}
-      <div className="flex items-center justify-between gap-2 sm:gap-3 px-2 sm:px-4">
-        {steps.map((step, index) => (
-          <React.Fragment key={step.number}>
+    <div className="w-full">
+      {/* Botões Horizontais */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {steps.map((step) => {
+          const isActive = step.number === currentStep;
+          const isCompleted = step.completed && step.number !== currentStep;
+          const isNavigable = canNavigateToStep(step.number);
+          const isFuture = !step.completed && step.number !== currentStep;
+
+          return (
             <button
+              key={step.number}
               type="button"
-              onClick={() => canNavigateToStep(step.number) && onStepClick(step.number)}
-              disabled={!canNavigateToStep(step.number)}
+              onClick={() => isNavigable && onStepClick(step.number)}
+              disabled={!isNavigable}
               className={cn(
-                "flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full text-sm sm:text-lg font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2",
-                step.number === currentStep && "bg-primary text-primary-foreground shadow-lg scale-110 focus:ring-primary",
-                step.completed && step.number !== currentStep && "bg-primary/10 border-2 border-primary text-primary",
-                !step.completed && step.number !== currentStep && "bg-muted border-2 border-border text-muted-foreground",
-                canNavigateToStep(step.number) && step.number !== currentStep && "cursor-pointer hover:scale-105 hover:border-primary/50"
+                "relative flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2",
+                
+                // Etapa Ativa
+                isActive && [
+                  "bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/90",
+                  "text-primary-foreground shadow-lg shadow-primary/40",
+                  "scale-102 ring-2 ring-primary/30",
+                  "animate-pulse-subtle"
+                ],
+                
+                // Etapa Completa
+                isCompleted && [
+                  "bg-emerald-50 dark:bg-emerald-950/30",
+                  "border-2 border-emerald-500",
+                  "text-emerald-700 dark:text-emerald-400",
+                  isNavigable && "hover:bg-emerald-100 dark:hover:bg-emerald-950/50 hover:scale-105 cursor-pointer"
+                ],
+                
+                // Etapa Futura (Desabilitada)
+                isFuture && [
+                  "bg-muted/50 border-2 border-border/50",
+                  "text-muted-foreground/60",
+                  "cursor-not-allowed opacity-60"
+                ],
+                
+                // Foco
+                "focus:ring-primary"
               )}
             >
-              {step.completed && step.number !== currentStep ? (
-                <Check className="w-5 h-5 sm:w-6 sm:h-6" />
-              ) : (
-                step.number
-              )}
-            </button>
-            
-            {index < steps.length - 1 && (
-              <div className={cn(
-                "h-1 flex-1 rounded-full transition-all duration-300",
-                step.completed ? "bg-primary" : "bg-border"
-              )} />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
+              {/* Ícone */}
+              <span className="flex-shrink-0">
+                {getStepIcon(step)}
+              </span>
 
-      {/* Títulos das Etapas */}
-      <div className="grid grid-cols-4 gap-1 text-center">
-        {steps.map((step) => (
-          <div key={step.number} className="space-y-1">
-            <div className={cn(
-              "text-[10px] sm:text-xs font-medium transition-colors px-1",
-              step.number === currentStep ? "text-primary" : "text-muted-foreground"
-            )}>
-              {step.title}
-            </div>
-          </div>
-        ))}
+              {/* Texto */}
+              <span className="truncate text-xs sm:text-sm">
+                {step.title}
+              </span>
+
+              {/* Badge de Número (opcional, só em mobile) */}
+              <span className={cn(
+                "absolute -top-2 -left-2 flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold sm:hidden",
+                isActive && "bg-primary-foreground text-primary",
+                isCompleted && "bg-emerald-500 text-white",
+                isFuture && "bg-muted text-muted-foreground"
+              )}>
+                {step.number}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
