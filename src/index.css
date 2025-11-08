@@ -262,6 +262,15 @@
   height: clamp(28px, 3.5vw, 36px);
 }
 
+/* Navigation buttons positioning - more space on mobile */
+.rdp-nav_button_previous {
+  left: 0.25rem !important;
+}
+
+.rdp-nav_button_next {
+  right: 0.25rem !important;
+}
+
 .rdp-caption_label {
   font-size: var(--font-sm);
   padding-top: var(--spacing-xs);
