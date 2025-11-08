@@ -246,3 +246,46 @@
 .animate-fade-in {
   animation: fade-in 0.3s ease-out forwards;
 }
+
+/* Mobile Calendar Fix */
+@media (max-width: 768px) {
+  .rdp {
+    font-size: 0.85rem;
+  }
+
+  .rdp-caption {
+    padding: 0.5rem;
+  }
+
+  .rdp-head_cell {
+    font-size: 0.7rem;
+    padding: 0.25rem;
+  }
+
+  .rdp-cell {
+    padding: 0;
+    aspect-ratio: 1; /* Quadrado perfeito */
+  }
+
+  .rdp-day {
+    font-size: 0.75rem;
+    padding: 0;
+    height: 100%;
+  }
+
+  .rdp-day:not([aria-disabled]) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 769px) {
+  .rdp-cell {
+    height: clamp(56px, 8vh, 96px);
+  }
+
+  .rdp-day {
+    font-size: 0.875rem;
+  }
+}
