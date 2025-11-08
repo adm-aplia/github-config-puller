@@ -14,7 +14,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="app-root min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <main className="flex-1 overflow-auto">
           {/* Header com botão de tema e trigger do sidebar */}
