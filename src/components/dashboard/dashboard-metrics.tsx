@@ -14,7 +14,7 @@ function MetricCard({ title, value, description, icon: Icon, trend }: MetricCard
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-fluid-sm font-medium">{title}</CardTitle>
+        <CardTitle className="text-fluid-sm font-bold">{title}</CardTitle>
         <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
       </CardHeader>
       <CardContent className="pt-0">
