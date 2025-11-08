@@ -286,19 +286,50 @@ export default function ConversasPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-0 sm:px-6 py-4">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 px-6 sm:px-0">
+      <div 
+        className="w-full" 
+        style={{ 
+          paddingTop: 'var(--spacing-sm)',
+          paddingBottom: 'var(--spacing-sm)',
+        }}
+      >
+        <div className="flex flex-col" style={{ gap: 'var(--spacing-sm)' }}>
+          <div 
+            className="flex flex-col md:flex-row justify-between items-start md:items-center" 
+            style={{ 
+              gap: 'var(--spacing-sm)',
+              paddingLeft: 'var(--spacing-md)',
+              paddingRight: 'var(--spacing-md)',
+            }}
+          >
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Conversas</h1>
-              <p className="text-muted-foreground">Gerencie todas as conversas dos seus assistentes</p>
+              <h1 
+                className="font-bold tracking-tight" 
+                style={{ fontSize: 'var(--font-2xl)' }}
+              >
+                Conversas
+              </h1>
+              <p 
+                className="text-muted-foreground"
+                style={{ fontSize: 'var(--font-sm)' }}
+              >
+                Gerencie todas as conversas dos seus assistentes
+              </p>
             </div>
           </div>
 
           {/* WhatsApp-style layout */}
-          <Card className="h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)] overflow-hidden mx-0 sm:mx-auto">
+          <Card 
+            className="overflow-hidden mx-0"
+            style={{ height: 'clamp(500px, 80vh, 800px)' }}
+          >
             <CardContent className="p-0 h-full">
-              <div className="flex h-full min-h-0 md:grid md:grid-cols-[360px_1fr]">
+              <div 
+                className="flex h-full min-h-0 md:grid"
+                style={{
+                  gridTemplateColumns: window.innerWidth >= 768 ? 'clamp(280px, 30%, 400px) 1fr' : '1fr'
+                }}
+              >
                 {/* Conversation List - Left Panel */}
                 <div className={`w-full border-r bg-muted/20 flex flex-col min-h-0 ${showMobileChat ? 'hidden md:flex' : 'flex'} md:flex`}>
                   {/* Search and Filters Header */}

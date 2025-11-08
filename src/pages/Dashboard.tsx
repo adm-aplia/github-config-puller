@@ -124,25 +124,49 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-[1600px] mx-auto">
+      <div className="w-full">
         {/* Header */}
-        <header className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-fluid-lg">
+        <header 
+          className="flex flex-col sm:flex-row sm:justify-between sm:items-center"
+          style={{
+            gap: 'var(--spacing-sm)',
+            marginBottom: 'var(--spacing-lg)',
+          }}
+        >
           <div>
-            <h1 className="text-fluid-2xl sm:text-fluid-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-fluid-sm text-muted-foreground mt-2">
+            <h1 
+              className="font-bold tracking-tight" 
+              style={{ fontSize: 'var(--font-2xl)' }}
+            >
+              Dashboard
+            </h1>
+            <p 
+              className="text-muted-foreground" 
+              style={{ 
+                fontSize: 'var(--font-sm)',
+                marginTop: 'var(--spacing-xs)',
+              }}
+            >
               Visão geral da sua plataforma Aplia
-              <span className="text-xs ml-2 block sm:inline mt-1 sm:mt-0">
+              <span 
+                className="ml-2 block sm:inline mt-1 sm:mt-0"
+                style={{ fontSize: 'var(--font-xs)' }}
+              >
                 Última atualização: {lastUpdated.toLocaleTimeString('pt-BR')}
               </span>
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div 
+            className="flex flex-wrap items-center" 
+            style={{ gap: 'var(--spacing-xs)' }}
+          >
             <Button
               variant="outline"
               size="sm"
               onClick={refreshDashboard}
               disabled={loading}
-              className="flex items-center gap-2 bg-transparent"
+              className="flex items-center bg-transparent"
+              style={{ gap: 'var(--spacing-xs)' }}
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               <span className="hidden xs:inline">Atualizar</span>
@@ -151,7 +175,8 @@ export default function DashboardPage() {
             <Button 
               variant="outline" 
               size="sm" 
-              className="gap-2 bg-transparent"
+              className="bg-transparent"
+              style={{ gap: 'var(--spacing-xs)' }}
               onClick={() => setCustomizationOpen(true)}
             >
               <Settings2 className="h-4 w-4" />
@@ -161,7 +186,10 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        <div className="space-y-fluid-md sm:space-y-fluid-lg">
+        <div 
+          className="flex flex-col"
+          style={{ gap: 'var(--spacing-md)' }}
+        >
           {dashboardConfig.showMetrics && (
             <DashboardMetrics 
               stats={stats} 
@@ -171,7 +199,10 @@ export default function DashboardPage() {
           )}
 
           {/* Charts and Activity */}
-          <div className="grid gap-fluid-sm sm:gap-fluid-md grid-cols-1 lg:grid-cols-7">
+          <div 
+            className="grid grid-cols-1 lg:grid-cols-7"
+            style={{ gap: 'var(--spacing-md)' }}
+          >
             {dashboardConfig.showChart && (
               <ConversationChart 
                 chartData={chartData} 
