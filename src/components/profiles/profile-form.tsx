@@ -195,7 +195,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:z-50">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-left mb-6">
+          <DialogTitle className="text-2xl font-bold text-left mb-3">
             {profile ? 'Editar Perfil' : 'Novo Perfil'}
           </DialogTitle>
           
@@ -359,7 +359,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
                 {/* SEÇÃO B: Formas de Pagamento */}
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold">Formas de Pagamento Aceitas</Label>
+                  <Label className="text-base font-semibold">Formas de Pagamento</Label>
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     {['Crédito', 'Débito', 'PIX', 'Dinheiro'].map((method) => {
                       const selectedPayments = formData.paymentmethods 
