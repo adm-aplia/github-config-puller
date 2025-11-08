@@ -722,13 +722,13 @@ export default function AgendamentosPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-3 sm:p-4 lg:p-6">
-                <div className="w-full">
+              <CardContent className="p-2 sm:p-3 lg:p-6 overflow-x-auto">
+                <div className="w-full max-w-full min-w-0">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    className="w-full rounded-md border"
+                    className="w-full max-w-full rounded-md border mx-auto"
                     locale={ptBR}
                     classNames={{
                       months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
