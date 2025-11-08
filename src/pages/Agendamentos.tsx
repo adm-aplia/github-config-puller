@@ -584,8 +584,8 @@ export default function AgendamentosPage() {
 
   return (
     <DashboardLayout>
-      <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+      <div className="py-4 sm:py-6">
+        <div className="w-full lg:max-w-7xl lg:mx-auto space-y-4 sm:space-y-6">
           {/* Header */}
           <header className="space-y-4">
             <div>
