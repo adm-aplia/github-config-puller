@@ -193,17 +193,21 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:z-50 pt-12">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:z-50">
         <DialogHeader>
-          <DialogTitle className="space-y-6">
-            {/* Navegação de Etapas */}
+          <DialogTitle className="text-2xl font-bold text-left mb-6">
+            {profile ? 'Editar Perfil' : 'Novo Perfil'}
+          </DialogTitle>
+          
+          {/* Navegação de Etapas */}
+          <div className="pt-2">
             <ClickableStepIndicator
               currentStep={currentStep}
               steps={steps}
               onStepClick={setCurrentStep}
               canNavigateToStep={(step) => !!canNavigateToStep(step)}
             />
-          </DialogTitle>
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
