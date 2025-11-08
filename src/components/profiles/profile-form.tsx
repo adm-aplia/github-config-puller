@@ -161,12 +161,13 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     // Sempre pode voltar para etapas anteriores
     if (step <= currentStep) return true;
     
-    // Etapa 1 precisa ser completada antes de avançar
-    if (step > 1 && !completedSteps.includes(1)) {
-      return false;
+    // Para avançar, verifica se a etapa 1 pode proceder (campos obrigatórios preenchidos)
+    if (step > 1) {
+      // Temporariamente simula estar na etapa 1 para verificar se pode proceder
+      const tempStep = 1;
+      return formData.fullname && formData.specialty && formData.email;
     }
     
-    // Outras etapas (2, 3, 4, 5) são sempre navegáveis após completar Etapa 1
     return true;
   };
 
@@ -192,7 +193,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:z-50">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:z-50 pt-12">
         <DialogHeader>
           <DialogTitle className="space-y-6">
             {/* Navegação de Etapas */}
