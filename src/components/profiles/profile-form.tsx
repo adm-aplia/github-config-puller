@@ -212,7 +212,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
             <div className="space-y-4 animate-fade-in">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullname">
+                  <Label htmlFor="fullname" className="font-bold">
                     Nome Completo <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -225,7 +225,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="specialty">
+                  <Label htmlFor="specialty" className="font-bold">
                     Especialidade <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -238,7 +238,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="professionalid">Registro Profissional</Label>
+                  <Label htmlFor="professionalid" className="font-bold">Registro Profissional</Label>
                   <Input
                     id="professionalid"
                     value={formData.professionalid || ''}
@@ -248,7 +248,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phonenumber">Telefone</Label>
+                  <Label htmlFor="phonenumber" className="font-bold">Telefone</Label>
                   <Input
                     id="phonenumber"
                     value={formData.phonenumber || ''}
@@ -262,7 +262,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">
+                  <Label htmlFor="email" className="font-bold">
                     Email <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -276,7 +276,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="instagram">Instagram</Label>
+                  <Label htmlFor="instagram" className="font-bold">Instagram</Label>
                   <Input
                     id="instagram"
                     value={formData.instagram || ''}
@@ -286,7 +286,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="education">Formação Acadêmica</Label>
+                  <Label htmlFor="education" className="font-bold">Formação Acadêmica</Label>
                   <Textarea
                     id="education"
                     value={formData.education || ''}
@@ -303,7 +303,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           {currentStep === 2 && (
             <div className="space-y-4 animate-fade-in">
               <div className="space-y-2">
-                <Label htmlFor="locations">Locais de Atendimento</Label>
+                <Label htmlFor="locations" className="font-bold">Locais de Atendimento</Label>
                 <Textarea
                   id="locations"
                   value={formData.locations || ''}
@@ -314,7 +314,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="workinghours">Horários de Trabalho</Label>
+                <Label htmlFor="workinghours" className="font-bold">Horários de Trabalho</Label>
                 <WeeklyScheduleInput
                   value={formData.workinghours || ''}
                   onChange={(value) => handleChange('workinghours', value)}
