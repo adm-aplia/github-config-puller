@@ -36,7 +36,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </Button>
             </div>
           </header>
-          <div className="p-fluid-md lg:p-fluid-lg max-w-[1600px] mx-auto w-full">
+          <div className="px-4 py-6 lg:px-6 lg:py-8 w-full lg:max-w-[1600px] lg:mx-auto">
             {children}
           </div>
         </main>

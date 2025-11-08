@@ -124,7 +124,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-[1600px] mx-auto">
+      <div className="w-full lg:max-w-[1600px] lg:mx-auto">
         {/* Header */}
         <header className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-fluid-lg">
           <div>
