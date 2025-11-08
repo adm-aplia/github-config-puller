@@ -38,9 +38,7 @@ import {
   Trash2,
   HelpCircle,
   MoreVertical,
-  Copy,
-  List,
-  CalendarDays
+  Copy
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
@@ -54,7 +52,6 @@ import { AppointmentCreateModal } from "@/components/appointments/appointment-cr
 import { AppointmentBlockModal } from "@/components/appointments/appointment-block-modal"
 import { AppointmentBlockEditModal } from "@/components/appointments/appointment-block-edit-modal"
 import { cn } from "@/lib/utils"
-import { useResponsive } from "@/hooks/use-responsive"
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -73,11 +70,9 @@ export default function AgendamentosPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [viewPeriod, setViewPeriod] = useState("last30days")
   const [selectedProfessional, setSelectedProfessional] = useState("all")
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
   // Estados removidos - não mais necessários com sincronização automática
   
   const { user } = useAuth()
-  const { isMobile } = useResponsive()
   const { profiles, loading: profilesLoading } = useProfessionalProfiles()
   const { appointments, loading: appointmentsLoading, fetchAppointments, createAppointmentsFromGoogleEvents, updateAppointment, updateAppointmentStatus, rescheduleAppointment, updateBlockedAppointment, deleteAppointment } = useAppointments()
   const { credentials, profileLinks, loading: googleLoading, connectGoogleAccount } = useGoogleIntegrations()
@@ -624,26 +619,6 @@ export default function AgendamentosPage() {
               
               {/* Botões de ação - horizontal no desktop, alinhados à direita */}
               <div className="grid grid-cols-2 sm:flex sm:flex-wrap lg:flex lg:flex-nowrap gap-2 lg:ml-auto">
-                {/* Toggle de visualização - apenas mobile */}
-                <Button 
-                  variant={viewMode === 'calendar' ? 'default' : 'outline'}
-                  size="sm" 
-                  className="flex md:hidden items-center justify-center gap-2 text-sm whitespace-nowrap"
-                  onClick={() => setViewMode(viewMode === 'calendar' ? 'list' : 'calendar')}
-                >
-                  {viewMode === 'calendar' ? (
-                    <>
-                      <List className="h-4 w-4" />
-                      <span>Lista</span>
-                    </>
-                  ) : (
-                    <>
-                      <CalendarDays className="h-4 w-4" />
-                      <span>Calendário</span>
-                    </>
-                  )}
-                </Button>
-                
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -748,210 +723,46 @@ export default function AgendamentosPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-3 sm:p-4 lg:p-6">
-                {/* Visualização de Calendário */}
-                {(viewMode === 'calendar' || !isMobile) && (
-                  <div className="w-full">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      className="w-full rounded-md border"
-                      locale={ptBR}
-                      classNames={{
-                        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
-                        month: "space-y-2 sm:space-y-4 w-full",
-                        caption: "flex justify-center pt-1 relative items-center px-8",
-                        caption_label: "text-xs sm:text-sm font-medium",
-                        nav: "space-x-1 flex items-center",
-                        nav_button: "h-6 w-6 sm:h-7 sm:w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-                        nav_button_previous: "absolute left-1",
-                        nav_button_next: "absolute right-1",
-                        table: "w-full border-collapse",
-                        head_row: "flex w-full",
-                        head_cell: "text-muted-foreground rounded-md flex-1 font-normal text-[10px] sm:text-xs text-center py-1",
-                        row: "flex w-full mt-0.5 sm:mt-1",
-                        cell: "h-10 sm:h-14 md:h-16 lg:h-20 flex-1 text-center text-xs sm:text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
-                        day: "h-10 sm:h-14 md:h-16 lg:h-20 w-full p-0.5 sm:p-1.5 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
-                        day_range_end: "day-range-end",
-                        day_selected: "bg-red-500 text-white hover:bg-red-600 focus:bg-red-600",
-                        day_today: "bg-transparent text-foreground",
-                        day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
-                        day_disabled: "text-muted-foreground opacity-50",
-                        day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                        day_hidden: "invisible",
-                      }}
-                      components={{
-                        DayContent: ({ date }) => renderDayContent(date)
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Visualização em Lista - Mobile */}
-                {viewMode === 'list' && isMobile && (
-                  <ScrollArea className="h-[600px]">
-                    <div className="space-y-4">
-                      {appointmentsLoading ? (
-                        <div className="flex justify-center py-8">
-                          <RefreshCw className="h-6 w-6 animate-spin" />
-                        </div>
-                      ) : (() => {
-                        // Agrupar agendamentos por data
-                        const groupedAppointments = filteredAppointments
-                          .filter(apt => !isBlocked(apt))
-                          .reduce((groups: { [key: string]: Appointment[] }, apt) => {
-                            const date = format(new Date(apt.appointment_date), 'yyyy-MM-dd')
-                            if (!groups[date]) groups[date] = []
-                            groups[date].push(apt)
-                            return groups
-                          }, {})
-
-                        const sortedDates = Object.keys(groupedAppointments).sort((a, b) => 
-                          new Date(b).getTime() - new Date(a).getTime()
-                        )
-
-                        return sortedDates.length === 0 ? (
-                          <p className="text-muted-foreground text-center py-8">
-                            Nenhum agendamento encontrado
-                          </p>
-                        ) : (
-                          sortedDates.map(dateKey => {
-                            const dateAppointments = groupedAppointments[dateKey].sort((a, b) => 
-                              new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime()
-                            )
-                            const date = new Date(dateKey)
-                            const isToday = format(new Date(), 'yyyy-MM-dd') === dateKey
-                            
-                            return (
-                              <div key={dateKey} className="space-y-2">
-                                <div className={cn(
-                                  "sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 py-2 border-b",
-                                  isToday && "border-primary"
-                                )}>
-                                  <h3 className="font-semibold text-sm flex items-center gap-2">
-                                    <CalendarIcon className="h-4 w-4" />
-                                    {format(date, "EEEE, dd 'de' MMMM", { locale: ptBR })}
-                                    {isToday && (
-                                      <Badge variant="default" className="ml-2">Hoje</Badge>
-                                    )}
-                                    <span className="text-muted-foreground font-normal">
-                                      ({dateAppointments.length})
-                                    </span>
-                                  </h3>
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  {dateAppointments.map((appointment) => (
-                                    <div
-                                      key={appointment.id}
-                                      className="p-3 border rounded-lg hover:bg-accent/50 transition-colors"
-                                      onClick={() => {
-                                        setSelectedAppointment(appointment)
-                                        setViewModalOpen(true)
-                                      }}
-                                    >
-                                      <div className="flex items-start justify-between gap-2">
-                                        <div className="space-y-1 flex-1">
-                                          <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="font-medium text-sm">
-                                              {appointment.patient_name}
-                                            </span>
-                                            <Badge 
-                                              variant={appointment.status === 'confirmed' ? "default" : getStatusBadge(appointment.status).variant}
-                                              className={cn(
-                                                "text-xs",
-                                                appointment.status === 'confirmed' && "bg-green-500 text-white hover:bg-green-600"
-                                              )}
-                                            >
-                                              {getStatusBadge(appointment.status).label}
-                                            </Badge>
-                                          </div>
-                                          <div className="text-xs text-muted-foreground space-y-0.5">
-                                            <div className="flex items-center gap-1">
-                                              <Clock className="h-3 w-3" />
-                                              {format(new Date(appointment.appointment_date), "HH:mm")}
-                                              {appointment.duration_minutes && (
-                                                <span> • {appointment.duration_minutes} min</span>
-                                              )}
-                                            </div>
-                                            {appointment.professional_profile_id && (
-                                              <div className="flex items-center gap-1">
-                                                <Users className="h-3 w-3" />
-                                                {profiles.find(p => p.id === appointment.professional_profile_id)?.fullname || 'Profissional não encontrado'}
-                                              </div>
-                                            )}
-                                          </div>
-                                        </div>
-                                        <DropdownMenu>
-                                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                              <MoreVertical className="h-4 w-4" />
-                                            </Button>
-                                          </DropdownMenuTrigger>
-                                          <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={(e) => {
-                                              e.stopPropagation()
-                                              setSelectedAppointment(appointment)
-                                              setViewModalOpen(true)
-                                            }}>
-                                              <Eye className="mr-2 h-4 w-4" />
-                                              Visualizar
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={(e) => {
-                                              e.stopPropagation()
-                                              setSelectedAppointment(appointment)
-                                              setEditModalOpen(true)
-                                            }}>
-                                              <Edit className="mr-2 h-4 w-4" />
-                                              Editar
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={(e) => {
-                                              e.stopPropagation()
-                                              setSelectedAppointment(appointment)
-                                              setRescheduleModalOpen(true)
-                                            }}>
-                                              <CalendarIcon className="mr-2 h-4 w-4" />
-                                              Reagendar
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            {appointment.status !== 'confirmed' && (
-                                              <DropdownMenuItem onClick={(e) => {
-                                                e.stopPropagation()
-                                                handleUpdateStatus(appointment.id, 'confirmed')
-                                              }}>
-                                                <UserCheck className="mr-2 h-4 w-4" />
-                                                Confirmar
-                                              </DropdownMenuItem>
-                                            )}
-                                            {appointment.status !== 'cancelled' && (
-                                              <DropdownMenuItem onClick={(e) => {
-                                                e.stopPropagation()
-                                                handleUpdateStatus(appointment.id, 'cancelled')
-                                              }} className="text-destructive">
-                                                <UserX className="mr-2 h-4 w-4" />
-                                                Cancelar
-                                              </DropdownMenuItem>
-                                            )}
-                                          </DropdownMenuContent>
-                                        </DropdownMenu>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )
-                          })
-                        )
-                      })()}
-                    </div>
-                  </ScrollArea>
-                )}
+                <div className="w-full">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    className="w-full rounded-md border"
+                    locale={ptBR}
+                    classNames={{
+                      months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
+                      month: "space-y-4 w-full",
+                      caption: "flex justify-center pt-1 relative items-center",
+                      caption_label: "text-sm font-medium",
+                      nav: "space-x-1 flex items-center",
+                      nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                      nav_button_previous: "absolute left-1",
+                      nav_button_next: "absolute right-1",
+                      table: "w-full border-collapse space-y-1",
+                      head_row: "flex w-full",
+                      head_cell: "text-muted-foreground rounded-md w-full font-normal text-xs sm:text-sm text-center",
+                      row: "flex w-full mt-1 sm:mt-2",
+                      cell: "h-12 sm:h-14 md:h-16 lg:h-20 w-full text-center text-sm p-0 relative border-r border-b border-gray-100 [&:has([aria-selected='true'])]:bg-red-500 [&:has([aria-selected='true'])]:text-white",
+                      day: "h-12 sm:h-14 md:h-16 lg:h-20 w-full p-1 sm:p-1.5 font-normal bg-transparent text-foreground cursor-pointer aria-selected:bg-red-500 aria-selected:text-white",
+                      day_range_end: "day-range-end",
+                      day_selected: "bg-red-500 text-white hover:bg-red-600 focus:bg-red-600",
+                      day_today: "bg-transparent text-foreground",
+                      day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+                      day_disabled: "text-muted-foreground opacity-50",
+                      day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                      day_hidden: "invisible",
+                    }}
+                    components={{
+                      DayContent: ({ date }) => renderDayContent(date)
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
 
-            {/* Daily Appointments and Blocks - Responsive Layout - Ocultar no modo lista mobile */}
-            {(viewMode === 'calendar' || !isMobile) && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Daily Appointments and Blocks - Responsive Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Regular Appointments */}
               <Card>
                 <CardHeader className="pb-3">
@@ -1236,7 +1047,6 @@ export default function AgendamentosPage() {
                 </CardContent>
               </Card>
             </div>
-            )}
           </div>
         </div>
       </div>
