@@ -48,38 +48,35 @@ export const ClickableStepIndicator: React.FC<ClickableStepIndicatorProps> = ({
               onClick={() => isNavigable && onStepClick(step.number)}
               disabled={!isNavigable}
               className={cn(
-                "relative flex items-center justify-center gap-2 px-4 py-3",
+                "relative flex items-center justify-center gap-2 px-3 py-3",
                 "font-semibold text-sm transition-all duration-300",
                 "focus:outline-none focus:ring-2 focus:ring-offset-2",
-                "border-2",
-                "rounded-lg",
+                "border-2 rounded-lg",
                 
-                // Etapa Ativa - Vermelho/Coral #EF4444
+                // Etapa Ativa - Vermelho Suave
                 isActive && [
-                  "bg-[#EF4444]",
-                  "text-white",
-                  "border-[#EF4444]",
-                  "shadow-lg shadow-[#EF4444]/30",
+                  "bg-red-50 dark:bg-red-950/20",
+                  "text-red-700 dark:text-red-400",
+                  "border-red-500",
+                  "shadow-sm",
                 ],
                 
-                // Etapa Completa - Verde #10B981
+                // Etapa Completa - Verde Suave
                 isCompleted && [
-                  "bg-[#D1FAE5]",
-                  "text-[#059669]",
-                  "border-[#10B981]",
-                  isNavigable && "hover:bg-[#A7F3D0] cursor-pointer hover:shadow-md"
+                  "bg-emerald-50 dark:bg-emerald-950/20",
+                  "text-emerald-700 dark:text-emerald-400",
+                  "border-emerald-500",
+                  isNavigable && "hover:bg-emerald-100 dark:hover:bg-emerald-950/30 cursor-pointer"
                 ],
                 
-                // Etapa Futura (Bloqueada) - Cinza #E5E7EB
+                // Etapa Futura/Navegável - Cinza Claro
                 isFuture && [
-                  "bg-[#F3F4F6]",
-                  "text-[#9CA3AF]",
-                  "border-[#E5E7EB]",
-                  "cursor-not-allowed opacity-60"
+                  isNavigable 
+                    ? "bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900/30 cursor-pointer" 
+                    : "bg-gray-50 dark:bg-gray-900/20 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-800 cursor-not-allowed opacity-50"
                 ],
                 
-                // Foco
-                "focus:ring-[#EF4444]"
+                "focus:ring-red-500"
               )}
             >
               {/* Ícone */}
@@ -87,17 +84,17 @@ export const ClickableStepIndicator: React.FC<ClickableStepIndicatorProps> = ({
                 {getStepIcon(step)}
               </span>
 
-              {/* Texto */}
-              <span className="truncate text-xs sm:text-sm">
+              {/* Texto - SEM truncate, permite quebra de linha */}
+              <span className="text-xs sm:text-sm text-center leading-tight">
                 {step.title}
               </span>
 
-              {/* Badge de Número (apenas mobile) */}
+              {/* Badge de Número Mobile */}
               <span className={cn(
                 "absolute -top-2 -left-2 flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold sm:hidden",
-                isActive && "bg-white text-[#EF4444]",
-                isCompleted && "bg-[#10B981] text-white",
-                isFuture && "bg-[#E5E7EB] text-[#9CA3AF]"
+                isActive && "bg-red-500 text-white",
+                isCompleted && "bg-emerald-500 text-white",
+                isFuture && (isNavigable ? "bg-gray-300 text-gray-700" : "bg-gray-200 text-gray-400")
               )}>
                 {step.number}
               </span>

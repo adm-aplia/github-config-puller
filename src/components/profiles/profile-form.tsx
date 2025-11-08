@@ -64,8 +64,12 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
       setFormData({
         ...profile,
-        procedures_json: proceduresJson
+        procedures_json: proceduresJson,
+        reminders_enabled: profile.reminders_enabled || false,
+        reminder_message: profile.reminder_message || '',
+        reminder_hours_before: profile.reminder_hours_before || 24,
       });
+      setCompletedSteps([1, 2, 3, 4, 5]);
     } else {
       setFormData({
         fullname: '',
@@ -85,9 +89,9 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         reminder_message: '',
         reminder_hours_before: 24
       });
+      setCompletedSteps([]);
     }
     setCurrentStep(1);
-    setCompletedSteps([]);
   }, [profile, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -120,9 +124,13 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   };
 
   const handleNext = () => {
-    if (currentStep < 5 && canProceed()) {
-      setCompletedSteps(prev => [...prev, currentStep]);
-      setCurrentStep(currentStep + 1);
+    if (canProceed()) {
+      if (currentStep === 1 && !completedSteps.includes(1)) {
+        setCompletedSteps(prev => [...prev, 1]);
+      }
+      if (currentStep < 5) {
+        setCurrentStep(currentStep + 1);
+      }
     }
   };
 
@@ -150,15 +158,15 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   };
 
   const canNavigateToStep = (step: number) => {
-    if (step < currentStep) return true;
-    if (step > currentStep) {
-      for (let i = 1; i < step; i++) {
-        if (!completedSteps.includes(i) && i !== currentStep) {
-          return false;
-        }
-      }
-      return canProceed();
+    // Sempre pode voltar para etapas anteriores
+    if (step <= currentStep) return true;
+    
+    // Etapa 1 precisa ser completada antes de avançar
+    if (step > 1 && !completedSteps.includes(1)) {
+      return false;
     }
+    
+    // Outras etapas (2, 3, 4, 5) são sempre navegáveis após completar Etapa 1
     return true;
   };
 
@@ -184,7 +192,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:z-50">
         <DialogHeader>
           <DialogTitle className="space-y-6">
             {/* Navegação de Etapas */}
