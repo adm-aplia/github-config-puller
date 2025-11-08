@@ -6,13 +6,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ProfessionalProfile } from '@/hooks/use-professional-profiles';
 import { WeeklyScheduleInput } from '@/components/ui/weekly-schedule-input';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
 import { applyMask } from '@/lib/masks';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { ClickableStepIndicator } from './clickable-step-indicator';
 import { ProcedureListInput, Procedure } from './procedure-list-input';
-import { ReminderSettings } from './reminder-settings';
 
 interface ProfileFormProps {
   profile?: ProfessionalProfile;
@@ -93,7 +94,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    if (loading || currentStep < 4) return;
+    if (loading || currentStep < 5) return;
     
     setLoading(true);
     
@@ -119,7 +120,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   };
 
   const handleNext = () => {
-    if (currentStep < 4 && canProceed()) {
+    if (currentStep < 5 && canProceed()) {
       setCompletedSteps(prev => [...prev, currentStep]);
       setCurrentStep(currentStep + 1);
     }
@@ -140,6 +141,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       case 3:
         return formData.procedures_json && formData.procedures_json.length > 0;
       case 4:
+        return true;
+      case 5:
         return true;
       default:
         return false;
@@ -170,7 +173,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     { number: 1, title: 'Informações Gerais' },
     { number: 2, title: 'Localização e Atendimento' },
     { number: 3, title: 'Procedimentos' },
-    { number: 4, title: 'Formas de Pagamento' }
+    { number: 4, title: 'Formas de Pagamento' },
+    { number: 5, title: 'Lembretes' }
   ];
 
   const steps = stepTitles.map(step => ({
@@ -406,6 +410,83 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
             </div>
           )}
 
+          {/* ETAPA 5: LEMBRETES */}
+          {currentStep === 5 && (
+            <div className="space-y-6 animate-fade-in">
+              {/* Toggle Ativar Lembretes */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="space-y-0.5">
+                  <Label htmlFor="reminders-toggle" className="text-base font-bold">
+                    Ativar Lembretes
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Enviar mensagens automáticas antes das consultas
+                  </p>
+                </div>
+                <Switch
+                  id="reminders-toggle"
+                  checked={formData.reminders_enabled || false}
+                  onCheckedChange={(enabled) => handleChange('reminders_enabled', enabled)}
+                />
+              </div>
+
+              {/* Campos de Configuração */}
+              {formData.reminders_enabled && (
+                <div className="space-y-4 animate-fade-in">
+                  {/* Mensagem de Lembrete */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="reminder-message" className="font-bold">Mensagem de Lembrete</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p className="font-semibold mb-2">Variáveis disponíveis:</p>
+                            <ul className="text-xs space-y-1">
+                              <li><code>[Nome do Paciente]</code> - Nome do paciente</li>
+                              <li><code>[Nome Profissional]</code> - Nome do profissional</li>
+                              <li><code>[Data e Hora da Consulta]</code> - Data/hora agendada</li>
+                              <li><code>[Local de Atendimento]</code> - Endereço do consultório</li>
+                            </ul>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Textarea
+                      id="reminder-message"
+                      value={formData.reminder_message || ''}
+                      onChange={(e) => handleChange('reminder_message', e.target.value)}
+                      placeholder="Olá [Nome do Paciente], não esqueça sua consulta com [Nome Profissional] em [Data e Hora da Consulta]."
+                      rows={4}
+                      className="text-sm"
+                    />
+                  </div>
+
+                  {/* Quando Lembrar */}
+                  <div className="space-y-2">
+                    <Label htmlFor="reminder-hours" className="font-bold">Lembrar Antes da Consulta</Label>
+                    <Select 
+                      value={formData.reminder_hours_before?.toString() || '24'}
+                      onValueChange={(value) => handleChange('reminder_hours_before', parseFloat(value))}
+                    >
+                      <SelectTrigger id="reminder-hours">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="24">24 horas antes</SelectItem>
+                        <SelectItem value="12">12 horas antes</SelectItem>
+                        <SelectItem value="2">2 horas antes</SelectItem>
+                        <SelectItem value="1">1 hora antes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* NAVEGAÇÃO */}
           <div className="flex justify-between gap-2 pt-4 border-t">
             <Button 
@@ -428,7 +509,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </Button>
               )}
 
-              {currentStep < 4 ? (
+              {currentStep < 5 ? (
                 <Button
                   type="button"
                   onClick={handleNext}
@@ -452,16 +533,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
               )}
             </div>
           </div>
-
-          {/* SEÇÃO BÔNUS: LEMBRETES */}
-          <ReminderSettings
-            remindersEnabled={formData.reminders_enabled || false}
-            onRemindersEnabledChange={(enabled) => handleChange('reminders_enabled', enabled)}
-            reminderMessage={formData.reminder_message || ''}
-            onReminderMessageChange={(message) => handleChange('reminder_message', message)}
-            reminderHoursBefore={formData.reminder_hours_before || 24}
-            onReminderHoursBeforeChange={(hours) => handleChange('reminder_hours_before', hours)}
-          />
         </form>
       </DialogContent>
     </Dialog>
