@@ -453,6 +453,11 @@ export default function PerfilsPage() {
                                 <Switch
                                   checked={profile.is_active ?? true}
                                   onCheckedChange={(checked) => handleToggleStatus(profile.id, checked)}
+                                  className="h-5 w-9 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input"
+                                  style={{
+                                    '--switch-thumb-size': '16px',
+                                    '--switch-translate': '16px',
+                                  } as React.CSSProperties}
                                 />
                               </div>
                             </div>
