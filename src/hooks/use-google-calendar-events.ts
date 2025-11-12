@@ -277,7 +277,7 @@ export const useGoogleCalendarEvents = () => {
           duration_minutes: Math.round(
             (new Date(endTime).getTime() - new Date(startTime).getTime()) / (1000 * 60)
           ),
-          appointment_type: null, // Regular appointment from Google Calendar
+          appointment_type: 'google_calendar', // Event from Google Calendar
           status: event.status === 'cancelled' ? 'cancelled' : 'confirmed',
           notes: [
             event.description,
@@ -438,7 +438,7 @@ export const useGoogleCalendarEvents = () => {
             duration_minutes: Math.round(
               (new Date(event.end_time).getTime() - new Date(event.start_time).getTime()) / (1000 * 60)
             ),
-            appointment_type: null, // Regular appointment from Google Calendar
+            appointment_type: 'google_calendar', // Event from Google Calendar
             status: event.status === 'cancelled' ? 'cancelled' : 'confirmed',
             notes: [
               event.description,
