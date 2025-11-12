@@ -136,21 +136,68 @@ serve(async (req) => {
           .update({ status: 'overdue' })
           .eq('asaas_payment_id', payment.id)
 
-        // Find subscription to suspend access (optional)
+        // Find subscription
         const { data: cobranca } = await supabase
           .from('cobrancas')
-          .select('assinatura_id')
+          .select('assinatura_id, cliente_id')
           .eq('asaas_payment_id', payment.id)
           .single()
 
         if (cobranca) {
-          // Optional: Suspend subscription after X days
-          // await supabase.from('assinaturas')
-          //   .update({ status: 'suspended' })
-          //   .eq('id', cobranca.assinatura_id)
+          // Count overdue payments for this subscription
+          const { data: overduePayments } = await supabase
+            .from('cobrancas')
+            .select('id')
+            .eq('assinatura_id', cobranca.assinatura_id)
+            .eq('status', 'overdue')
+          
+          const overdueCount = overduePayments?.length || 0
+          
+          console.log(`[asaas-webhook] Subscription has ${overdueCount} overdue payment(s)`)
+          
+          // Cancel subscription after 2 failed payments
+          if (overdueCount >= 2) {
+            console.log('[asaas-webhook] Cancelling subscription due to multiple overdue payments')
+            
+            // Cancel subscription
+            await supabase.from('assinaturas')
+              .update({ 
+                status: 'cancelled',
+                data_fim: new Date().toISOString()
+              })
+              .eq('id', cobranca.assinatura_id)
+            
+            // Get user_id from cliente
+            const { data: cliente } = await supabase
+              .from('clientes')
+              .select('user_id')
+              .eq('id', cobranca.cliente_id)
+              .single()
+            
+            if (cliente) {
+              // Reset to free plan limits
+              await supabase.from('usuario_limites')
+                .update({
+                  max_assistentes: 0,
+                  max_instancias_whatsapp: 1,
+                  max_conversas_mes: 100,
+                  max_agendamentos_mes: 50,
+                  assinatura_id: null,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('user_id', cliente.user_id)
+              
+              console.log('[asaas-webhook] User limits reset to free plan')
+            }
+          } else if (overdueCount === 1) {
+            // First overdue - just suspend access temporarily
+            await supabase.from('assinaturas')
+              .update({ status: 'suspended' })
+              .eq('id', cobranca.assinatura_id)
+            
+            console.log('[asaas-webhook] Subscription suspended - first overdue payment')
+          }
         }
-
-        // TODO: Send notification to customer
 
         break
       }
@@ -193,9 +240,49 @@ serve(async (req) => {
         
         console.log('[asaas-webhook] PAYMENT_DELETED:', payment.id)
         
+        // Update payment status
         await supabase.from('cobrancas')
           .update({ status: 'cancelled' })
           .eq('asaas_payment_id', payment.id)
+        
+        // Find subscription and cancel it
+        const { data: cobranca } = await supabase
+          .from('cobrancas')
+          .select('assinatura_id, cliente_id')
+          .eq('asaas_payment_id', payment.id)
+          .single()
+
+        if (cobranca) {
+          // Cancel subscription
+          await supabase.from('assinaturas')
+            .update({ 
+              status: 'cancelled',
+              data_fim: new Date().toISOString()
+            })
+            .eq('id', cobranca.assinatura_id)
+          
+          // Get user_id and reset limits
+          const { data: cliente } = await supabase
+            .from('clientes')
+            .select('user_id')
+            .eq('id', cobranca.cliente_id)
+            .single()
+          
+          if (cliente) {
+            await supabase.from('usuario_limites')
+              .update({
+                max_assistentes: 0,
+                max_instancias_whatsapp: 1,
+                max_conversas_mes: 100,
+                max_agendamentos_mes: 50,
+                assinatura_id: null,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', cliente.user_id)
+            
+            console.log('[asaas-webhook] Subscription cancelled and limits reset due to payment deletion')
+          }
+        }
 
         break
       }
@@ -250,11 +337,41 @@ serve(async (req) => {
         
         console.log('[asaas-webhook] SUBSCRIPTION_INACTIVATED:', subscription.id)
         
-        await supabase.from('assinaturas')
-          .update({ status: 'inactive' })
+        // Get subscription data
+        const { data: assinatura } = await supabase
+          .from('assinaturas')
+          .select('cliente_id')
           .eq('asaas_subscription_id', subscription.id)
-
-        // TODO: Notify user and suspend access
+          .single()
+        
+        if (assinatura) {
+          // Update subscription status
+          await supabase.from('assinaturas')
+            .update({ status: 'inactive' })
+            .eq('asaas_subscription_id', subscription.id)
+          
+          // Get user_id and reset limits
+          const { data: cliente } = await supabase
+            .from('clientes')
+            .select('user_id')
+            .eq('id', assinatura.cliente_id)
+            .single()
+          
+          if (cliente) {
+            await supabase.from('usuario_limites')
+              .update({
+                max_assistentes: 0,
+                max_instancias_whatsapp: 1,
+                max_conversas_mes: 100,
+                max_agendamentos_mes: 50,
+                assinatura_id: null,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', cliente.user_id)
+            
+            console.log('[asaas-webhook] User access suspended - limits reset to free plan')
+          }
+        }
 
         break
       }
