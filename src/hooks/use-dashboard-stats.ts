@@ -58,7 +58,7 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
           supabase.from('professional_profiles').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id),
           supabase.from('whatsapp_instances').select('id, status', { count: 'exact' }).eq('user_id', userData.user.id),
           supabase.from('conversations').select('id, contact_phone').eq('user_id', userData.user.id).or(`last_message_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()},and(last_message_at.is.null,created_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()})`),
-          supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).gte('appointment_date', startDate.toISOString()).neq('appointment_type', 'blocked')
+          supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).gte('appointment_date', startDate.toISOString()).or('appointment_type.is.null,and(appointment_type.neq.blocked,appointment_type.neq.google_calendar)')
         ]);
 
         // Get conversations for today's messages count
@@ -194,12 +194,12 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
             .map(conv => conv.contact_phone)
         );
 
-        // Buscar agendamentos criados neste dia (excluindo bloqueios)
+        // Buscar agendamentos criados neste dia (excluindo bloqueios e eventos do Google)
         const { data: appointmentsInDay } = await supabase
           .from('appointments')
           .select('id')
           .eq('user_id', userData.user.id)
-          .neq('appointment_type', 'blocked')
+          .or('appointment_type.is.null,and(appointment_type.neq.blocked,appointment_type.neq.google_calendar)')
           .gte('created_at', startOfDay.toISOString())
           .lte('created_at', endOfDay.toISOString());
 
