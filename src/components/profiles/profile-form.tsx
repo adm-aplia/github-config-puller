@@ -76,7 +76,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         specialty: '',
         professionalid: '',
         phonenumber: '',
-        email: '',
         education: '',
         instagram: '',
         locations: '',
@@ -143,7 +142,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const canProceed = () => {
     switch(currentStep) {
       case 1:
-        return formData.fullname && formData.specialty && formData.email;
+        return formData.fullname && formData.specialty;
       case 2:
         return true;
       case 3:
@@ -165,7 +164,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     if (step > 1) {
       // Temporariamente simula estar na etapa 1 para verificar se pode proceder
       const tempStep = 1;
-      return formData.fullname && formData.specialty && formData.email;
+      return formData.fullname && formData.specialty;
     }
     
     return true;
@@ -265,20 +264,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                     }}
                     placeholder="(11) 98765-4321"
                     maxLength={15}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="font-bold">
-                    Email <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email || ''}
-                    onChange={(e) => handleChange('email', e.target.value)}
-                    placeholder="claudia@exemplo.com"
-                    required
                   />
                 </div>
 

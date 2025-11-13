@@ -692,10 +692,10 @@ export type Database = {
           consultationfees: string | null
           created_at: string | null
           education: string | null
-          email: string | null
           fullname: string
           healthinsurance: string | null
           id: string
+          instagram: string | null
           installment_enabled: boolean | null
           is_active: boolean | null
           locations: string | null
@@ -707,7 +707,10 @@ export type Database = {
           preappointmentinfo: string | null
           procedures: string | null
           professionalid: string | null
+          reminder_hours_before: number | null
+          reminder_message: string | null
           reminderpreferences: string | null
+          reminders_enabled: boolean | null
           requireddocuments: string | null
           requiredpatientinfo: string | null
           reschedulingpolicy: string | null
@@ -728,10 +731,10 @@ export type Database = {
           consultationfees?: string | null
           created_at?: string | null
           education?: string | null
-          email?: string | null
           fullname: string
           healthinsurance?: string | null
           id?: string
+          instagram?: string | null
           installment_enabled?: boolean | null
           is_active?: boolean | null
           locations?: string | null
@@ -743,7 +746,10 @@ export type Database = {
           preappointmentinfo?: string | null
           procedures?: string | null
           professionalid?: string | null
+          reminder_hours_before?: number | null
+          reminder_message?: string | null
           reminderpreferences?: string | null
+          reminders_enabled?: boolean | null
           requireddocuments?: string | null
           requiredpatientinfo?: string | null
           reschedulingpolicy?: string | null
@@ -764,10 +770,10 @@ export type Database = {
           consultationfees?: string | null
           created_at?: string | null
           education?: string | null
-          email?: string | null
           fullname?: string
           healthinsurance?: string | null
           id?: string
+          instagram?: string | null
           installment_enabled?: boolean | null
           is_active?: boolean | null
           locations?: string | null
@@ -779,7 +785,10 @@ export type Database = {
           preappointmentinfo?: string | null
           procedures?: string | null
           professionalid?: string | null
+          reminder_hours_before?: number | null
+          reminder_message?: string | null
           reminderpreferences?: string | null
+          reminders_enabled?: boolean | null
           requireddocuments?: string | null
           requiredpatientinfo?: string | null
           reschedulingpolicy?: string | null
@@ -1000,20 +1009,17 @@ export type Database = {
         Args: { p_user_id?: string }
         Returns: undefined
       }
-      force_update_user_limits: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      force_update_user_limits: { Args: never; Returns: undefined }
       get_appointment_status_counts: {
         Args: { p_from: string; p_professional_id?: string; p_to: string }
         Returns: Json
       }
-      get_dashboard_stats: {
-        Args:
-          | { days_param?: number; user_id_param: string }
-          | { user_id_param: string }
-        Returns: Json
-      }
+      get_dashboard_stats:
+        | { Args: { user_id_param: string }; Returns: Json }
+        | {
+            Args: { days_param?: number; user_id_param: string }
+            Returns: Json
+          }
       get_real_user_usage_summary: {
         Args: { p_user_id?: string }
         Returns: Json
@@ -1022,18 +1028,12 @@ export type Database = {
         Args: { p_user_id?: string }
         Returns: Json
       }
-      get_user_usage_summary: {
-        Args: { p_user_id: string }
-        Returns: Json
-      }
+      get_user_usage_summary: { Args: { p_user_id: string }; Returns: Json }
       increment_usage: {
         Args: { p_resource_type: string; p_user_id: string }
         Returns: undefined
       }
-      initialize_user_data: {
-        Args: { p_user_id?: string }
-        Returns: undefined
-      }
+      initialize_user_data: { Args: { p_user_id?: string }; Returns: undefined }
       update_user_limits_from_subscription: {
         Args: { p_user_id: string }
         Returns: undefined
