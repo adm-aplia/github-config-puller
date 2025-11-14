@@ -44,7 +44,7 @@ const DEFAULT_REMINDER_MESSAGE = "Olá [Nome do Paciente] seu atendimento está 
 const REMINDER_VARIABLES = [
   { label: 'Nome do Paciente', value: '[Nome do Paciente]' },
   { label: 'Local de Atendimento', value: '[Local de Atendimento]' },
-  { label: 'Nome Profissional', value: '[Nome Profissional]' },
+  { label: 'Nome do Profissional', value: '[Nome do Profissional]' },
   { label: 'Data e Hora da Consulta', value: '[Data e Hora da Consulta]' }
 ];
 
@@ -153,13 +153,13 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const canProceed = () => {
     switch(currentStep) {
       case 1:
-        return formData.fullname && formData.specialty;
+        return formData.fullname && formData.specialty && formData.education;
       case 2:
-        return true;
+        return formData.locations && formData.workinghours;
       case 3:
         return formData.procedures_json && formData.procedures_json.length > 0;
       case 4:
-        return true;
+        return formData.healthinsurance && formData.paymentmethods && formData.max_installments;
       case 5:
         return true;
       default:
@@ -307,13 +307,16 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="education" className="font-bold">Formação Acadêmica</Label>
+                  <Label htmlFor="education" className="font-bold">
+                    Formação Acadêmica <span className="text-destructive">*</span>
+                  </Label>
                   <Textarea
                     id="education"
                     value={formData.education || ''}
                     onChange={(e) => handleChange('education', e.target.value)}
                     placeholder="Medicina - USP, Cardiologia - Hospital A.C. Camargo"
                     rows={3}
+                    required
                   />
                 </div>
               </div>
@@ -324,18 +327,23 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           {currentStep === 2 && (
             <div className="space-y-4 animate-fade-in">
               <div className="space-y-2">
-                <Label htmlFor="locations" className="font-bold">Locais de Atendimento</Label>
+                <Label htmlFor="locations" className="font-bold">
+                  Locais de Atendimento <span className="text-destructive">*</span>
+                </Label>
                 <Textarea
                   id="locations"
                   value={formData.locations || ''}
                   onChange={(e) => handleChange('locations', e.target.value)}
                   placeholder="Consultório Centro - Rua das Flores, 123, Sala 45"
                   rows={3}
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="workinghours" className="font-bold">Horários de Trabalho</Label>
+                <Label htmlFor="workinghours" className="font-bold">
+                  Horários de Trabalho <span className="text-destructive">*</span>
+                </Label>
                 <WeeklyScheduleInput
                   value={formData.workinghours || ''}
                   onChange={(value) => handleChange('workinghours', value)}
@@ -362,7 +370,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 {/* SEÇÃO A: Convênios Aceitos */}
                 <div className="space-y-2">
                   <Label htmlFor="healthinsurance" className="text-base font-semibold">
-                    Convênios Aceitos
+                    Convênios Aceitos <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="healthinsurance"
@@ -370,12 +378,34 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                     onChange={(e) => handleChange('healthinsurance', e.target.value)}
                     placeholder="Unimed, SulAmérica, Amil, Bradesco Saúde"
                     rows={4}
+                    required
                   />
+                  <div className="flex items-center space-x-2 pt-1">
+                    <Checkbox
+                      id="apenas-particular"
+                      checked={formData.healthinsurance === 'Apenas Particular'}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          handleChange('healthinsurance', 'Apenas Particular');
+                        } else {
+                          handleChange('healthinsurance', '');
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor="apenas-particular"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Apenas Particular
+                    </label>
+                  </div>
                 </div>
 
                 {/* SEÇÃO B: Formas de Pagamento */}
                 <div className="space-y-2">
-                  <Label className="text-base font-semibold">Formas de Pagamento</Label>
+                  <Label className="text-base font-semibold">
+                    Formas de Pagamento <span className="text-destructive">*</span>
+                  </Label>
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     {['Crédito', 'Débito', 'PIX', 'Dinheiro'].map((method) => {
                       const selectedPayments = formData.paymentmethods 
@@ -417,7 +447,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 {/* SEÇÃO C: Parcelamento */}
                 <div className="space-y-2">
                   <Label htmlFor="max_installments" className="text-base font-semibold">
-                    Máximo de Parcelas
+                    Máximo de Parcelas <span className="text-destructive">*</span>
                   </Label>
                   <Select
                     value={formData.max_installments?.toString() || '1'}
@@ -427,7 +457,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.from({length: 12}, (_, i) => i + 1).map(num => (
+                      <SelectItem value="1">Não Parcela</SelectItem>
+                      {Array.from({length: 11}, (_, i) => i + 2).map(num => (
                         <SelectItem key={num} value={num.toString()}>
                           Até {num}x
                         </SelectItem>
@@ -464,25 +495,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 <div className="space-y-4 animate-fade-in">
                   {/* Mensagem de Lembrete */}
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="reminder-message" className="font-bold">Mensagem de Lembrete</Label>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <p className="font-semibold mb-2">Variáveis disponíveis:</p>
-                            <ul className="text-xs space-y-1">
-                              <li><code>[Nome do Paciente]</code> - Nome do paciente</li>
-                              <li><code>[Nome Profissional]</code> - Nome do profissional</li>
-                              <li><code>[Data e Hora da Consulta]</code> - Data/hora agendada</li>
-                              <li><code>[Local de Atendimento]</code> - Endereço do consultório</li>
-                            </ul>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
+                    <Label htmlFor="reminder-message" className="font-bold">Mensagem de Lembrete</Label>
                     <Textarea
                       ref={reminderMessageRef}
                       id="reminder-message"
