@@ -682,14 +682,6 @@ export type Database = {
       }
       professional_profiles: {
         Row: {
-          additionalinfo: string | null
-          agerequirements: string | null
-          appointmentconditions: string | null
-          avatar_url: string | null
-          cancellationpolicy: string | null
-          communicationchannels: string | null
-          consultationduration: string | null
-          consultationfees: string | null
           created_at: string | null
           education: string | null
           fullname: string
@@ -700,35 +692,19 @@ export type Database = {
           is_active: boolean | null
           locations: string | null
           max_installments: number | null
-          medicalhistoryrequirements: string | null
-          onlineconsultations: string | null
           paymentmethods: string | null
           phonenumber: string | null
-          preappointmentinfo: string | null
           procedures: string | null
           professionalid: string | null
           reminder_hours_before: number | null
           reminder_message: string | null
-          reminderpreferences: string | null
           reminders_enabled: boolean | null
-          requireddocuments: string | null
-          requiredpatientinfo: string | null
-          reschedulingpolicy: string | null
           specialty: string
-          timebetweenconsultations: string | null
           updated_at: string | null
           user_id: string
           workinghours: string | null
         }
         Insert: {
-          additionalinfo?: string | null
-          agerequirements?: string | null
-          appointmentconditions?: string | null
-          avatar_url?: string | null
-          cancellationpolicy?: string | null
-          communicationchannels?: string | null
-          consultationduration?: string | null
-          consultationfees?: string | null
           created_at?: string | null
           education?: string | null
           fullname: string
@@ -739,35 +715,19 @@ export type Database = {
           is_active?: boolean | null
           locations?: string | null
           max_installments?: number | null
-          medicalhistoryrequirements?: string | null
-          onlineconsultations?: string | null
           paymentmethods?: string | null
           phonenumber?: string | null
-          preappointmentinfo?: string | null
           procedures?: string | null
           professionalid?: string | null
           reminder_hours_before?: number | null
           reminder_message?: string | null
-          reminderpreferences?: string | null
           reminders_enabled?: boolean | null
-          requireddocuments?: string | null
-          requiredpatientinfo?: string | null
-          reschedulingpolicy?: string | null
           specialty: string
-          timebetweenconsultations?: string | null
           updated_at?: string | null
           user_id: string
           workinghours?: string | null
         }
         Update: {
-          additionalinfo?: string | null
-          agerequirements?: string | null
-          appointmentconditions?: string | null
-          avatar_url?: string | null
-          cancellationpolicy?: string | null
-          communicationchannels?: string | null
-          consultationduration?: string | null
-          consultationfees?: string | null
           created_at?: string | null
           education?: string | null
           fullname?: string
@@ -778,22 +738,14 @@ export type Database = {
           is_active?: boolean | null
           locations?: string | null
           max_installments?: number | null
-          medicalhistoryrequirements?: string | null
-          onlineconsultations?: string | null
           paymentmethods?: string | null
           phonenumber?: string | null
-          preappointmentinfo?: string | null
           procedures?: string | null
           professionalid?: string | null
           reminder_hours_before?: number | null
           reminder_message?: string | null
-          reminderpreferences?: string | null
           reminders_enabled?: boolean | null
-          requireddocuments?: string | null
-          requiredpatientinfo?: string | null
-          reschedulingpolicy?: string | null
           specialty?: string
-          timebetweenconsultations?: string | null
           updated_at?: string | null
           user_id?: string
           workinghours?: string | null

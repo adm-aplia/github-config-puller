@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { ClickableStepIndicator } from './clickable-step-indicator';
 import { ProcedureListInput, Procedure } from './procedure-list-input';
+import { Card } from '@/components/ui/card';
 
 interface ProfileFormProps {
   profile?: ProfessionalProfile;
@@ -38,6 +39,15 @@ const DEFAULT_WORKING_HOURS = JSON.stringify({
   saturday: [{ start: '08:00', end: '13:00' }]
 });
 
+const DEFAULT_REMINDER_MESSAGE = "Olá [Nome do Paciente] seu atendimento está agendado para [Data e Hora da Consulta] no endereço [Local de Atendimento]. Estamos te aguardando!";
+
+const REMINDER_VARIABLES = [
+  { label: 'Nome do Paciente', value: '[Nome do Paciente]' },
+  { label: 'Local de Atendimento', value: '[Local de Atendimento]' },
+  { label: 'Nome Profissional', value: '[Nome Profissional]' },
+  { label: 'Data e Hora da Consulta', value: '[Data e Hora da Consulta]' }
+];
+
 export const ProfileForm: React.FC<ProfileFormProps> = ({
   profile,
   isOpen,
@@ -50,6 +60,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const [formData, setFormData] = useState<Partial<ProfessionalProfile & {
     procedures_json?: Procedure[];
   }>>({});
+  const reminderMessageRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (profile) {
@@ -66,7 +77,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         ...profile,
         procedures_json: proceduresJson,
         reminders_enabled: profile.reminders_enabled || false,
-        reminder_message: profile.reminder_message || '',
+        reminder_message: profile.reminder_message || DEFAULT_REMINDER_MESSAGE,
         reminder_hours_before: profile.reminder_hours_before || 24,
       });
       setCompletedSteps([1, 2, 3, 4, 5]);
@@ -85,7 +96,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         paymentmethods: '',
         max_installments: 1,
         reminders_enabled: false,
-        reminder_message: '',
+        reminder_message: DEFAULT_REMINDER_MESSAGE,
         reminder_hours_before: 24
       });
       setCompletedSteps([]);
@@ -175,6 +186,24 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  const insertVariableAtCursor = (variable: string) => {
+    const textarea = reminderMessageRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentMessage = formData.reminder_message || DEFAULT_REMINDER_MESSAGE;
+    const newMessage = currentMessage.substring(0, start) + variable + currentMessage.substring(end);
+    
+    handleChange('reminder_message', newMessage);
+    
+    // Restore cursor position after the inserted variable
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + variable.length, start + variable.length);
+    }, 0);
   };
 
   const stepTitles = [
@@ -455,13 +484,33 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                       </TooltipProvider>
                     </div>
                     <Textarea
+                      ref={reminderMessageRef}
                       id="reminder-message"
-                      value={formData.reminder_message || ''}
+                      value={formData.reminder_message || DEFAULT_REMINDER_MESSAGE}
                       onChange={(e) => handleChange('reminder_message', e.target.value)}
-                      placeholder="Olá [Nome do Paciente], não esqueça sua consulta com [Nome Profissional] em [Data e Hora da Consulta]."
                       rows={4}
                       className="text-sm"
                     />
+                    
+                    {/* Cards de Variáveis */}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">
+                        Clique para adicionar variáveis:
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {REMINDER_VARIABLES.map((variable) => (
+                          <Card
+                            key={variable.value}
+                            className="p-3 cursor-pointer hover:bg-accent hover:border-primary transition-all"
+                            onClick={() => insertVariableAtCursor(variable.value)}
+                          >
+                            <p className="text-xs font-medium text-center">
+                              {variable.label}
+                            </p>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Quando Lembrar */}
