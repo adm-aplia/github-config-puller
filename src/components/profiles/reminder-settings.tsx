@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -9,6 +9,7 @@ import { Bell, ChevronDown, HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface ReminderSettingsProps {
   remindersEnabled: boolean;
@@ -21,8 +22,14 @@ interface ReminderSettingsProps {
   onCustomReminderTimeChange?: (time: string) => void;
 }
 
-const DEFAULT_REMINDER_MESSAGE = 
-  "Olá [Nome do Paciente], não esqueça sua consulta com [Nome Profissional] em [Data e Hora da Consulta]. Te esperamos em [Local de Atendimento].";
+const DEFAULT_REMINDER_MESSAGE = "Olá [Nome do Paciente] seu atendimento está agendado para [Data e Hora da Consulta] no endereço [Local de Atendimento]. Estamos te aguardando!";
+
+const REMINDER_VARIABLES = [
+  { label: 'Nome do Paciente', value: '[Nome do Paciente]' },
+  { label: 'Local de Atendimento', value: '[Local de Atendimento]' },
+  { label: 'Nome Profissional', value: '[Nome Profissional]' },
+  { label: 'Data e Hora da Consulta', value: '[Data e Hora da Consulta]' }
+];
 
 const REMINDER_OPTIONS = [
   { value: '24', label: '24 horas antes' },
@@ -47,12 +54,31 @@ export const ReminderSettings: React.FC<ReminderSettingsProps> = ({
   const [reminderTimeType, setReminderTimeType] = React.useState<string>(
     REMINDER_OPTIONS.find(opt => parseFloat(opt.value) === reminderHoursBefore)?.value || 'custom'
   );
+  const reminderMessageRef = useRef<HTMLTextAreaElement>(null);
 
   const handleReminderTimeChange = (value: string) => {
     setReminderTimeType(value);
     if (value !== 'custom') {
       onReminderHoursBeforeChange(parseFloat(value));
     }
+  };
+
+  const insertVariableAtCursor = (variable: string) => {
+    const textarea = reminderMessageRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentMessage = reminderMessage || DEFAULT_REMINDER_MESSAGE;
+    const newMessage = currentMessage.substring(0, start) + variable + currentMessage.substring(end);
+    
+    onReminderMessageChange(newMessage);
+    
+    // Restore cursor position after the inserted variable
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + variable.length, start + variable.length);
+    }, 0);
   };
 
   return (
@@ -115,13 +141,34 @@ export const ReminderSettings: React.FC<ReminderSettingsProps> = ({
                   </div>
                 </TooltipProvider>
                 <Textarea
+                  ref={reminderMessageRef}
                   id="reminder-message"
                   value={reminderMessage || DEFAULT_REMINDER_MESSAGE}
                   onChange={(e) => onReminderMessageChange(e.target.value)}
-                  placeholder={DEFAULT_REMINDER_MESSAGE}
                   rows={4}
                   className="text-sm"
                 />
+                
+                {/* Cards de Variáveis */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">
+                    Clique para adicionar variáveis:
+                  </Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {REMINDER_VARIABLES.map((variable) => (
+                      <Card
+                        key={variable.value}
+                        className="p-3 cursor-pointer hover:bg-accent hover:border-primary transition-all"
+                        onClick={() => insertVariableAtCursor(variable.value)}
+                      >
+                        <p className="text-xs font-medium text-center">
+                          {variable.label}
+                        </p>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
                 <Button
                   type="button"
                   variant="ghost"
