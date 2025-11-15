@@ -59,8 +59,10 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [formData, setFormData] = useState<Partial<ProfessionalProfile & {
     procedures_json?: Procedure[];
+    custom_reminder_time?: string;
   }>>({});
   const reminderMessageRef = useRef<HTMLTextAreaElement>(null);
+  const [reminderTimeType, setReminderTimeType] = React.useState<string>('10:00');
 
   useEffect(() => {
     if (profile) {
@@ -79,6 +81,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         reminders_enabled: profile.reminders_enabled || false,
         reminder_message: profile.reminder_message || DEFAULT_REMINDER_MESSAGE,
         reminder_hours_before: profile.reminder_hours_before || 24,
+        custom_reminder_time: profile.reminder_hours_before?.toString().includes(':') ? profile.reminder_hours_before?.toString() : '10:00',
       });
       setCompletedSteps([1, 2, 3, 4, 5]);
     } else {
@@ -97,7 +100,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         max_installments: 1,
         reminders_enabled: false,
         reminder_message: DEFAULT_REMINDER_MESSAGE,
-        reminder_hours_before: 24
+        reminder_hours_before: 24,
+        custom_reminder_time: '10:00'
       });
       setCompletedSteps([]);
     }
@@ -528,21 +532,55 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
                   {/* Quando Lembrar */}
                   <div className="space-y-2">
-                    <Label htmlFor="reminder-hours" className="font-bold">Lembrar Antes da Consulta</Label>
-                    <Select 
-                      value={formData.reminder_hours_before?.toString() || '24'}
-                      onValueChange={(value) => handleChange('reminder_hours_before', parseFloat(value))}
-                    >
-                      <SelectTrigger id="reminder-hours">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="24">24 horas antes</SelectItem>
-                        <SelectItem value="12">12 horas antes</SelectItem>
-                        <SelectItem value="2">2 horas antes</SelectItem>
-                        <SelectItem value="1">1 hora antes</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="reminder-hours" className="font-bold">Lembrar Paciente às:</Label>
+                    <div className="flex items-center gap-2">
+                      <Select 
+                        value={reminderTimeType}
+                        onValueChange={(value) => {
+                          setReminderTimeType(value);
+                          if (value !== 'outro') {
+                            handleChange('custom_reminder_time', value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger id="reminder-hours">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="09:00">09:00</SelectItem>
+                          <SelectItem value="10:00">10:00</SelectItem>
+                          <SelectItem value="11:00">11:00</SelectItem>
+                          <SelectItem value="12:00">12:00</SelectItem>
+                          <SelectItem value="13:00">13:00</SelectItem>
+                          <SelectItem value="14:00">14:00</SelectItem>
+                          <SelectItem value="15:00">15:00</SelectItem>
+                          <SelectItem value="16:00">16:00</SelectItem>
+                          <SelectItem value="17:00">17:00</SelectItem>
+                          <SelectItem value="18:00">18:00</SelectItem>
+                          <SelectItem value="outro">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <span className="text-sm text-muted-foreground whitespace-nowrap">do dia anterior</span>
+                    </div>
+
+                    {reminderTimeType === 'outro' && (
+                      <div className="pt-2">
+                        <Label htmlFor="custom-reminder-time" className="text-xs text-muted-foreground">
+                          Horário Personalizado
+                        </Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            id="custom-reminder-time"
+                            type="time"
+                            value={formData.custom_reminder_time || ''}
+                            onChange={(e) => handleChange('custom_reminder_time', e.target.value)}
+                            className="flex-1"
+                            placeholder="HH:MM"
+                          />
+                          <span className="text-sm text-muted-foreground whitespace-nowrap">do dia anterior</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
