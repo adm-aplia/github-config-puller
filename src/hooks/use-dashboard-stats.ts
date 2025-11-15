@@ -57,7 +57,7 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
         const [assistentesData, instanciasData, conversasData, agendamentosData] = await Promise.all([
           supabase.from('professional_profiles').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id),
           supabase.from('whatsapp_instances').select('id, status', { count: 'exact' }).eq('user_id', userData.user.id),
-          supabase.from('conversations').select('id, contact_phone').eq('user_id', userData.user.id).or(`last_message_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()},and(last_message_at.is.null,created_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()})`),
+          supabase.from('conversations').select('id, patient_phone').eq('user_id', userData.user.id).or(`last_message_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()},and(last_message_at.is.null,created_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()})`),
           supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('user_id', userData.user.id).gte('appointment_date', startDate.toISOString()).or('appointment_type.is.null,and(appointment_type.neq.blocked,appointment_type.neq.google_calendar)')
         ]);
 
@@ -89,7 +89,7 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
         
         // Contar contatos únicos para conversas ativas (últimos 7 dias)
         const uniqueActiveContacts = new Set(
-          conversasData.data?.map(conv => conv.contact_phone) || []
+          conversasData.data?.map(conv => conv.patient_phone) || []
         );
 
         // Calcular conversas_periodo usando os dados do gráfico
@@ -104,7 +104,7 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
             
             return supabase
               .from('conversations')
-              .select('id, contact_phone')
+              .select('id, patient_phone')
               .eq('user_id', userData.user.id)
               .then(async ({ data: allConvs }) => {
                 if (!allConvs || allConvs.length === 0) return new Set();
@@ -120,7 +120,7 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
                 return new Set(
                   allConvs
                     .filter(conv => convIds.has(conv.id))
-                    .map(conv => conv.contact_phone)
+                    .map(conv => conv.patient_phone)
                 );
               });
           })
@@ -161,7 +161,7 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
         // Buscar TODAS as conversas do usuário
         const { data: allUserConversations } = await supabase
           .from('conversations')
-          .select('id, contact_phone')
+          .select('id, patient_phone')
           .eq('user_id', userData.user.id);
 
         if (!allUserConversations || allUserConversations.length === 0) {
@@ -187,11 +187,11 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
           messagesInDay?.map(msg => msg.conversation_id) || []
         );
 
-        // Mapear de volta para contact_phone únicos
+        // Mapear de volta para patient_phone únicos
         const uniqueContacts = new Set(
           allUserConversations
             .filter(conv => uniqueConversationIds.has(conv.id))
-            .map(conv => conv.contact_phone)
+            .map(conv => conv.patient_phone)
         );
 
         // Buscar agendamentos criados neste dia (excluindo bloqueios e eventos do Google)

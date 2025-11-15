@@ -6,9 +6,9 @@ import { useToast } from '@/components/ui/use-toast';
 export interface Conversation {
   id: string;
   user_id: string;
-  contact_phone: string;
-  contact_name?: string;
-  contact_avatar_url?: string;
+  patient_phone: string;
+  patient_name?: string;
+  patient_avatar_url?: string;
   professional_profile_id?: string;
   instance_id?: string;
   last_message_at?: string;
@@ -116,8 +116,8 @@ export const useConversations = () => {
         count: conversationsWithDetails.length,
         conversations: conversationsWithDetails.map(c => ({
           id: c.id,
-          contact_name: c.contact_name,
-          contact_phone: c.contact_phone,
+          patient_name: c.patient_name,
+          patient_phone: c.patient_phone,
           message_count: c.message_count
         }))
       });
@@ -161,9 +161,9 @@ export const useConversations = () => {
         .from('conversations')
         .insert({
           user_id: userData.user.id,
-          contact_phone: conversationData.contact_phone || '',
-          contact_name: conversationData.contact_name,
-          contact_avatar_url: conversationData.contact_avatar_url,
+            patient_phone: conversationData.patient_phone || '',
+            patient_name: conversationData.patient_name,
+            patient_avatar_url: conversationData.patient_avatar_url,
           professional_profile_id: conversationData.professional_profile_id,
           instance_id: conversationData.instance_id,
           last_message_at: new Date().toISOString()

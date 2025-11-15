@@ -9,8 +9,8 @@ import { useNavigate } from "react-router-dom"
 
 interface Conversation {
   id: string
-  contact_name: string | null
-  contact_phone: string
+  patient_name: string | null
+  patient_phone: string
   last_message_at: string | null
   created_at: string
   professional_profile?: {
@@ -43,8 +43,8 @@ export function RecentConversations() {
         .from('conversations')
         .select(`
           id,
-          contact_name,
-          contact_phone,
+          patient_name,
+          patient_phone,
           last_message_at,
           created_at,
           professional_profile_id
@@ -163,12 +163,12 @@ export function RecentConversations() {
               >
                 <Avatar className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0">
                   <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                    {(conversation.contact_name || conversation.contact_phone).charAt(0).toUpperCase()}
+                    {(conversation.patient_name || conversation.patient_phone).charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-1 flex-1 min-w-0">
                   <p className="text-fluid-sm font-medium leading-none truncate">
-                    {conversation.contact_name || conversation.contact_phone}
+                    {conversation.patient_name || conversation.patient_phone}
                   </p>
                   {conversation.professional_profile && (
                     <p className="text-fluid-xs text-muted-foreground font-medium truncate">

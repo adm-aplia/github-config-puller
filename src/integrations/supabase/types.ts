@@ -334,37 +334,37 @@ export type Database = {
       }
       conversations: {
         Row: {
-          contact_avatar_url: string | null
-          contact_name: string | null
-          contact_phone: string
           created_at: string | null
           id: string
           instance_id: string | null
           last_message_at: string | null
+          patient_avatar_url: string | null
+          patient_name: string | null
+          patient_phone: string
           professional_profile_id: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
-          contact_avatar_url?: string | null
-          contact_name?: string | null
-          contact_phone: string
           created_at?: string | null
           id?: string
           instance_id?: string | null
           last_message_at?: string | null
+          patient_avatar_url?: string | null
+          patient_name?: string | null
+          patient_phone: string
           professional_profile_id?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
-          contact_avatar_url?: string | null
-          contact_name?: string | null
-          contact_phone?: string
           created_at?: string | null
           id?: string
           instance_id?: string | null
           last_message_at?: string | null
+          patient_avatar_url?: string | null
+          patient_name?: string | null
+          patient_phone?: string
           professional_profile_id?: string | null
           updated_at?: string | null
           user_id?: string
