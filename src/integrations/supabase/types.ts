@@ -755,31 +755,25 @@ export type Database = {
       prompts: {
         Row: {
           created_at: string | null
-          id: string
           is_active: boolean | null
+          professional_profile_id: string
           prompt_text: string
-          prompt_type: string | null
-          questionnaire_id: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
-          id?: string
           is_active?: boolean | null
+          professional_profile_id?: string
           prompt_text: string
-          prompt_type?: string | null
-          questionnaire_id?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
-          id?: string
           is_active?: boolean | null
+          professional_profile_id?: string
           prompt_text?: string
-          prompt_type?: string | null
-          questionnaire_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
