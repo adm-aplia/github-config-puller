@@ -16,8 +16,6 @@ interface ReminderSettingsProps {
   onRemindersEnabledChange: (enabled: boolean) => void;
   reminderMessage: string;
   onReminderMessageChange: (message: string) => void;
-  reminderHoursBefore: number;
-  onReminderHoursBeforeChange: (hours: number) => void;
   customReminderTime?: string;
   onCustomReminderTimeChange?: (time: string) => void;
 }
@@ -50,8 +48,6 @@ export const ReminderSettings: React.FC<ReminderSettingsProps> = ({
   onRemindersEnabledChange,
   reminderMessage,
   onReminderMessageChange,
-  reminderHoursBefore,
-  onReminderHoursBeforeChange,
   customReminderTime,
   onCustomReminderTimeChange
 }) => {

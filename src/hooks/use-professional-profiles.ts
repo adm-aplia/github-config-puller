@@ -24,7 +24,7 @@ export interface ProfessionalProfile {
   instagram?: string;
   reminders_enabled?: boolean;
   reminder_message?: string;
-  reminder_hours_before?: number;
+  custom_reminder_time?: string;
   is_active?: boolean;
   created_at: string;
   updated_at: string;
