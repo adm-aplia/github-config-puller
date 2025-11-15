@@ -683,6 +683,7 @@ export type Database = {
       professional_profiles: {
         Row: {
           created_at: string | null
+          custom_reminder_time: number | null
           education: string | null
           fullname: string
           healthinsurance: string | null
@@ -696,7 +697,6 @@ export type Database = {
           phonenumber: string | null
           procedures: string | null
           professionalid: string | null
-          reminder_hours_before: number | null
           reminder_message: string | null
           reminders_enabled: boolean | null
           specialty: string
@@ -706,6 +706,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          custom_reminder_time?: number | null
           education?: string | null
           fullname: string
           healthinsurance?: string | null
@@ -719,7 +720,6 @@ export type Database = {
           phonenumber?: string | null
           procedures?: string | null
           professionalid?: string | null
-          reminder_hours_before?: number | null
           reminder_message?: string | null
           reminders_enabled?: boolean | null
           specialty: string
@@ -729,6 +729,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          custom_reminder_time?: number | null
           education?: string | null
           fullname?: string
           healthinsurance?: string | null
@@ -742,7 +743,6 @@ export type Database = {
           phonenumber?: string | null
           procedures?: string | null
           professionalid?: string | null
-          reminder_hours_before?: number | null
           reminder_message?: string | null
           reminders_enabled?: boolean | null
           specialty?: string
