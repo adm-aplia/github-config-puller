@@ -56,10 +56,10 @@ export const useMessages = (conversationId?: string) => {
         return;
       }
 
-      // Update conversation's last_message_at
+      // Update conversation's last_message_at using the message's created_at timestamp
       await supabase
         .from('conversations')
-        .update({ last_message_at: new Date().toISOString() })
+        .update({ last_message_at: data.created_at })
         .eq('id', conversationId);
 
       // Send webhook notification for agent messages
