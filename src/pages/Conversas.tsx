@@ -185,8 +185,8 @@ export default function ConversasPage() {
     if (searchTerm.trim()) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(conv => 
-        (conv.contact_name?.toLowerCase().includes(search)) ||
-        (conv.contact_phone?.includes(search)) ||
+        (conv.patient_name?.toLowerCase().includes(search)) ||
+        (conv.patient_phone?.includes(search)) ||
         (conv.last_message?.toLowerCase().includes(search)) ||
         (conv.profile_name?.toLowerCase().includes(search))
       );
@@ -405,18 +405,18 @@ export default function ConversasPage() {
                             )}
                             
                             <Avatar className="h-12 w-12 flex-shrink-0">
-                              {conversation.contact_avatar_url && (
-                                <AvatarImage src={conversation.contact_avatar_url} alt={conversation.contact_name || conversation.contact_phone} />
+                              {conversation.patient_avatar_url && (
+                                <AvatarImage src={conversation.patient_avatar_url} alt={conversation.patient_name || conversation.patient_phone} />
                               )}
                               <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                                {(conversation.contact_name || conversation.contact_phone).charAt(0).toUpperCase()}
+                                {(conversation.patient_name || conversation.patient_phone).charAt(0).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                             
                             <div className="flex-1 min-w-0 flex flex-col justify-center">
                               <div className="flex items-center gap-2 mb-1">
                                 <h3 className="font-medium text-sm truncate">
-                                  {conversation.contact_name || applyMask.phone(conversation.contact_phone)}
+                                  {conversation.patient_name || applyMask.phone(conversation.patient_phone)}
                                 </h3>
                                 <span className="text-xs text-muted-foreground flex-shrink-0">
                                   • {conversation.last_message_at ? formatTimestamp(conversation.last_message_at) : formatTimestamp(conversation.created_at)}
@@ -441,7 +441,7 @@ export default function ConversasPage() {
                                       size="sm"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleSummaryClick(conversation.id, conversation.contact_name || conversation.contact_phone);
+                                        handleSummaryClick(conversation.id, conversation.patient_name || conversation.patient_phone);
                                       }}
                                       className="h-6 w-6 p-0"
                                     >
@@ -499,8 +499,8 @@ export default function ConversasPage() {
                   <div className="flex-1 min-h-0 overflow-hidden hidden md:block">
                     <ChatPanel
                       conversationId={selectedConversationId}
-                      contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
-                      contactPhone={selectedConversationData.contact_phone}
+                      contactName={selectedConversationData.patient_name || selectedConversationData.patient_phone}
+                      contactPhone={selectedConversationData.patient_phone}
                       lastActivity={selectedConversationData.last_message_at}
                       conversationCreatedAt={selectedConversationData.created_at}
                       conversation={selectedConversationData}
@@ -535,8 +535,8 @@ export default function ConversasPage() {
                   <div className="md:hidden fixed inset-0 z-50 bg-background w-full h-full">
                     <ChatPanel
                       conversationId={selectedConversationId!}
-                      contactName={selectedConversationData.contact_name || selectedConversationData.contact_phone}
-                      contactPhone={selectedConversationData.contact_phone}
+                      contactName={selectedConversationData.patient_name || selectedConversationData.patient_phone}
+                      contactPhone={selectedConversationData.patient_phone}
                       lastActivity={selectedConversationData.last_message_at}
                       conversationCreatedAt={selectedConversationData.created_at}
                       conversation={selectedConversationData}

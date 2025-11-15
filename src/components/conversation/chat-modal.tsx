@@ -87,8 +87,8 @@ export const ChatModal = ({ isOpen, onClose, conversationId, contactName, contac
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <Avatar className="h-10 w-10">
-              {conversation?.contact_avatar_url && (
-                <AvatarImage src={conversation.contact_avatar_url} alt={contactName} />
+              {conversation?.patient_avatar_url && (
+                <AvatarImage src={conversation.patient_avatar_url} alt={contactName} />
               )}
               <AvatarFallback className="bg-primary text-primary-foreground">
                 {getInitials(contactName)}

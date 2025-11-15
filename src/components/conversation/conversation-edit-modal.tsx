@@ -28,8 +28,8 @@ export function ConversationEditModal({
 }: ConversationEditModalProps) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    contact_name: "",
-    contact_phone: "",
+    patient_name: "",
+    patient_phone: "",
     professional_profile_id: ""
   })
   
@@ -41,8 +41,8 @@ export function ConversationEditModal({
     console.log('ConversationEditModal useEffect', { open, conversation });
     if (open && conversation) {
       setFormData({
-        contact_name: conversation.contact_name || "",
-        contact_phone: conversation.contact_phone ? applyMask.phone(conversation.contact_phone) : "",
+        patient_name: conversation.patient_name || "",
+        patient_phone: conversation.patient_phone ? applyMask.phone(conversation.patient_phone) : "",
         professional_profile_id: conversation.professional_profile_id || "none"
       })
     }
@@ -54,8 +54,8 @@ export function ConversationEditModal({
     setLoading(true)
     try {
       const updateData: Partial<Conversation> = {
-        contact_name: formData.contact_name.trim() || null,
-        contact_phone: formData.contact_phone.replace(/\D/g, ''), // Store clean phone number
+        patient_name: formData.patient_name.trim() || null,
+        patient_phone: formData.patient_phone.replace(/\D/g, ''), // Store clean phone number
         professional_profile_id: formData.professional_profile_id === "none" ? null : formData.professional_profile_id || null
       }
 
@@ -90,23 +90,23 @@ export function ConversationEditModal({
         
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="contact-name">Nome do Contato</Label>
+            <Label htmlFor="patient-name">Nome do Paciente</Label>
             <Input
-              id="contact-name"
-              value={formData.contact_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, contact_name: e.target.value }))}
-              placeholder="Digite o nome do contato"
+              id="patient-name"
+              value={formData.patient_name}
+              onChange={(e) => setFormData(prev => ({ ...prev, patient_name: e.target.value }))}
+              placeholder="Digite o nome do paciente"
             />
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="contact-phone">Telefone</Label>
+            <Label htmlFor="patient-phone">Telefone</Label>
             <Input
-              id="contact-phone"
-              value={formData.contact_phone}
+              id="patient-phone"
+              value={formData.patient_phone}
               onChange={(e) => {
                 const maskedValue = applyMask.phone(e.target.value);
-                setFormData(prev => ({ ...prev, contact_phone: maskedValue }));
+                setFormData(prev => ({ ...prev, patient_phone: maskedValue }));
               }}
               placeholder="+55 (11) 99999-9999"
               required
@@ -144,7 +144,7 @@ export function ConversationEditModal({
           </Button>
           <Button
             onClick={handleSave}
-            disabled={loading || !formData.contact_phone.trim()}
+            disabled={loading || !formData.patient_phone.trim()}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Salvar
