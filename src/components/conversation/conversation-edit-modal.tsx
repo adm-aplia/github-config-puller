@@ -30,7 +30,7 @@ export function ConversationEditModal({
   const [formData, setFormData] = useState({
     contact_name: "",
     contact_phone: "",
-    agent_id: ""
+    professional_profile_id: ""
   })
   
   const { profiles } = useProfessionalProfiles()
@@ -43,7 +43,7 @@ export function ConversationEditModal({
       setFormData({
         contact_name: conversation.contact_name || "",
         contact_phone: conversation.contact_phone ? applyMask.phone(conversation.contact_phone) : "",
-        agent_id: conversation.agent_id || "none"
+        professional_profile_id: conversation.professional_profile_id || "none"
       })
     }
   }, [open, conversation])
@@ -56,7 +56,7 @@ export function ConversationEditModal({
       const updateData: Partial<Conversation> = {
         contact_name: formData.contact_name.trim() || null,
         contact_phone: formData.contact_phone.replace(/\D/g, ''), // Store clean phone number
-        agent_id: formData.agent_id === "none" ? null : formData.agent_id || null
+        professional_profile_id: formData.professional_profile_id === "none" ? null : formData.professional_profile_id || null
       }
 
       const success = await onUpdate(conversation.id, updateData)
@@ -115,9 +115,9 @@ export function ConversationEditModal({
           
           <div className="grid gap-2">
             <Label htmlFor="agent">Assistente Responsável</Label>
-            <Select
-              value={formData.agent_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, agent_id: value }))}
+            <Select 
+              value={formData.professional_profile_id}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, professional_profile_id: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um assistente" />

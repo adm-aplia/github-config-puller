@@ -68,14 +68,14 @@ export const useMessages = (conversationId?: string) => {
           // Fetch conversation data for webhook
           const { data: conversationData } = await supabase
             .from('conversations')
-            .select('agent_id, contact_name, contact_phone, user_id')
+            .select('professional_profile_id, contact_name, contact_phone, user_id')
             .eq('id', conversationId)
             .single();
 
           if (conversationData) {
             const webhookPayload = {
               mensagem: content,
-              agente_id: conversationData.agent_id || null,
+              agente_id: conversationData.professional_profile_id || null,
               nome_do_lead: conversationData.contact_name || conversationData.contact_phone || "",
               numero_do_lead: normalizePhoneNumber(conversationData.contact_phone || ""),
               user_id: conversationData.user_id || null

@@ -47,7 +47,7 @@ export function RecentConversations() {
           contact_phone,
           last_message_at,
           created_at,
-          agent_id
+          professional_profile_id
         `)
         .eq('user_id', userData.user.id)
         .not('last_message_at', 'is', null)
@@ -59,13 +59,13 @@ export function RecentConversations() {
       // Fetch professional profiles and latest messages in parallel
       const conversationsWithDetails = await Promise.all(
         (conversationsData || []).map(async (conversation) => {
-          // Fetch professional profile if agent_id exists
+          // Fetch professional profile if professional_profile_id exists
           let professional_profile = null
-          if (conversation.agent_id) {
+          if (conversation.professional_profile_id) {
             const { data: profileData } = await supabase
               .from('professional_profiles')
               .select('fullname, specialty')
-              .eq('id', conversation.agent_id)
+              .eq('id', conversation.professional_profile_id)
               .maybeSingle()
             professional_profile = profileData
           }

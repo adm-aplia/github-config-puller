@@ -334,7 +334,6 @@ export type Database = {
       }
       conversations: {
         Row: {
-          agent_id: string | null
           contact_avatar_url: string | null
           contact_name: string | null
           contact_phone: string
@@ -342,11 +341,11 @@ export type Database = {
           id: string
           instance_id: string | null
           last_message_at: string | null
+          professional_profile_id: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
-          agent_id?: string | null
           contact_avatar_url?: string | null
           contact_name?: string | null
           contact_phone: string
@@ -354,11 +353,11 @@ export type Database = {
           id?: string
           instance_id?: string | null
           last_message_at?: string | null
+          professional_profile_id?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
-          agent_id?: string | null
           contact_avatar_url?: string | null
           contact_name?: string | null
           contact_phone?: string
@@ -366,13 +365,14 @@ export type Database = {
           id?: string
           instance_id?: string | null
           last_message_at?: string | null
+          professional_profile_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "conversations_agent_id_fkey"
-            columns: ["agent_id"]
+            columns: ["professional_profile_id"]
             isOneToOne: false
             referencedRelation: "professional_profiles"
             referencedColumns: ["id"]
