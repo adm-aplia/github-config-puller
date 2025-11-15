@@ -80,8 +80,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         procedures_json: proceduresJson,
         reminders_enabled: profile.reminders_enabled || false,
         reminder_message: profile.reminder_message || DEFAULT_REMINDER_MESSAGE,
-        reminder_hours_before: profile.reminder_hours_before || 24,
-        custom_reminder_time: profile.reminder_hours_before?.toString().includes(':') ? profile.reminder_hours_before?.toString() : '10:00',
+        custom_reminder_time: profile.custom_reminder_time || '10:00',
       });
       setCompletedSteps([1, 2, 3, 4, 5]);
     } else {
@@ -100,7 +99,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         max_installments: 1,
         reminders_enabled: false,
         reminder_message: DEFAULT_REMINDER_MESSAGE,
-        reminder_hours_before: 24,
         custom_reminder_time: '10:00'
       });
       setCompletedSteps([]);

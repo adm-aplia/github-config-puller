@@ -683,7 +683,7 @@ export type Database = {
       professional_profiles: {
         Row: {
           created_at: string | null
-          custom_reminder_time: number | null
+          custom_reminder_time: string | null
           education: string | null
           fullname: string
           healthinsurance: string | null
@@ -706,7 +706,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          custom_reminder_time?: number | null
+          custom_reminder_time?: string | null
           education?: string | null
           fullname: string
           healthinsurance?: string | null
@@ -729,7 +729,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          custom_reminder_time?: number | null
+          custom_reminder_time?: string | null
           education?: string | null
           fullname?: string
           healthinsurance?: string | null
