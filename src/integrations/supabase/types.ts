@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           all_day: boolean | null
           appointment_date: string
+          appointment_id: string
           appointment_type: string | null
           conversation_id: string | null
           created_at: string | null
@@ -26,7 +27,6 @@ export type Database = {
           google_event_id: string | null
           google_original_start_time: string | null
           google_recurring_event_id: string | null
-          id: string
           notes: string | null
           patient_email: string | null
           patient_name: string
@@ -40,6 +40,7 @@ export type Database = {
         Insert: {
           all_day?: boolean | null
           appointment_date: string
+          appointment_id?: string
           appointment_type?: string | null
           conversation_id?: string | null
           created_at?: string | null
@@ -48,7 +49,6 @@ export type Database = {
           google_event_id?: string | null
           google_original_start_time?: string | null
           google_recurring_event_id?: string | null
-          id?: string
           notes?: string | null
           patient_email?: string | null
           patient_name: string
@@ -62,6 +62,7 @@ export type Database = {
         Update: {
           all_day?: boolean | null
           appointment_date?: string
+          appointment_id?: string
           appointment_type?: string | null
           conversation_id?: string | null
           created_at?: string | null
@@ -70,7 +71,6 @@ export type Database = {
           google_event_id?: string | null
           google_original_start_time?: string | null
           google_recurring_event_id?: string | null
-          id?: string
           notes?: string | null
           patient_email?: string | null
           patient_name?: string
