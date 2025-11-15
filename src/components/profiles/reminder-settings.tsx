@@ -32,12 +32,17 @@ const REMINDER_VARIABLES = [
 ];
 
 const REMINDER_OPTIONS = [
-  { value: '24', label: '24 horas antes' },
-  { value: '12', label: '12 horas antes' },
-  { value: '2', label: '2 horas antes' },
-  { value: '1', label: '1 hora antes' },
-  { value: '0.5', label: '30 minutos antes' },
-  { value: 'custom', label: 'Personalizado' }
+  { value: '09:00', label: '09:00' },
+  { value: '10:00', label: '10:00' },
+  { value: '11:00', label: '11:00' },
+  { value: '12:00', label: '12:00' },
+  { value: '13:00', label: '13:00' },
+  { value: '14:00', label: '14:00' },
+  { value: '15:00', label: '15:00' },
+  { value: '16:00', label: '16:00' },
+  { value: '17:00', label: '17:00' },
+  { value: '18:00', label: '18:00' },
+  { value: 'outro', label: 'Outro' }
 ];
 
 export const ReminderSettings: React.FC<ReminderSettingsProps> = ({
@@ -52,14 +57,14 @@ export const ReminderSettings: React.FC<ReminderSettingsProps> = ({
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [reminderTimeType, setReminderTimeType] = React.useState<string>(
-    REMINDER_OPTIONS.find(opt => parseFloat(opt.value) === reminderHoursBefore)?.value || 'custom'
+    customReminderTime || '10:00'
   );
   const reminderMessageRef = useRef<HTMLTextAreaElement>(null);
 
   const handleReminderTimeChange = (value: string) => {
     setReminderTimeType(value);
-    if (value !== 'custom') {
-      onReminderHoursBeforeChange(parseFloat(value));
+    if (value !== 'outro' && onCustomReminderTimeChange) {
+      onCustomReminderTimeChange(value);
     }
   };
 
@@ -182,56 +187,39 @@ export const ReminderSettings: React.FC<ReminderSettingsProps> = ({
 
               {/* Quando Lembrar */}
               <div className="space-y-2">
-                <Label htmlFor="reminder-time">Lembrar Antes da Consulta</Label>
-                <Select value={reminderTimeType} onValueChange={handleReminderTimeChange}>
-                  <SelectTrigger id="reminder-time">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {REMINDER_OPTIONS.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="reminder-time">Lembrar Paciente às:</Label>
+                <div className="flex items-center gap-2">
+                  <Select value={reminderTimeType} onValueChange={handleReminderTimeChange}>
+                    <SelectTrigger id="reminder-time">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {REMINDER_OPTIONS.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">do dia anterior</span>
+                </div>
 
                 {/* Campo Personalizado */}
-                {reminderTimeType === 'custom' && (
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                    <div className="space-y-1">
-                      <Label htmlFor="custom-time" className="text-xs text-muted-foreground">
-                        Quantidade
-                      </Label>
+                {reminderTimeType === 'outro' && (
+                  <div className="pt-2">
+                    <Label htmlFor="custom-time" className="text-xs text-muted-foreground">
+                      Horário Personalizado
+                    </Label>
+                    <div className="flex items-center gap-2 mt-1">
                       <Input
                         id="custom-time"
-                        type="number"
-                        min="0.5"
-                        step="0.5"
-                        value={customReminderTime || reminderHoursBefore}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value);
-                          onCustomReminderTimeChange?.(e.target.value);
-                          if (!isNaN(value) && value > 0) {
-                            onReminderHoursBeforeChange(value);
-                          }
-                        }}
-                        placeholder="Ex: 2"
+                        type="time"
+                        value={customReminderTime || ''}
+                        onChange={(e) => onCustomReminderTimeChange?.(e.target.value)}
+                        className="flex-1"
+                        placeholder="HH:MM"
                       />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="custom-unit" className="text-xs text-muted-foreground">
-                        Unidade
-                      </Label>
-                      <Select defaultValue="hours">
-                        <SelectTrigger id="custom-unit">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="hours">Horas</SelectItem>
-                          <SelectItem value="days">Dias</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <span className="text-sm text-muted-foreground whitespace-nowrap">do dia anterior</span>
                     </div>
                   </div>
                 )}
