@@ -195,7 +195,7 @@ export default function ConversasPage() {
     // Apply filters
     if (filters.professionalIds.length > 0) {
       filtered = filtered.filter(conv => 
-        conv.agent_id && filters.professionalIds.includes(conv.agent_id)
+        conv.professional_profile_id && filters.professionalIds.includes(conv.professional_profile_id)
       );
     }
 

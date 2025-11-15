@@ -9,7 +9,7 @@ export interface Conversation {
   contact_phone: string;
   contact_name?: string;
   contact_avatar_url?: string;
-  agent_id?: string;
+  professional_profile_id?: string;
   instance_id?: string;
   last_message_at?: string;
   created_at: string;
@@ -62,7 +62,7 @@ export const useConversations = () => {
 
       // Get all conversation IDs for bulk queries
       const conversationIds = conversationsData.map(c => c.id);
-      const agentIds = conversationsData.filter(c => c.agent_id).map(c => c.agent_id);
+      const agentIds = conversationsData.filter(c => c.professional_profile_id).map(c => c.professional_profile_id);
 
       // Bulk fetch message counts
       const { data: messageCounts } = await supabase
@@ -109,7 +109,7 @@ export const useConversations = () => {
         ...conversation,
         message_count: messageCountMap.get(conversation.id) || 0,
         last_message: lastMessageMap.get(conversation.id) || 'Nenhuma mensagem',
-        profile_name: conversation.agent_id ? (profileMap.get(conversation.agent_id) || '') : ''
+        profile_name: conversation.professional_profile_id ? (profileMap.get(conversation.professional_profile_id) || '') : ''
       })) as Conversation[];
 
       console.log('✅ Final conversations with details:', {
@@ -164,7 +164,7 @@ export const useConversations = () => {
           contact_phone: conversationData.contact_phone || '',
           contact_name: conversationData.contact_name,
           contact_avatar_url: conversationData.contact_avatar_url,
-          agent_id: conversationData.agent_id,
+          professional_profile_id: conversationData.professional_profile_id,
           instance_id: conversationData.instance_id,
           last_message_at: new Date().toISOString()
         })
