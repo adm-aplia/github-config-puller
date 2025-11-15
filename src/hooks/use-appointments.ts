@@ -82,12 +82,12 @@ function parseGoogleDate(dateInput?: string | { dateTime?: string; date?: string
 // Map Portuguese status to English for webhook
 const mapStatusToEnglish = (status: string): string => {
   const statusMap: { [key: string]: string } = {
-    'agendado': 'schedule',
-    'confirmado': 'confirmed',
-    'cancelled': 'cancelled',
-    'blocked': 'blocked',
+    'agendado': 'Agendado',
+    'confirmado': 'Confirmado',
+    'cancelled': 'Cancelled',
+    'blocked': 'Blocked',
   };
-  return statusMap[status] || status;
+  return statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1);
 };
 
 export const useAppointments = () => {
