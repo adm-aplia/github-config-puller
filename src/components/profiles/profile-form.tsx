@@ -155,7 +155,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const canProceed = () => {
     switch(currentStep) {
       case 1:
-        return formData.fullname && formData.specialty && formData.education;
+        return formData.fullname && formData.specialty && formData.education && formData.professionalid && formData.phonenumber;
       case 2:
         return formData.locations && formData.workinghours;
       case 3:
@@ -177,7 +177,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     if (step > 1) {
       // Temporariamente simula estar na etapa 1 para verificar se pode proceder
       const tempStep = 1;
-      return formData.fullname && formData.specialty;
+      return formData.fullname && formData.specialty && formData.education && formData.professionalid && formData.phonenumber;
     }
     
     return true;
@@ -275,17 +275,22 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="professionalid" className="font-bold">Registro Profissional</Label>
+                  <Label htmlFor="professionalid" className="font-bold">
+                    Registro Profissional <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="professionalid"
                     value={formData.professionalid || ''}
                     onChange={(e) => handleChange('professionalid', e.target.value)}
                     placeholder="CRM 12345/SP"
+                    required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phonenumber" className="font-bold">Telefone</Label>
+                  <Label htmlFor="phonenumber" className="font-bold">
+                    Telefone <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="phonenumber"
                     value={formData.phonenumber || ''}
@@ -295,6 +300,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                     }}
                     placeholder="(11) 98765-4321"
                     maxLength={15}
+                    required
                   />
                 </div>
 
