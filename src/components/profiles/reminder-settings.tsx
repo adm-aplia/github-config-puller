@@ -20,7 +20,7 @@ interface ReminderSettingsProps {
   onCustomReminderTimeChange?: (time: string) => void;
 }
 
-const DEFAULT_REMINDER_MESSAGE = "Olá [Nome do Paciente] seu atendimento está agendado para [Data e Hora da Consulta] no endereço [Local de Atendimento]. Estamos te aguardando!";
+const DEFAULT_REMINDER_MESSAGE = "Olá, [Nome do Paciente]. Seu atendimento com [Nome do Profissional] está agendado para [Data e Hora da Consulta], no endereço [Local de Atendimento]. Estamos te aguardando!";
 
 const REMINDER_VARIABLES = [
   { label: 'Nome do Paciente', value: '[Nome do Paciente]' },
