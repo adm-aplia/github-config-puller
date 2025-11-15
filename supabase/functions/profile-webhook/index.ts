@@ -48,9 +48,9 @@ serve(async (req) => {
 
     const { profileData, action } = await req.json()
     
-    if (!profileData || !profileData.user_id) {
+    if (!profileData || !profileData.professional_profile_id || !profileData.user_id) {
       return new Response(
-        JSON.stringify({ error: 'Invalid request' }),
+        JSON.stringify({ error: 'Invalid request: missing professional_profile_id or user_id' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

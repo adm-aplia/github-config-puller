@@ -268,7 +268,7 @@ export const useGoogleIntegrations = () => {
       // Buscar appointments do Google Calendar para este perfil (usando ambos os filtros)
       const { data: googleAppointments, error: fetchError } = await supabase
         .from('appointments')
-        .select('id, patient_name, appointment_date, appointment_type, patient_phone')
+        .select('appointment_id, patient_name, appointment_date, appointment_type, patient_phone')
         .eq('professional_profile_id', profileId)
         .or(`appointment_type.eq.google_sync,patient_phone.eq.Google Calendar`);
 
@@ -281,12 +281,12 @@ export const useGoogleIntegrations = () => {
       
       if (googleAppointments && googleAppointments.length > 0) {
         // Deletar appointments relacionados (apenas os vindos do Google Calendar)
-        const appointmentIds = googleAppointments.map(app => app.id);
+        const appointmentIds = googleAppointments.map(app => app.appointment_id);
         
         const { error: appointmentsError } = await supabase
           .from('appointments')
           .delete()
-          .in('id', appointmentIds);
+          .in('appointment_id', appointmentIds);
 
         if (appointmentsError) {
           console.error('Erro ao deletar appointments:', appointmentsError);
