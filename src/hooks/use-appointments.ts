@@ -103,7 +103,9 @@ export const useAppointments = () => {
         .order('appointment_date', { ascending: true });
 
       if (error) throw error;
-      setAppointments(data || []);
+      // Map appointment_id to id for compatibility
+      const mappedData = data?.map(apt => ({ ...apt, id: apt.appointment_id })) || [];
+      setAppointments(mappedData);
     } catch (error) {
       console.error('Error fetching appointments:', error);
       toast({
@@ -461,14 +463,17 @@ export const useAppointments = () => {
   const updateAppointment = async (appointmentId: string, updates: Partial<Appointment>) => {
     try {
       // 1. Buscar dados atuais do agendamento
-      const { data: currentAppointment, error: fetchError } = await supabase
+      const { data: currentAppointmentData, error: fetchError } = await supabase
         .from('appointments')
         .select('*')
-        .eq('id', appointmentId)
+        .eq('appointment_id', appointmentId)
         .single();
 
       if (fetchError) throw fetchError;
-      if (!currentAppointment) throw new Error('Agendamento não encontrado');
+      if (!currentAppointmentData) throw new Error('Agendamento não encontrado');
+
+      // Map appointment_id to id for compatibility
+      const currentAppointment = { ...currentAppointmentData, id: currentAppointmentData.appointment_id };
 
       // 2. Verificar se houve mudança na data/hora
       const oldDate = new Date(currentAppointment.appointment_date).getTime();
@@ -557,7 +562,7 @@ export const useAppointments = () => {
       const { error } = await supabase
         .from('appointments')
         .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', appointmentId);
+        .eq('appointment_id', appointmentId);
 
       if (error) throw error;
     } catch (error) {
@@ -569,13 +574,16 @@ export const useAppointments = () => {
   const updateAppointmentStatus = async (appointmentId: string, status: string) => {
     try {
       // Get appointment data first
-      const { data: appointment } = await supabase
+      const { data: appointmentData } = await supabase
         .from('appointments')
         .select('*')
-        .eq('id', appointmentId)
+        .eq('appointment_id', appointmentId)
         .single();
 
-      if (!appointment) throw new Error('Appointment not found');
+      if (!appointmentData) throw new Error('Appointment not found');
+
+      // Map appointment_id to id for compatibility
+      const appointment = { ...appointmentData, id: appointmentData.appointment_id };
 
       // If confirming a cancelled appointment, only send webhook (don't update DB)
       if (status === 'confirmed' && appointment.status === 'cancelled') {
@@ -645,7 +653,7 @@ export const useAppointments = () => {
       const { error } = await supabase
         .from('appointments')
         .update({ status })
-        .eq('id', appointmentId);
+        .eq('appointment_id', appointmentId);
 
       if (error) throw error;
     } catch (error) {
@@ -660,15 +668,18 @@ export const useAppointments = () => {
       if (!userData.user?.id) throw new Error('User not authenticated');
 
       // First, fetch the current appointment details
-      const { data: appointment, error: fetchError } = await supabase
+      const { data: appointmentData, error: fetchError } = await supabase
         .from('appointments')
         .select('*')
-        .eq('id', appointmentId)
+        .eq('appointment_id', appointmentId)
         .single();
 
-      if (fetchError || !appointment) {
+      if (fetchError || !appointmentData) {
         throw new Error('Appointment not found');
       }
+
+      // Map appointment_id to id for compatibility
+      const appointment = { ...appointmentData, id: appointmentData.appointment_id };
 
       // Format phone with +55 prefix if not already present
       let formattedPhone = appointment.patient_phone?.replace(/\D/g, '') || '';
@@ -781,18 +792,21 @@ export const useAppointments = () => {
       const { data: appointment } = await supabase
         .from('appointments')
         .select('*')
-        .eq('id', appointmentId)
+        .eq('appointment_id', appointmentId)
         .single();
 
       if (!appointment) throw new Error('Appointment not found');
 
+      // Map appointment_id to id for compatibility
+      const mappedAppointment = { ...appointment, id: appointment.appointment_id };
+
       // Send deletion webhook first
-      await sendDeletionWebhook(appointment);
+      await sendDeletionWebhook(mappedAppointment);
 
       const { error } = await supabase
         .from('appointments')
         .delete()
-        .eq('id', appointmentId);
+        .eq('appointment_id', appointmentId);
 
       if (error) throw error;
     } catch (error) {

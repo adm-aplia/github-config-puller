@@ -109,7 +109,11 @@ export const useProfessionalProfiles = () => {
       try {
         await supabase.functions.invoke('profile-webhook', {
           body: { 
-            profileData: data,
+            profileData: {
+              ...data,
+              professional_profile_id: data.id,
+              user_id: userData.user.id
+            },
             action: 'create'
           }
         });
@@ -164,9 +168,14 @@ export const useProfessionalProfiles = () => {
       try {
         console.log('[updateProfile] Enviando para webhook:', { profileData: data, action: 'update' });
         
+        const { data: userData } = await supabase.auth.getUser();
         await supabase.functions.invoke('profile-webhook', {
           body: { 
-            profileData: data,
+            profileData: {
+              ...data,
+              professional_profile_id: data.id,
+              user_id: userData.user?.id
+            },
             action: 'update'
           }
         });
@@ -209,9 +218,14 @@ export const useProfessionalProfiles = () => {
 
       // Send delete action to n8n webhook
       try {
+        const { data: userData } = await supabase.auth.getUser();
         await supabase.functions.invoke('profile-webhook', {
           body: { 
-            profileData: profileToDelete,
+            profileData: {
+              ...profileToDelete,
+              professional_profile_id: profileToDelete?.id,
+              user_id: userData.user?.id
+            },
             action: 'delete'
           }
         });
