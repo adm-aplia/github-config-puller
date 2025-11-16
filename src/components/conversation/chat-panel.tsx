@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -24,10 +24,11 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ conversationId, contactName, contactPhone, lastActivity, conversationCreatedAt, conversation, onBack, onEdit, onDelete }: ChatPanelProps) {
-  const { messages, loading, fetchMessages, sendMessage } = useMessages(conversationId)
+  const { messages, loading, loadingMore, hasMore, sendMessage, loadMoreMessages } = useMessages(conversationId)
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
 
   // Preload da imagem de fundo para carregamento instantâneo
@@ -40,12 +41,44 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
     messagesEndRef.current?.scrollIntoView({ behavior: instant ? "auto" : "smooth" })
   }
 
-  // Auto-scroll to bottom when messages load or change
+  // Auto-scroll to bottom when messages load or change (only for new messages)
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length > 0 && !loadingMore) {
       scrollToBottom(true) // Instant scroll when loading messages
     }
-  }, [messages])
+  }, [messages.length, loadingMore])
+
+  // Detectar scroll para cima e carregar mais mensagens
+  const handleScroll = useCallback(() => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+
+    const scrollTop = container.scrollTop;
+    const isAtTop = scrollTop < 100;
+
+    // Carregar mais mensagens quando estiver próximo do topo
+    if (isAtTop && hasMore && !loadingMore && conversationId) {
+      const previousScrollHeight = container.scrollHeight;
+      
+      loadMoreMessages(conversationId).then(() => {
+        // Manter posição de scroll após carregar
+        requestAnimationFrame(() => {
+          if (container) {
+            const newScrollHeight = container.scrollHeight;
+            container.scrollTop = newScrollHeight - previousScrollHeight;
+          }
+        });
+      });
+    }
+  }, [conversationId, hasMore, loadingMore, loadMoreMessages]);
+
+  useEffect(() => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [handleScroll])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sending) return
@@ -185,8 +218,17 @@ export function ChatPanel({ conversationId, contactName, contactPhone, lastActiv
       >
         {/* Overlay for better readability */}
         <div className="absolute inset-0 bg-background/80 dark:bg-background/40"></div>
-        <ScrollArea className="h-full min-h-0 px-4 py-3 sm:px-6 sm:py-4 md:px-8 relative z-10">
+        <ScrollArea ref={chatContainerRef} className="h-full min-h-0 px-4 py-3 sm:px-6 sm:py-4 md:px-8 relative z-10">
           <div className="space-y-4">
+            {/* Loading indicator for older messages */}
+            {loadingMore && (
+              <div className="flex items-center justify-center py-2 mb-4">
+                <div className="text-xs text-muted-foreground bg-background/80 px-3 py-1.5 rounded-full border border-border/50">
+                  Carregando mensagens antigas...
+                </div>
+              </div>
+            )}
+            
             {loading && messages.length === 0 ? (
               <div className="h-full flex items-center justify-center text-muted-foreground">
                 Carregando mensagens...

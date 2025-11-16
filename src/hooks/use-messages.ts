@@ -15,26 +15,73 @@ export interface Message {
 export const useMessages = (conversationId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(!!conversationId);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [oldestMessageDate, setOldestMessageDate] = useState<string | null>(null);
 
-  const fetchMessages = async (conversationId: string) => {
+  const fetchMessages = async (conversationId: string, limit = 500) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Buscar as últimas N mensagens
+      const { data, error, count } = await supabase
         .from('messages')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
       if (error) {
         console.error('Error fetching messages:', error);
         return;
       }
 
-      setMessages(data as Message[] || []);
+      const messagesArray = (data as Message[] || []).reverse();
+      setMessages(messagesArray);
+      
+      if (messagesArray.length > 0) {
+        setOldestMessageDate(messagesArray[0].created_at);
+      }
+      
+      // Se o número de mensagens retornadas é menor que o limit, não há mais mensagens
+      setHasMore((count || 0) > limit);
     } catch (error) {
       console.error('Error fetching messages:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMoreMessages = async (conversationId: string) => {
+    if (!hasMore || loadingMore || !oldestMessageDate) return;
+    
+    setLoadingMore(true);
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .lt('created_at', oldestMessageDate)
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      if (error) {
+        console.error('Error loading more messages:', error);
+        return;
+      }
+
+      const olderMessages = (data as Message[] || []).reverse();
+      
+      if (olderMessages.length > 0) {
+        setMessages(prev => [...olderMessages, ...prev]);
+        setOldestMessageDate(olderMessages[0].created_at);
+        setHasMore(olderMessages.length === 500);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error('Error loading more messages:', error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -207,7 +254,10 @@ export const useMessages = (conversationId?: string) => {
   return {
     messages,
     loading,
+    loadingMore,
+    hasMore,
     fetchMessages,
-    sendMessage
+    sendMessage,
+    loadMoreMessages
   };
 };
