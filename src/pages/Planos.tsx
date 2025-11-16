@@ -76,7 +76,7 @@ export default function Planos() {
     const descriptionsMap: { [key: string]: string } = {
       'Básico': 'Ideal para profissionais e pequenos consultórios que estão começando',
       'Profissional': 'Perfeito para clínicas em crescimento que precisam de mais recursos',
-      'Premium': 'Para grandes clínicas e hospitais com alto volume de atendimentos',
+      'Empresarial': 'Para grandes clínicas e hospitais com alto volume de atendimentos',
     };
     
     return descriptionsMap[planName] || 'Escolha o plano ideal para você';
@@ -88,7 +88,7 @@ export default function Planos() {
     const buttonTextMap: { [key: string]: string } = {
       'Básico': 'Começar agora',
       'Profissional': 'Escolher plano',
-      'Premium': 'Contato comercial',
+      'Empresarial': 'Contato comercial',
     };
     
     return buttonTextMap[planName] || 'Escolher plano';
@@ -121,7 +121,7 @@ export default function Planos() {
               {plans.map((plan) => {
                 const isPopular = plan.id === mostPopularPlan?.id;
                 const isCurrent = subscription?.plano_id === plan.id;
-                const isEnterprise = plan.nome === 'Premium';
+                const isEnterprise = plan.nome === 'Empresarial';
                 const planFeatures = getPlanFeatures(plan);
                 
                 return (
