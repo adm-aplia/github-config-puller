@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import { usePlans } from '@/hooks/use-plans';
+import { usePlans, Plan } from '@/hooks/use-plans';
 import { useSubscription } from '@/hooks/use-subscription';
 import { PlanChangeModal } from '@/components/plans/plan-change-modal';
 import { PlanCancelModal } from '@/components/plans/plan-cancel-modal';
@@ -43,46 +43,38 @@ export default function Planos() {
     );
   }
 
-  const getPlanFeatures = (planName: string) => {
-    const featuresMap: { [key: string]: { text: string; icon: any }[] } = {
-      'Básico': [
-        { text: '1 Número de WhatsApp', icon: MessageCircle },
-        { text: '1 Assistente Personalizado', icon: Bot },
-        { text: 'Suporte por e-mail', icon: Mail },
-        { text: 'Agendamentos ilimitados', icon: CalendarIcon },
-        { text: 'Integração Google Agenda', icon: CalendarIcon },
-        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
-      ],
-      'Profissional': [
-        { text: '3 Números de WhatsApp', icon: MessageCircle },
-        { text: '3 Assistentes Personalizados', icon: Bot },
-        { text: 'Suporte prioritário', icon: Users },
-        { text: 'Agendamentos ilimitados', icon: CalendarIcon },
-        { text: 'Lembretes de Consulta Automáticos', icon: Bell },
-        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
-        { text: 'Integração Google Agenda', icon: CalendarIcon },
-        { text: 'Suporte por e-mail', icon: Mail },
-      ],
-      'Empresarial': [
-        { text: '10 Números de WhatsApp', icon: MessageCircle },
-        { text: '10 Assistentes Personalizados', icon: Bot },
-        { text: 'Suporte 24/7 dedicado', icon: Users },
-        { text: 'Agendamentos ilimitados', icon: CalendarIcon },
-        { text: 'Lembretes de Consulta Automáticos', icon: Bell },
-        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
-        { text: 'Integração Google Agenda', icon: CalendarIcon },
-        { text: 'Suporte por e-mail', icon: Mail },
-      ],
-    };
+  const getPlanFeatures = (plan: Plan) => {
+    // Usar features do banco de dados se disponíveis
+    if (plan.recursos?.features && Array.isArray(plan.recursos.features)) {
+      return plan.recursos.features.map((feature: string) => ({
+        text: feature,
+        icon: getFeatureIcon(feature)
+      }));
+    }
     
-    return featuresMap[planName] || [];
+    return [];
+  };
+
+  const getFeatureIcon = (featureText: string) => {
+    const text = featureText.toLowerCase();
+    if (text.includes('whatsapp') || text.includes('número')) return MessageCircle;
+    if (text.includes('assistente')) return Bot;
+    if (text.includes('suporte')) return Users;
+    if (text.includes('agendamento')) return CalendarIcon;
+    if (text.includes('lembrete')) return Bell;
+    if (text.includes('estatística') || text.includes('relatório')) return ChartColumn;
+    if (text.includes('google') || text.includes('agenda')) return CalendarIcon;
+    if (text.includes('e-mail') || text.includes('email')) return Mail;
+    if (text.includes('áudio')) return Users;
+    if (text.includes('emoji')) return Users;
+    return Shield;
   };
 
   const getPlanDescription = (planName: string) => {
     const descriptionsMap: { [key: string]: string } = {
       'Básico': 'Ideal para profissionais e pequenos consultórios que estão começando',
       'Profissional': 'Perfeito para clínicas em crescimento que precisam de mais recursos',
-      'Empresarial': 'Para grandes clínicas e hospitais com alto volume de atendimentos',
+      'Premium': 'Para grandes clínicas e hospitais com alto volume de atendimentos',
     };
     
     return descriptionsMap[planName] || 'Escolha o plano ideal para você';
@@ -94,7 +86,7 @@ export default function Planos() {
     const buttonTextMap: { [key: string]: string } = {
       'Básico': 'Começar agora',
       'Profissional': 'Escolher plano',
-      'Empresarial': 'Contato comercial',
+      'Premium': 'Contato comercial',
     };
     
     return buttonTextMap[planName] || 'Escolher plano';
@@ -127,8 +119,8 @@ export default function Planos() {
               {plans.map((plan) => {
                 const isPopular = plan.id === mostPopularPlan?.id;
                 const isCurrent = subscription?.plano_id === plan.id;
-                const isEnterprise = plan.nome === 'Empresarial';
-                const planFeatures = getPlanFeatures(plan.nome);
+                const isEnterprise = plan.nome === 'Premium';
+                const planFeatures = getPlanFeatures(plan);
                 
                 return (
                   <div
