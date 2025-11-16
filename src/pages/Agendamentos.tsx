@@ -722,7 +722,7 @@ export default function AgendamentosPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-3 sm:p-4 lg:p-6">
+              <CardContent className="p-3 sm:p-4">
                 <div className="w-full">
                   <Calendar
                     mode="single"
@@ -732,18 +732,18 @@ export default function AgendamentosPage() {
                     locale={ptBR}
                     classNames={{
                       months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
-                      month: "space-y-4 w-full",
-                      caption: "flex justify-center pt-4 pb-3 relative items-center",
+                      month: "space-y-2 w-full",
+                      caption: "flex justify-center pt-2 pb-2 relative items-center",
                       caption_label: "text-xs uppercase font-bold",
                       nav: "space-x-1 flex justify-between absolute left-1 right-1",
                       nav_button: "h-7 w-7 bg-accent text-accent-foreground hover:opacity-100 opacity-50 rounded-md inline-flex items-center justify-center text-sm font-medium ring-offset-background transition-opacity hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 aria-label:hidden",
                       nav_button_previous: "absolute left-1",
                       nav_button_next: "absolute right-1",
-                      table: "w-full border-collapse space-y-1",
+                      table: "w-full border-collapse",
                       head_row: "flex",
                       head_cell: "flex-1 text-muted-foreground rounded-md font-normal text-[0.75rem]",
-                      row: "flex w-full mt-2",
-                      cell: "aspect-square flex-1 w-full text-center p-0 relative border-r border-b border-border/20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                      row: "flex w-full mt-1",
+                      cell: "h-16 flex-1 w-full text-center p-0 relative border-r border-b border-border/20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                       day: "w-full h-full p-0 font-normal bg-transparent text-foreground aria-selected:opacity-100 [&:has([aria-selected])]:bg-primary text-foreground rounded-0 hover:bg-accent/50 transition-colors flex flex-col items-center justify-center",
                       day_range_end: "day-range-end",
                       day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
