@@ -194,14 +194,14 @@ export const useDashboardStats = (chartDays: 7 | 15 | 30 | 90 = 7) => {
             .map(conv => conv.patient_phone)
         );
 
-        // Buscar agendamentos criados neste dia (excluindo bloqueios e eventos do Google)
+        // Buscar agendamentos para este dia (excluindo bloqueios e eventos do Google)
         const { data: appointmentsInDay } = await supabase
           .from('appointments')
-          .select('id')
+          .select('appointment_id')
           .eq('user_id', userData.user.id)
           .or('appointment_type.is.null,and(appointment_type.neq.blocked,appointment_type.neq.google_calendar)')
-          .gte('created_at', startOfDay.toISOString())
-          .lte('created_at', endOfDay.toISOString());
+          .gte('appointment_date', startOfDay.toISOString())
+          .lte('appointment_date', endOfDay.toISOString());
 
         return {
           date: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
