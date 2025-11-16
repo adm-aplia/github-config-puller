@@ -175,39 +175,13 @@ export default function CheckoutPage() {
     }
   };
 
-  const getPlanFeatures = (planName: string) => {
-    const featuresMap: { [key: string]: { text: string; icon: any }[] } = {
-      'Básico': [
-        { text: '1 Número de WhatsApp', icon: MessageCircle },
-        { text: '1 Assistente Personalizado', icon: Bot },
-        { text: 'Suporte por e-mail', icon: Mail },
-        { text: 'Agendamentos ilimitados', icon: Calendar },
-        { text: 'Integração Google Agenda', icon: Calendar },
-        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
-      ],
-      'Profissional': [
-        { text: '3 Números de WhatsApp', icon: MessageCircle },
-        { text: '3 Assistentes Personalizados', icon: Bot },
-        { text: 'Suporte prioritário', icon: Users },
-        { text: 'Agendamentos ilimitados', icon: Calendar },
-        { text: 'Lembretes de Consulta Automáticos', icon: Bell },
-        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
-        { text: 'Integração Google Agenda', icon: Calendar },
-        { text: 'Suporte por e-mail', icon: Mail },
-      ],
-      'Empresarial': [
-        { text: '10 Números de WhatsApp', icon: MessageCircle },
-        { text: '10 Assistentes Personalizados', icon: Bot },
-        { text: 'Suporte 24/7 dedicado', icon: Users },
-        { text: 'Agendamentos ilimitados', icon: Calendar },
-        { text: 'Lembretes de Consulta Automáticos', icon: Bell },
-        { text: 'Estatísticas Detalhadas', icon: ChartColumn },
-        { text: 'Integração Google Agenda', icon: Calendar },
-        { text: 'Suporte por e-mail', icon: Mail },
-      ],
-    };
+  const getPlanFeatures = (plan: any) => {
+    // Usar features do banco de dados se disponíveis
+    if (plan?.recursos?.features && Array.isArray(plan.recursos.features)) {
+      return plan.recursos.features;
+    }
     
-    return featuresMap[planName] || [];
+    return [];
   };
 
   const getPlanDescription = (planName: string) => {
@@ -564,15 +538,11 @@ export default function CheckoutPage() {
                   </p>
                   <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Benefícios inclusos:</h4>
                   <ul className="space-y-3">
-                    {getPlanFeatures(selectedPlan.nome).map((feature, index) => {
-                      const FeatureIcon = feature.icon;
-                      return (
-                        <li key={index} className="flex items-center gap-3 text-sm">
-                          <FeatureIcon className="h-4 w-4 text-red-500 flex-shrink-0" />
-                          <span className="text-gray-700 dark:text-gray-300">{feature.text}</span>
-                        </li>
-                      );
-                    })}
+                    {getPlanFeatures(selectedPlan).map((feature, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm">
+                        <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </CardContent>

@@ -46,28 +46,10 @@ export default function Planos() {
   const getPlanFeatures = (plan: Plan) => {
     // Usar features do banco de dados se disponíveis
     if (plan.recursos?.features && Array.isArray(plan.recursos.features)) {
-      return plan.recursos.features.map((feature: string) => ({
-        text: feature,
-        icon: getFeatureIcon(feature)
-      }));
+      return plan.recursos.features;
     }
     
     return [];
-  };
-
-  const getFeatureIcon = (featureText: string) => {
-    const text = featureText.toLowerCase();
-    if (text.includes('whatsapp') || text.includes('número')) return MessageCircle;
-    if (text.includes('assistente')) return Bot;
-    if (text.includes('suporte')) return Users;
-    if (text.includes('agendamento')) return CalendarIcon;
-    if (text.includes('lembrete')) return Bell;
-    if (text.includes('estatística') || text.includes('relatório')) return ChartColumn;
-    if (text.includes('google') || text.includes('agenda')) return CalendarIcon;
-    if (text.includes('e-mail') || text.includes('email')) return Mail;
-    if (text.includes('áudio')) return Users;
-    if (text.includes('emoji')) return Users;
-    return Shield;
   };
 
   const getPlanDescription = (planName: string) => {
@@ -127,9 +109,10 @@ export default function Planos() {
                     key={plan.id}
                     className={`relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${
                       isEnterprise
-                        ? 'bg-slate-900 border-slate-700 hover:bg-slate-800/80 hover:border-slate-600'
+                        ? 'border-slate-700 hover:border-slate-600'
                         : 'bg-card border-border hover:bg-white/80 hover:border-gray-200'
                     } text-card-foreground`}
+                    style={isEnterprise ? { backgroundColor: '#172138' } : {}}
                   >
                     {/* Badge */}
                     {isPopular && !isCurrent && (
@@ -165,17 +148,13 @@ export default function Planos() {
                     {/* Content */}
                     <div className="p-6 pt-0 px-8 pb-6 flex-grow">
                       <ul className="space-y-3">
-                        {planFeatures.map((feature, index) => {
-                          const FeatureIcon = feature.icon;
-                          return (
-                            <li key={index} className="flex items-center gap-3">
-                              <FeatureIcon className="h-4 w-4 text-red-500 flex-shrink-0" />
-                              <span className={`text-sm ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
-                                {feature.text}
-                              </span>
-                            </li>
-                          );
-                        })}
+                        {planFeatures.map((feature, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <span className={`text-sm ${isEnterprise ? 'text-white' : 'text-foreground'}`}>
+                              {feature}
+                            </span>
+                          </li>
+                        ))}
                       </ul>
                     </div>
 
