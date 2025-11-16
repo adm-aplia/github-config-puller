@@ -175,10 +175,30 @@ export default function CheckoutPage() {
     }
   };
 
+  const getFeatureIcon = (featureText: string) => {
+    const text = featureText.toLowerCase();
+    if (text.includes('whatsapp') || text.includes('número')) return MessageCircle;
+    if (text.includes('assistente')) return Bot;
+    if (text.includes('áudio')) return Users;
+    if (text.includes('emoji')) return Users;
+    if (text.includes('agendamento')) return Calendar;
+    if (text.includes('relatório')) return ChartColumn;
+    if (text.includes('lembrete')) return Bell;
+    if (text.includes('estatística')) return ChartColumn;
+    if (text.includes('google') || text.includes('integração')) return Calendar;
+    if (text.includes('suporte') && text.includes('24')) return Users;
+    if (text.includes('prioritário')) return Users;
+    if (text.includes('e-mail')) return Mail;
+    return Shield;
+  };
+
   const getPlanFeatures = (plan: any) => {
     // Usar features do banco de dados se disponíveis
     if (plan?.recursos?.features && Array.isArray(plan.recursos.features)) {
-      return plan.recursos.features;
+      return plan.recursos.features.map((feature: string) => ({
+        text: feature,
+        icon: getFeatureIcon(feature)
+      }));
     }
     
     return [];
@@ -538,11 +558,15 @@ export default function CheckoutPage() {
                   </p>
                   <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Benefícios inclusos:</h4>
                   <ul className="space-y-3">
-                    {getPlanFeatures(selectedPlan).map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm">
-                        <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-                      </li>
-                    ))}
+                    {getPlanFeatures(selectedPlan).map((feature, index) => {
+                      const FeatureIcon = feature.icon;
+                      return (
+                        <li key={index} className="flex items-center gap-3 text-sm">
+                          <FeatureIcon className="h-4 w-4 text-red-500 flex-shrink-0" />
+                          <span className="text-gray-700 dark:text-gray-300">{feature.text}</span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               </CardContent>
