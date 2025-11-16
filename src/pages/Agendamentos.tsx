@@ -743,7 +743,7 @@ export default function AgendamentosPage() {
                       head_row: "flex",
                       head_cell: "flex-1 text-muted-foreground rounded-md font-normal text-[0.75rem]",
                       row: "flex w-full mt-1",
-                      cell: "h-16 flex-1 w-full text-center p-0 relative border-r border-b border-border/20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                      cell: "h-20 flex-1 w-full text-center p-0 relative border-r border-b border-border/20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                       day: "w-full h-full p-0 font-normal bg-transparent text-foreground aria-selected:opacity-100 [&:has([aria-selected])]:bg-primary text-foreground rounded-0 hover:bg-accent/50 transition-colors flex flex-col items-center justify-center",
                       day_range_end: "day-range-end",
                       day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
