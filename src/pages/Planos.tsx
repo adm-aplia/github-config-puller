@@ -127,12 +127,11 @@ export default function Planos() {
                 return (
                   <div
                     key={plan.id}
-                    className={`relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${
+                    className={`relative rounded-3xl shadow-lg border-2 flex flex-col h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] text-card-foreground ${
                       isEnterprise
-                        ? 'border-[#2a3a5f]'
+                        ? 'border-[#2a3a5f] !bg-[#172138]'
                         : 'bg-card border-border hover:bg-white/80 hover:border-gray-200'
-                    } text-card-foreground`}
-                    style={isEnterprise ? { backgroundColor: '#172138' } : {}}
+                    }`}
                   >
                     {/* Badge */}
                     {isPopular && !isCurrent && (
