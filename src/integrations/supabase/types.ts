@@ -338,7 +338,6 @@ export type Database = {
           id: string
           instance_id: string | null
           last_message_at: string | null
-          patient_avatar_url: string | null
           patient_name: string | null
           patient_phone: string
           professional_profile_id: string | null
@@ -350,7 +349,6 @@ export type Database = {
           id?: string
           instance_id?: string | null
           last_message_at?: string | null
-          patient_avatar_url?: string | null
           patient_name?: string | null
           patient_phone: string
           professional_profile_id?: string | null
@@ -362,7 +360,6 @@ export type Database = {
           id?: string
           instance_id?: string | null
           last_message_at?: string | null
-          patient_avatar_url?: string | null
           patient_name?: string | null
           patient_phone?: string
           professional_profile_id?: string | null
