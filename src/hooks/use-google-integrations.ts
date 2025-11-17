@@ -165,9 +165,23 @@ export const useGoogleIntegrations = () => {
   // Função para sincronizar eventos automaticamente
   const syncGoogleEventsForProfile = async (credentialId: string, profileId: string) => {
     try {
-      const credential = credentials.find(c => c.id === credentialId);
+      // Buscar credencial do banco se não estiver no estado local
+      let credential = credentials.find(c => c.id === credentialId);
+      
       if (!credential) {
-        throw new Error('Credencial Google não encontrada');
+        console.log('⚠️ Credencial não encontrada no estado, buscando do banco...');
+        const { data: credData, error: credError } = await supabase
+          .from('google_credentials')
+          .select('*')
+          .eq('id', credentialId)
+          .single();
+        
+        if (credError || !credData) {
+          throw new Error('Credencial Google não encontrada no banco de dados');
+        }
+        
+        credential = credData;
+        console.log('✅ Credencial encontrada no banco:', credential.email);
       }
 
       const { data: authData } = await supabase.auth.getUser();
