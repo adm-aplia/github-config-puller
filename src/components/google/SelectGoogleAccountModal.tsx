@@ -94,6 +94,9 @@ export function SelectGoogleAccountModal({
 
   const handleConnectNew = async () => {
     setConnecting(true)
+    // Salvar profileId no localStorage para auto-link após OAuth
+    localStorage.setItem('pending_google_link_profile_id', profileId)
+    console.log('💾 [SelectGoogleAccountModal] Salvando pending_google_link_profile_id:', profileId)
     await onConnectNewAccount()
     setConnecting(false)
     onOpenChange(false)
