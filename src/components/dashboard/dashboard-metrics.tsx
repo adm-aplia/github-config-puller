@@ -30,6 +30,7 @@ function MetricCard({ title, value, description, icon: Icon, trend }: MetricCard
 interface DashboardMetricsProps {
   stats: DashboardStats | null
   loading: boolean
+  chartData?: { date: string; conversations: number; appointments: number }[]
   visibleCards?: {
     conversations: boolean
     appointments: boolean
@@ -38,7 +39,7 @@ interface DashboardMetricsProps {
   }
 }
 
-export function DashboardMetrics({ stats, loading, visibleCards }: DashboardMetricsProps) {
+export function DashboardMetrics({ stats, loading, chartData = [], visibleCards }: DashboardMetricsProps) {
   const defaultVisibleCards = {
     conversations: true,
     appointments: true,
@@ -47,6 +48,9 @@ export function DashboardMetrics({ stats, loading, visibleCards }: DashboardMetr
   }
   
   const cards = visibleCards || defaultVisibleCards
+  
+  // Calcular total de agendamentos do gráfico
+  const totalAppointmentsFromChart = chartData.reduce((sum, day) => sum + day.appointments, 0)
   if (loading) {
     return (
       <div className="grid gap-fluid-sm sm:gap-fluid-md grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 auto-rows-fr">
@@ -85,7 +89,7 @@ export function DashboardMetrics({ stats, loading, visibleCards }: DashboardMetr
       <MetricCard
         key="appointments"
         title="Agendamentos"
-        value={stats?.agendamentos_periodo || 0}
+        value={totalAppointmentsFromChart}
         description="no período selecionado"
         icon={Calendar}
       />
