@@ -36,19 +36,28 @@ export default function PerfilsPage() {
 
   // Listener para capturar callback do Google OAuth
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = async (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
       
       if (event.data?.googleAuth?.type === 'success') {
         const { credentialId, profileId } = event.data.googleAuth;
         
-        // Refetch credentials
-        refetchGoogle();
+        // Refetch credentials primeiro
+        await refetchGoogle();
         
         // Se veio do fluxo de auto-link, sincronizar eventos
         if (credentialId && profileId) {
           console.log('🔄 Auto-sincronizando eventos após criar conta Google:', { credentialId, profileId });
-          syncGoogleEventsForProfile(credentialId, profileId);
+          
+          // Aguardar um pouco para garantir que o refetch terminou
+          setTimeout(async () => {
+            try {
+              await syncGoogleEventsForProfile(credentialId, profileId);
+              console.log('✅ Sincronização automática concluída');
+            } catch (error) {
+              console.error('❌ Erro na sincronização automática:', error);
+            }
+          }, 500);
         }
       }
     };
