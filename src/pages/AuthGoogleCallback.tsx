@@ -75,41 +75,69 @@ export default function AuthGoogleCallback() {
 
         // Auto-link profile if pending
         const pendingProfileId = localStorage.getItem('pending_google_link_profile_id');
+        console.log('🔍 [AuthGoogleCallback] Verificando pending_google_link_profile_id:', pendingProfileId);
+        
         if (pendingProfileId) {
           try {
+            console.log('⏳ [AuthGoogleCallback] Aguardando 2 segundos para garantir que a credencial foi criada...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
             // Import supabase client
             const { supabase } = await import("@/integrations/supabase/client");
             
             // Get current user
             const { data: userData } = await supabase.auth.getUser();
+            console.log('👤 [AuthGoogleCallback] Usuário atual:', userData.user?.id);
             
             if (userData.user) {
               // Get the most recent Google credential for this user
-              const { data: credential } = await supabase
+              const { data: credential, error: credError } = await supabase
                 .from('google_credentials')
-                .select('id')
+                .select('id, email')
                 .eq('user_id', userData.user.id)
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .single();
               
+              console.log('🔑 [AuthGoogleCallback] Credencial encontrada:', credential, 'Erro:', credError);
+              
               if (credential) {
-                // Link the profile to the Google credential
-                await supabase
+                // Check if already linked
+                const { data: existingLink } = await supabase
                   .from('google_profile_links')
-                  .insert({
-                    google_credential_id: credential.id,
-                    professional_profile_id: pendingProfileId
-                  });
+                  .select('id')
+                  .eq('google_credential_id', credential.id)
+                  .eq('professional_profile_id', pendingProfileId)
+                  .single();
                 
-                console.log('[AuthGoogleCallback] Auto-linked profile to Google credential');
+                if (existingLink) {
+                  console.log('ℹ️ [AuthGoogleCallback] Link já existe, ignorando');
+                } else {
+                  // Link the profile to the Google credential
+                  const { error: linkError } = await supabase
+                    .from('google_profile_links')
+                    .insert({
+                      google_credential_id: credential.id,
+                      professional_profile_id: pendingProfileId
+                    });
+                  
+                  if (linkError) {
+                    console.error('❌ [AuthGoogleCallback] Erro ao criar link:', linkError);
+                  } else {
+                    console.log('✅ [AuthGoogleCallback] Auto-linked profile to Google credential');
+                  }
+                }
+              } else {
+                console.warn('⚠️ [AuthGoogleCallback] Nenhuma credencial Google encontrada para o usuário');
               }
             }
             
             // Clean up localStorage
             localStorage.removeItem('pending_google_link_profile_id');
+            console.log('🧹 [AuthGoogleCallback] Limpou pending_google_link_profile_id do localStorage');
           } catch (linkError) {
-            console.error('[AuthGoogleCallback] Failed to auto-link profile:', linkError);
+            console.error('❌ [AuthGoogleCallback] Failed to auto-link profile:', linkError);
+            localStorage.removeItem('pending_google_link_profile_id');
             // Don't fail the whole process if linking fails
           }
         }

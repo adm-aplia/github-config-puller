@@ -267,7 +267,7 @@ export const useGoogleCalendarEvents = () => {
           : null;
 
         const appointment = {
-          id: crypto.randomUUID(), // Gerar UUID único para cada appointment
+          // appointment_id será gerado automaticamente pelo banco (gen_random_uuid())
           user_id: userData.user.id,
           professional_profile_id: professionalProfileId,
           patient_name: event.summary || 'Evento Google Calendar',
@@ -317,10 +317,31 @@ export const useGoogleCalendarEvents = () => {
         console.log(`📦 Processando lote ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(appointmentsToCreate.length / BATCH_SIZE)} (${batch.length} appointments)...`);
 
         try {
-          // 1. Extrair google_event_ids do lote
-          const eventIds = batch.map(a => a.google_event_id).filter(Boolean);
+          // 1. Validar campos obrigatórios antes de inserir
+          const validAppointments = batch.filter(apt => {
+            const isValid = apt.user_id && apt.patient_name && apt.patient_phone && apt.appointment_date;
+            if (!isValid) {
+              console.error('❌ Appointment inválido (faltam campos obrigatórios):', {
+                google_event_id: apt.google_event_id,
+                has_user_id: !!apt.user_id,
+                has_patient_name: !!apt.patient_name,
+                has_patient_phone: !!apt.patient_phone,
+                has_appointment_date: !!apt.appointment_date
+              });
+              totalErrors++;
+            }
+            return isValid;
+          });
+
+          if (validAppointments.length === 0) {
+            console.warn('⚠️ Nenhum appointment válido neste lote');
+            continue;
+          }
           
-          // 2. Buscar quais já existem no banco
+          // 2. Extrair google_event_ids do lote válido
+          const eventIds = validAppointments.map(a => a.google_event_id).filter(Boolean);
+          
+          // 3. Buscar quais já existem no banco
           const { data: existing } = await supabase
             .from('appointments')
             .select('google_event_id')
@@ -328,18 +349,26 @@ export const useGoogleCalendarEvents = () => {
           
           const existingIds = new Set(existing?.map(e => e.google_event_id) || []);
           
-          // 3. Filtrar apenas novos appointments
-          const newAppointments = batch.filter(a => !existingIds.has(a.google_event_id));
+          // 4. Filtrar apenas novos appointments
+          const newAppointments = validAppointments.filter(a => !existingIds.has(a.google_event_id));
           
-          // 4. Inserir apenas os novos
+          // 5. Inserir apenas os novos
           if (newAppointments.length > 0) {
+            console.log(`💾 Inserindo ${newAppointments.length} novos appointments...`);
             const { data: insertedData, error } = await supabase
               .from('appointments')
               .insert(newAppointments)
               .select();
 
             if (error) {
-              console.error('❌ Erro ao inserir lote de appointments:', error);
+              console.error('❌ Erro ao inserir lote de appointments:', {
+                error,
+                code: error.code,
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                sample_appointment: newAppointments[0]
+              });
               totalErrors++;
             } else {
               const inserted = insertedData?.length || 0;
