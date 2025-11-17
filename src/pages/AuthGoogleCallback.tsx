@@ -125,11 +125,11 @@ export default function AuthGoogleCallback() {
                     console.error('❌ [AuthGoogleCallback] Erro ao criar link:', linkError);
                   } else {
                     console.log('✅ [AuthGoogleCallback] Auto-linked profile to Google credential');
+                    // Store for postMessage
+                    (window as any).__autoLinkedCredentialId = credential.id;
+                    (window as any).__autoLinkedProfileId = pendingProfileId;
                   }
                 }
-                
-                // Store credential ID for later use
-                (window as any).__autoLinkedCredentialId = credential.id;
               } else {
                 console.warn('⚠️ [AuthGoogleCallback] Nenhuma credencial Google encontrada para o usuário');
               }
@@ -148,15 +148,21 @@ export default function AuthGoogleCallback() {
         setStatus("success");
         setMessage("Conta Google conectada!");
         
-        // Get stored credential ID if auto-linked
+        // Get stored credential ID and profile ID if auto-linked
         const autoLinkedCredentialId = (window as any).__autoLinkedCredentialId;
-        const storedProfileId = localStorage.getItem('pending_google_link_profile_id');
+        const autoLinkedProfileId = (window as any).__autoLinkedProfileId;
+        
+        console.log('📤 [AuthGoogleCallback] Enviando postMessage:', { 
+          autoLinkedCredentialId, 
+          autoLinkedProfileId,
+          hasOpener: !!window.opener
+        });
         
         sendMessageToOpener({ 
           type: 'success',
-          ...(autoLinkedCredentialId && storedProfileId && {
+          ...(autoLinkedCredentialId && autoLinkedProfileId && {
             credentialId: autoLinkedCredentialId,
-            profileId: storedProfileId
+            profileId: autoLinkedProfileId
           })
         });
       } catch (err) {

@@ -37,33 +37,48 @@ export default function PerfilsPage() {
   // Listener para capturar callback do Google OAuth
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
+      console.log('📨 [Perfis] Mensagem recebida:', event.data);
+      
+      if (event.origin !== window.location.origin) {
+        console.log('⚠️ [Perfis] Origem diferente, ignorando');
+        return;
+      }
       
       if (event.data?.googleAuth?.type === 'success') {
         const { credentialId, profileId } = event.data.googleAuth;
         
+        console.log('✅ [Perfis] Mensagem de sucesso recebida:', { credentialId, profileId });
+        
         // Refetch credentials primeiro
         await refetchGoogle();
+        console.log('🔄 [Perfis] Credentials refetchadas');
         
         // Se veio do fluxo de auto-link, sincronizar eventos
         if (credentialId && profileId) {
-          console.log('🔄 Auto-sincronizando eventos após criar conta Google:', { credentialId, profileId });
+          console.log('🔄 [Perfis] Iniciando sincronização automática...', { credentialId, profileId });
           
           // Aguardar um pouco para garantir que o refetch terminou
           setTimeout(async () => {
             try {
+              console.log('🚀 [Perfis] Chamando syncGoogleEventsForProfile...');
               await syncGoogleEventsForProfile(credentialId, profileId);
-              console.log('✅ Sincronização automática concluída');
+              console.log('✅ [Perfis] Sincronização automática concluída');
             } catch (error) {
-              console.error('❌ Erro na sincronização automática:', error);
+              console.error('❌ [Perfis] Erro na sincronização automática:', error);
             }
-          }, 500);
+          }, 1000);
+        } else {
+          console.log('ℹ️ [Perfis] Sem credentialId/profileId, não vai sincronizar');
         }
       }
     };
 
+    console.log('👂 [Perfis] Adicionando listener de mensagens');
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    return () => {
+      console.log('🔇 [Perfis] Removendo listener de mensagens');
+      window.removeEventListener('message', handleMessage);
+    };
   }, [refetchGoogle, syncGoogleEventsForProfile]);
 
   const handleCreateProfile = async (data) => {
