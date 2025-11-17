@@ -165,7 +165,8 @@ export default function DashboardPage() {
           {dashboardConfig.showMetrics && (
             <DashboardMetrics 
               stats={stats} 
-              loading={statsLoading} 
+              loading={statsLoading}
+              chartData={chartData}
               visibleCards={dashboardConfig.metricCards}
             />
           )}
