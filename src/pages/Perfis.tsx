@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -22,7 +22,7 @@ import { formatLimit, formatUsage, canCreateMore, isUnlimited } from "@/lib/limi
 
 export default function PerfilsPage() {
   const { profiles, limits, loading, createProfile, updateProfile, deleteProfile, refetch } = useProfessionalProfiles()
-  const { credentials, profileLinks, connectGoogleAccount, linkProfileToGoogle, unlinkProfileFromGoogle, refetch: refetchGoogle } = useGoogleIntegrations()
+  const { credentials, profileLinks, connectGoogleAccount, linkProfileToGoogle, unlinkProfileFromGoogle, syncGoogleEventsForProfile, refetch: refetchGoogle } = useGoogleIntegrations()
   const { instances, createInstance, updateInstance, refetch: refetchInstances } = useWhatsAppInstances()
   const { subscription } = useSubscription()
   const [showForm, setShowForm] = useState(false)
@@ -33,6 +33,29 @@ export default function PerfilsPage() {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null)
   const [showQrDialog, setShowQrDialog] = useState(false)
   const [createdInstance, setCreatedInstance] = useState<any>(null)
+
+  // Listener para capturar callback do Google OAuth
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      
+      if (event.data?.googleAuth?.type === 'success') {
+        const { credentialId, profileId } = event.data.googleAuth;
+        
+        // Refetch credentials
+        refetchGoogle();
+        
+        // Se veio do fluxo de auto-link, sincronizar eventos
+        if (credentialId && profileId) {
+          console.log('🔄 Auto-sincronizando eventos após criar conta Google:', { credentialId, profileId });
+          syncGoogleEventsForProfile(credentialId, profileId);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [refetchGoogle, syncGoogleEventsForProfile]);
 
   const handleCreateProfile = async (data) => {
     const success = await createProfile(data)
