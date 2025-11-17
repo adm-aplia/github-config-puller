@@ -504,6 +504,7 @@ export const useGoogleIntegrations = () => {
     linkProfileToGoogle,
     unlinkProfileFromGoogle,
     refreshGoogleToken,
+    syncGoogleEventsForProfile,
     refetch: fetchCredentials,
   };
 };
