@@ -688,6 +688,7 @@ export type Database = {
           instagram: string | null
           installment_enabled: boolean | null
           is_active: boolean | null
+          is_google_connected: boolean | null
           locations: string | null
           max_installments: number | null
           paymentmethods: string | null
@@ -711,6 +712,7 @@ export type Database = {
           instagram?: string | null
           installment_enabled?: boolean | null
           is_active?: boolean | null
+          is_google_connected?: boolean | null
           locations?: string | null
           max_installments?: number | null
           paymentmethods?: string | null
@@ -734,6 +736,7 @@ export type Database = {
           instagram?: string | null
           installment_enabled?: boolean | null
           is_active?: boolean | null
+          is_google_connected?: boolean | null
           locations?: string | null
           max_installments?: number | null
           paymentmethods?: string | null
