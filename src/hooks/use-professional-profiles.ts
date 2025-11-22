@@ -26,6 +26,7 @@ export interface ProfessionalProfile {
   reminder_message?: string;
   custom_reminder_time?: string;
   is_active?: boolean;
+  is_google_connected?: boolean;
   created_at: string;
   updated_at: string;
 }
