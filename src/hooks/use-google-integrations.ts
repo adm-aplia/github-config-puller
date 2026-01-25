@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useGoogleCalendarEvents } from '@/hooks/use-google-calendar-events';
+import { syncGoogleEventsWebhook } from '@/lib/n8n-proxy';
 
 export interface GoogleCredential {
   id: string;
@@ -206,16 +207,11 @@ export const useGoogleIntegrations = () => {
 
       console.log('🔄 Sincronizando eventos automaticamente:', query);
 
-      const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/eventos-google-agenda', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify([{ query: JSON.stringify(query) }])
-      });
+      // Use secure proxy instead of direct webhook call
+      const result = await syncGoogleEventsWebhook(query);
 
-      if (response.ok) {
-        const data = await response.json();
+      if (result.success && result.data) {
+        const data = result.data;
         console.log('✅ Dados recebidos do N8N:', data);
 
         if (data && data[0] && data[0].response) {
@@ -252,9 +248,8 @@ export const useGoogleIntegrations = () => {
           return true; // Sucesso mesmo sem eventos
         }
       } else {
-        const errorText = await response.text();
-        console.error('❌ Erro no servidor N8N:', response.status, errorText);
-        throw new Error(`Erro do servidor N8N: ${response.status} - ${errorText}`);
+        console.error('❌ Erro no servidor N8N:', result.status);
+        throw new Error(`Erro do servidor N8N: ${result.status}`);
       }
     } catch (error) {
       console.error('❌ Erro na sincronização automática:', error);

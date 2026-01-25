@@ -3,6 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import { normalizePhoneNumber } from '@/lib/whatsapp';
+import { 
+  sendAppointmentWebhook, 
+  sendCancellationWebhook, 
+  sendDeletionWebhook, 
+  sendRescheduleWebhook 
+} from '@/lib/n8n-proxy';
 
 export interface Appointment {
   id: string;
@@ -118,28 +124,20 @@ export const useAppointments = () => {
     }
   };
 
-  // Helper function to send individual appointment to webhook
-  const sendAppointmentToWebhook = async (queryObj: any) => {
-    const payload = [{ query: JSON.stringify(queryObj) }]
+  // Helper function to send individual appointment to webhook (now uses secure proxy)
+  const sendAppointmentToWebhook = async (queryObj: unknown) => {
+    const result = await sendAppointmentWebhook(queryObj);
     
-    const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/agendamento-aplia', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    })
-
-    if (!response.ok) {
-      throw new Error(`Webhook error: ${response.status}`)
+    if (!result.success) {
+      throw new Error(`Webhook error: ${result.status}`);
     }
 
     // Add delay between requests
-    await new Promise(resolve => setTimeout(resolve, 200))
+    await new Promise(resolve => setTimeout(resolve, 200));
   }
 
-  // Send cancellation webhook
-  const sendCancellationWebhook = async (appointment: Appointment) => {
+  // Send cancellation webhook (now uses secure proxy)
+  const sendCancellationToWebhook = async (appointment: Appointment) => {
     const phoneNumber = normalizePhoneNumber(appointment.patient_phone);
     const formattedPhone = phoneNumber.startsWith('55') ? `+${phoneNumber}` : `+55${phoneNumber}`;
     
@@ -150,27 +148,18 @@ export const useAppointments = () => {
       appointment_date: format(new Date(appointment.appointment_date), 'yyyy-MM-dd')
     };
 
-    const payload = [{ query: JSON.stringify(queryObj) }];
-    
-    const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/cancelamento-site', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Cancellation webhook error: ${response.status}`);
-    }
-
-    const result = await response.json();
+    const result = await sendCancellationWebhook(queryObj);
     console.log('[cancelamento-webhook] Response:', result);
-    return result;
+    
+    if (!result.success) {
+      throw new Error(`Cancellation webhook error: ${result.status}`);
+    }
+    
+    return result.data;
   }
 
-  // Send deletion webhook
-  const sendDeletionWebhook = async (appointment: Appointment) => {
+  // Send deletion webhook (now uses secure proxy)
+  const sendDeletionToWebhook = async (appointment: Appointment) => {
     const phoneNumber = normalizePhoneNumber(appointment.patient_phone);
     const formattedPhone = phoneNumber.startsWith('55') ? `+${phoneNumber}` : `+55${phoneNumber}`;
     
@@ -181,23 +170,14 @@ export const useAppointments = () => {
       appointment_date: format(new Date(appointment.appointment_date), 'yyyy-MM-dd')
     };
 
-    const payload = [{ query: JSON.stringify(queryObj) }];
-    
-    const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/deletar-site', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Deletion webhook error: ${response.status}`);
-    }
-
-    const result = await response.json();
+    const result = await sendDeletionWebhook(queryObj);
     console.log('[deletar-webhook] Response:', result);
-    return result;
+    
+    if (!result.success) {
+      throw new Error(`Deletion webhook error: ${result.status}`);
+    }
+    
+    return result.data;
   }
 
   const createAppointmentsFromGoogleEvents = async (payload: any, professionalId?: string) => {
@@ -539,16 +519,12 @@ export const useAppointments = () => {
           }
         ];
 
-        // Enviar para webhook
+        // Enviar para webhook (usando proxy seguro)
         try {
-          const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/remarcar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(webhookPayload)
-          });
+          const result = await sendRescheduleWebhook(webhookPayload);
 
-          if (!response.ok) {
-            console.error('Erro ao enviar webhook de remarcar:', response.statusText);
+          if (!result.success) {
+            console.error('Erro ao enviar webhook de remarcar:', result.status);
           } else {
             console.log('✅ Webhook de remarcar enviado com sucesso');
           }
@@ -753,16 +729,10 @@ export const useAppointments = () => {
 
       console.log('Sending reschedule webhook payload:', JSON.stringify(payload, null, 2));
 
-      const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/remarcar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
+      const result = await sendRescheduleWebhook(payload);
 
-      if (!response.ok) {
-        throw new Error(`Webhook error: ${response.status}`);
+      if (!result.success) {
+        throw new Error(`Webhook error: ${result.status}`);
       }
 
       // Optionally refresh appointments after a delay to see changes
@@ -868,15 +838,9 @@ export const useAppointments = () => {
         }
       ]
 
-      const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/remarcar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      })
+      const result = await sendRescheduleWebhook(payload)
 
-      if (!response.ok) {
+      if (!result.success) {
         throw new Error('Failed to update blocked appointment')
       }
 
