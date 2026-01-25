@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useProfessionalProfiles } from "@/hooks/use-professional-profiles"
 import { useAuth } from "@/components/auth-provider"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
+import { sendAppointmentWebhook } from "@/lib/n8n-proxy"
 
 // Map Portuguese status to English for webhook
 const mapStatusToEnglish = (status: string): string => {
@@ -133,22 +134,12 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
         ...(myEmail && { my_email: myEmail })
       }
 
-      // Send to webhook in the correct array format
-      const payload = [{
-        query: JSON.stringify(queryObj)
-      }]
+      // Send to webhook via secure proxy
+      console.log('Sending webhook payload:', queryObj)
 
-      console.log('Sending webhook payload:', JSON.stringify(payload, null, 2))
+      const result = await sendAppointmentWebhook(queryObj)
 
-      const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/agendamento-aplia', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      })
-
-      if (response.ok) {
+      if (result.success) {
         toast({
           title: "Agendamento criado",
           description: "O agendamento foi criado com sucesso.",
@@ -169,13 +160,9 @@ export function AppointmentCreateModal({ open, onOpenChange, onSuccess }: Appoin
         setSelectedTime("")
         
         onOpenChange(false)
-        
-        // Call success callback after a short delay to allow for backend processing
-        if (onSuccess) {
-          setTimeout(onSuccess, 1000)
-        }
+        onSuccess?.()
       } else {
-        throw new Error(`HTTP ${response.status}`)
+        throw new Error(`Erro ao criar agendamento: ${result.status}`)
       }
     } catch (error) {
       toast({

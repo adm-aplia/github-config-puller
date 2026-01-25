@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizePhoneNumber } from '@/lib/whatsapp';
+import { sendChatWebhook } from '@/lib/n8n-proxy';
 
 export interface Message {
   id: string;
@@ -128,13 +129,8 @@ export const useMessages = (conversationId?: string) => {
               user_id: conversationData.user_id || null
             };
 
-            // Send webhook (fire-and-forget, don't await)
-            fetch("https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/apliachatinterno", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(webhookPayload),
-              mode: "no-cors"
-            }).catch(error => {
+            // Send webhook via secure proxy (fire-and-forget)
+            sendChatWebhook(webhookPayload).catch(error => {
               console.error('Webhook error:', error);
             });
           }

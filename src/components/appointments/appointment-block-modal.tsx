@@ -19,6 +19,7 @@ import { useAuth } from "@/components/auth-provider"
 import { useGoogleIntegrations } from "@/hooks/use-google-integrations"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
+import { sendAppointmentWebhook } from "@/lib/n8n-proxy"
 
 interface AppointmentBlockModalProps {
   open: boolean
@@ -66,23 +67,16 @@ export function AppointmentBlockModal({ open, onOpenChange, onSuccess }: Appoint
     return ""
   }
 
-  // Helper function to send individual appointment to webhook
-  const sendAppointmentToWebhook = async (queryObj: any) => {
+  // Helper function to send individual appointment to webhook (now uses secure proxy)
+  const sendAppointmentToWebhook = async (queryObj: unknown) => {
     console.log('🔄 Enviando bloqueio para webhook:', queryObj)
-    const payload = [{ query: JSON.stringify(queryObj) }]
     
-    const response = await fetch('https://aplia-n8n-webhook.kopfcf.easypanel.host/webhook/agendamento-aplia', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    })
+    const result = await sendAppointmentWebhook(queryObj)
 
-    console.log('📡 Resposta do webhook:', response.status, response.statusText)
+    console.log('📡 Resposta do webhook:', result.status, result.success)
 
-    if (!response.ok) {
-      throw new Error(`Webhook error: ${response.status}`)
+    if (!result.success) {
+      throw new Error(`Webhook error: ${result.status}`)
     }
 
     // Add delay between requests

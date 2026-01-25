@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { GOOGLE_OAUTH, getRedirectUri } from "@/config/google";
+import { getRedirectUri } from "@/config/google";
+import { sendGoogleOAuthWebhook } from "@/lib/n8n-proxy";
 
 export default function AuthGoogleCallback() {
   const [status, setStatus] = useState<"working" | "success" | "error">("working");
@@ -65,13 +66,10 @@ export default function AuthGoogleCallback() {
           full_url: window.location.href,
         };
 
-        const resp = await fetch(GOOGLE_OAUTH.webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+        // Send via secure proxy
+        const result = await sendGoogleOAuthWebhook(payload);
 
-        if (!resp.ok) throw new Error("webhook_failed");
+        if (!result.success) throw new Error("webhook_failed");
 
         // Auto-link profile if pending
         const pendingProfileId = localStorage.getItem('pending_google_link_profile_id');
